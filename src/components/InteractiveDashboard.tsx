@@ -101,7 +101,7 @@ export const InteractiveDashboard: React.FC = () => {
         </div>
 
         {/* Live Pulse Sensor */}
-        <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-mono bg-emerald-950/50 px-2.5 py-1 rounded-full border border-emerald-500/30">
+        <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono bg-emerald-950/50 px-2.5 py-1 rounded-full border border-emerald-500/30">
           <RefreshCw className="w-3 h-3 animate-spin text-emerald-400" />
           <span>Live Vault Sync</span>
         </div>
@@ -117,10 +117,10 @@ export const InteractiveDashboard: React.FC = () => {
             className="px-4 py-2 bg-purple-950 border-b border-purple-500/40 text-purple-200 text-xs flex items-center justify-between font-mono"
           >
             <div className="flex items-center gap-2">
-              <Bell className="w-4 h-4 text-purple-400 animate-bounce" />
+              <Bell className="w-4 h-4 text-purple-400 animate-pulse" />
               <span>{notification}</span>
             </div>
-            <span className="text-[10px] text-purple-400 uppercase">SYSTEM LOGGED</span>
+            <span className="text-xs text-purple-400 uppercase">SYSTEM LOGGED</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -134,7 +134,7 @@ export const InteractiveDashboard: React.FC = () => {
               <div>
                 <h4 className="text-base font-bold text-white flex items-center gap-2">
                   Regional Blood Vault Stock
-                  <span className="text-[10px] font-mono font-normal text-neutral-400">
+                  <span className="text-xs font-mono font-normal text-neutral-400">
                     (Click any group to simulate emergency dispatch)
                   </span>
                 </h4>
@@ -153,14 +153,14 @@ export const InteractiveDashboard: React.FC = () => {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-lg font-bold text-white">{item.type}</span>
-                    <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-black/50">
+                    <span className="text-xs uppercase font-bold px-1.5 py-0.5 rounded bg-black/50">
                       {item.status}
                     </span>
                   </div>
                   <div className="text-2xl font-mono font-bold text-white mb-2">
                     {item.units} <span className="text-xs text-neutral-400 font-normal">units</span>
                   </div>
-                  <div className="text-[11px] text-purple-300 group-hover:text-white flex items-center gap-1">
+                  <div className="text-xs text-purple-300 group-hover:text-white flex items-center gap-1">
                     <Send className="w-3 h-3 text-purple-400" />
                     <span>Click to Dispatch</span>
                   </div>
@@ -188,7 +188,7 @@ export const InteractiveDashboard: React.FC = () => {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-mono font-bold text-purple-400">{ord.id}</span>
                       <span className="text-white font-semibold">{ord.hospital}</span>
-                      <span className="px-2 py-0.5 rounded bg-red-950 text-red-400 font-mono text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-red-950 text-red-400 font-mono text-xs">
                         {ord.urgency}
                       </span>
                     </div>
@@ -226,19 +226,19 @@ export const InteractiveDashboard: React.FC = () => {
               <div className="p-4 rounded-xl bg-neutral-900 border border-white/10 text-xs">
                 <div className="text-neutral-400 mb-1">Main Storage Vault Temp</div>
                 <div className="text-3xl font-mono font-bold text-emerald-400 mb-2">2.4°C</div>
-                <div className="text-[11px] text-neutral-400">Target Range: 2.0°C - 6.0°C</div>
+                <div className="text-xs text-neutral-400">Target Range: 2.0°C - 6.0°C</div>
               </div>
 
               <div className="p-4 rounded-xl bg-neutral-900 border border-white/10 text-xs">
                 <div className="text-neutral-400 mb-1">Emergency Plasma Unit</div>
-                <div className="text-3xl font-mono font-bold text-purple-400 mb-2">-18.2°C</div>
-                <div className="text-[11px] text-neutral-400">Deep Freeze Protocol Active</div>
+                <div className="text-3xl font-mono font-bold text-rose-400 mb-2">-18.2°C</div>
+                <div className="text-xs text-neutral-400">Deep Freeze Protocol Active</div>
               </div>
 
               <div className="p-4 rounded-xl bg-neutral-900 border border-white/10 text-xs">
                 <div className="text-neutral-400 mb-1">Power Backup Health</div>
                 <div className="text-3xl font-mono font-bold text-white mb-2">100%</div>
-                <div className="text-[11px] text-emerald-400">Dual Generator Ready</div>
+                <div className="text-xs text-emerald-400">Dual Generator Ready</div>
               </div>
             </div>
           </div>

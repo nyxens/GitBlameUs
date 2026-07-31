@@ -10,7 +10,6 @@ import { DonorModal } from './components/DonorModal';
 import { HospitalPortalModal } from './components/HospitalPortalModal';
 import { FindBloodModal } from './components/FindBloodModal';
 import { GetStartedModal } from './components/GetStartedModal';
-
 export function App() {
   const [donorModalOpen, setDonorModalOpen] = useState<boolean>(false);
   const [hospitalModalOpen, setHospitalModalOpen] = useState<boolean>(false);

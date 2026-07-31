@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Droplet, ArrowRight } from 'lucide-react';
 import { DotMatrixBackground } from './DotMatrixBackground';
 import { InteractiveDashboard } from './InteractiveDashboard';
+import { AnimatedButton } from './AnimatedButton';
 
 interface HeroSectionProps {
   onOpenFindBloodModal: () => void;
@@ -59,37 +60,37 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenFindBloodModal, 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg font-normal leading-6 opacity-90 mb-8 max-w-2xl text-[var(--hero-subtitle)]"
+          className="text-lg md:text-xl text-neutral-400 font-normal leading-relaxed max-w-2xl mb-8"
         >
-          LifeVault empowers hospitals to seamlessly connect with regional blood banks,<br />track critical inventory, and manage blood supply thoroughly.
+          Real-time blood stock telemetry, emergency dispatch routing, and cold-chain compliance built for modern health networks.
         </motion.p>
 
-        {/* Hero Action Buttons */}
+        {/* Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <motion.button
+          <AnimatedButton
+            variant="danger"
+            size="lg"
             onClick={onOpenFindBloodModal}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full sm:w-auto bg-red-600 hover:bg-red-500 text-white rounded-full px-8 py-3.5 text-base font-medium shadow-lg shadow-red-950/50 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto rounded-full"
           >
             <Droplet className="w-5 h-5 fill-white" />
             <span>Find Blood</span>
-          </motion.button>
+          </AnimatedButton>
 
-          <motion.button
+          <AnimatedButton
+            variant="primary"
+            size="lg"
             onClick={onOpenGetStartedModal}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full sm:w-auto bg-foreground text-background rounded-full px-8 py-3.5 text-base font-medium shadow-lg shadow-white/10 hover:shadow-white/20 transition-shadow flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full sm:w-auto rounded-full"
           >
             <span>Get Started</span>
             <ArrowRight className="w-4 h-4" />
-          </motion.button>
+          </AnimatedButton>
         </motion.div>
       </motion.div>
 

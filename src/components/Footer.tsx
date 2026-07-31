@@ -6,8 +6,8 @@ export const Footer = () => {
         <div className="md:col-span-1 flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="LifeVault Logo" className="w-6 h-6 object-contain" />
-            <span className="text-xl font-bold tracking-tight text-white">
-              LifeVault
+            <span className="text-xl font-bold tracking-tight text-white font-brand">
+              Life<span className="text-purple-400 font-syne">Vault</span>
             </span>
           </div>
           <p className="text-sm leading-relaxed text-neutral-400">

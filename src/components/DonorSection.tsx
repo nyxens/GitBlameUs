@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, Calendar, ShieldCheck, Award, ArrowRight } from 'lucide-react';
+import { SpotlightCard } from './SpotlightCard';
+import { AnimatedButton } from './AnimatedButton';
 
 interface DonorSectionProps {
   onOpenDonorModal: () => void;
@@ -37,53 +39,59 @@ export const DonorSection: React.FC<DonorSectionProps> = ({ onOpenDonorModal }) 
 
         {/* 3 Step Donor Process Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          <div className="p-6 rounded-2xl bg-neutral-950 border border-white/10 flex flex-col justify-between hover:border-red-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-lg mb-4 group-hover:scale-110 transition-transform">
-                1
+          <SpotlightCard spotlightColor="rgba(239, 68, 68, 0.15)" className="rounded-2xl bg-neutral-950 border border-white/10 hover:border-red-500/50 shadow-xl">
+            <div className="p-6 h-full flex flex-col justify-between group">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-lg mb-4 group-hover:scale-110 transition-transform">
+                  1
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">Check Eligibility</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Check your blood type compatibility, weight, and health requirements in under 60 seconds.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Check Eligibility</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Check your blood type compatibility, weight, and health requirements in under 60 seconds.
-              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-red-400 font-medium">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Instant Digital Check</span>
+              </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-red-400 font-medium">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Instant Digital Check</span>
-            </div>
-          </div>
+          </SpotlightCard>
 
-          <div className="p-6 rounded-2xl bg-neutral-950 border border-white/10 flex flex-col justify-between hover:border-red-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-lg mb-4 group-hover:scale-110 transition-transform">
-                2
+          <SpotlightCard spotlightColor="rgba(239, 68, 68, 0.15)" className="rounded-2xl bg-neutral-950 border border-white/10 hover:border-red-500/50 shadow-xl">
+            <div className="p-6 h-full flex flex-col justify-between group">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-lg mb-4 group-hover:scale-110 transition-transform">
+                  2
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">Book Appointment</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Choose a nearby certified LifeVault blood center or mobile donor drive with zero waiting time.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Book Appointment</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Choose a nearby certified LifeVault blood center or mobile donor drive with zero waiting time.
-              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-red-400 font-medium">
+                <Calendar className="w-4 h-4" />
+                <span>Flexible Time Slots</span>
+              </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-red-400 font-medium">
-              <Calendar className="w-4 h-4" />
-              <span>Flexible Time Slots</span>
-            </div>
-          </div>
+          </SpotlightCard>
 
-          <div className="p-6 rounded-2xl bg-neutral-950 border border-white/10 flex flex-col justify-between hover:border-red-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-lg mb-4 group-hover:scale-110 transition-transform">
-                3
+          <SpotlightCard spotlightColor="rgba(239, 68, 68, 0.15)" className="rounded-2xl bg-neutral-950 border border-white/10 hover:border-red-500/50 shadow-xl">
+            <div className="p-6 h-full flex flex-col justify-between group">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-lg mb-4 group-hover:scale-110 transition-transform">
+                  3
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">Track Impact</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Receive notifications when your donated blood is dispatched to emergency care to save a patient.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Track Impact</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Receive notifications when your donated blood is dispatched to emergency care to save a patient.
-              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-red-400 font-medium">
+                <Award className="w-4 h-4" />
+                <span>Live Life-Saver Updates</span>
+              </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-red-400 font-medium">
-              <Award className="w-4 h-4" />
-              <span>Live Life-Saver Updates</span>
-            </div>
-          </div>
+          </SpotlightCard>
         </div>
 
         {/* Interactive Blood Type Compatibility Tool */}
@@ -130,13 +138,15 @@ export const DonorSection: React.FC<DonorSectionProps> = ({ onOpenDonorModal }) 
             <Heart className="w-12 h-12 text-red-500 fill-red-500 animate-pulse mb-3" />
             <h4 className="text-lg font-bold text-white mb-1">Ready to Save a Life?</h4>
             <p className="text-xs text-neutral-300 mb-4">Book your appointment in 60 seconds</p>
-            <button
+            <AnimatedButton
+              variant="danger"
+              size="lg"
               onClick={onOpenDonorModal}
-              className="w-full bg-red-600 hover:bg-red-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-red-950/60 transition-all flex items-center justify-center gap-2"
+              className="w-full"
             >
               <span>Schedule Donation</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </AnimatedButton>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Menu, X, Heart, Building2, Info, MessageSquare } from 'lucide-react';
+import { AnimatedButton } from './AnimatedButton';
 
 interface NavbarProps {
   onOpenGetStartedModal: () => void;
@@ -10,37 +11,42 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenGetStartedModal }) => {
 
   return (
     <nav className="relative z-50 w-full px-6 md:px-20 py-4 flex items-center justify-between bg-black/70 backdrop-blur-md border-b border-white/10">
-      {/* Left side: Pure "LifeVault" text (Logo entirely removed per user request) */}
-      <a href="#" className="text-xl font-bold tracking-tight text-white leading-none hover:opacity-90 transition-opacity">
-        LifeVault
+      {/* Left side: Premium "LifeVault" Brand Heading */}
+      <a
+        href="#"
+        className="flex items-center gap-1 text-2xl font-extrabold tracking-tight text-white leading-none font-brand hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded-md"
+      >
+        <span>
+          Life<span className="text-purple-400 font-syne">Vault</span>
+        </span>
       </a>
 
       {/* Center Nav links */}
       <div className="hidden md:flex items-center gap-2 text-sm font-medium text-neutral-300">
         <a
           href="#for-donors"
-          className="px-3.5 py-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5"
+          className="px-3.5 py-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
         >
           <Heart className="w-4 h-4 text-red-400" />
           <span>For Donors</span>
         </a>
         <a
           href="#for-hospitals"
-          className="px-3.5 py-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5"
+          className="px-3.5 py-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
         >
           <Building2 className="w-4 h-4 text-purple-400" />
           <span>For Hospitals</span>
         </a>
         <a
           href="#reviews"
-          className="px-3.5 py-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5"
+          className="px-3.5 py-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
         >
           <MessageSquare className="w-4 h-4 text-neutral-400" />
           <span>Reviews</span>
         </a>
         <a
           href="#about"
-          className="px-3.5 py-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5"
+          className="px-3.5 py-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
         >
           <Info className="w-4 h-4 text-neutral-400" />
           <span>About</span>
@@ -49,17 +55,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenGetStartedModal }) => {
 
       {/* Right side: Single clean "Get Started" button */}
       <div className="flex items-center gap-3">
-        <button
+        <AnimatedButton
+          variant="primary"
+          size="md"
           onClick={onOpenGetStartedModal}
-          className="bg-foreground text-background hover:bg-white/90 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-white/20"
         >
           Get Started
-        </button>
+        </AnimatedButton>
 
         {/* Mobile menu toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 text-neutral-400 hover:text-white"
+          aria-expanded={mobileMenuOpen}
+          aria-label="Toggle navigation menu"
+          className="md:hidden p-2 text-neutral-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded-lg"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>

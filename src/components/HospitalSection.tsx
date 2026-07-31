@@ -1,5 +1,7 @@
 import React from 'react';
 import { Building2, ShieldCheck, Activity, Truck, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { SpotlightCard } from './SpotlightCard';
+import { AnimatedButton } from './AnimatedButton';
 
 interface HospitalSectionProps {
   onOpenHospitalModal: () => void;
@@ -25,69 +27,77 @@ export const HospitalSection: React.FC<HospitalSectionProps> = ({ onOpenHospital
 
         {/* Feature Cards Grid - Pure Dark Purple Look */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <div className="p-6 rounded-2xl bg-neutral-950 border border-white/10 flex flex-col justify-between hover:border-purple-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 w-fit mb-4 group-hover:scale-105 transition-transform">
-                <Truck className="w-6 h-6" />
+          <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.18)" className="rounded-2xl bg-neutral-950 border border-white/10 hover:border-purple-500/50 shadow-xl">
+            <div className="p-6 h-full flex flex-col justify-between group">
+              <div>
+                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 w-fit mb-4 group-hover:scale-105 transition-transform">
+                  <Truck className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Emergency Dispatch</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Order urgent blood units for trauma cases with 15-minute dispatch response times across regional vaults.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Emergency Dispatch</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Order urgent blood units for trauma cases with 15-minute dispatch response times across regional vaults.
-              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs text-purple-400 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Real-time Courier Tracking</span>
+              </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs text-purple-400 font-medium">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Real-time Courier Tracking</span>
-            </div>
-          </div>
+          </SpotlightCard>
 
-          <div className="p-6 rounded-2xl bg-neutral-950 border border-white/10 flex flex-col justify-between hover:border-purple-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 w-fit mb-4 group-hover:scale-105 transition-transform">
-                <Activity className="w-6 h-6" />
+          <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.18)" className="rounded-2xl bg-neutral-950 border border-white/10 hover:border-purple-500/50 shadow-xl">
+            <div className="p-6 h-full flex flex-col justify-between group">
+              <div>
+                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 w-fit mb-4 group-hover:scale-105 transition-transform">
+                  <Activity className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Cold-Chain Telemetry</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Automated temperature monitoring (2°C - 6°C) for blood refrigerators with instant anomaly alerts.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Cold-Chain Telemetry</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Automated temperature monitoring (2°C - 6°C) for blood refrigerators with instant anomaly alerts.
-              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs text-purple-400 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Automated Compliance Logs</span>
+              </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs text-purple-400 font-medium">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Automated Compliance Logs</span>
-            </div>
-          </div>
+          </SpotlightCard>
 
-          <div className="p-6 rounded-2xl bg-neutral-950 border border-white/10 flex flex-col justify-between hover:border-purple-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 w-fit mb-4 group-hover:scale-105 transition-transform">
-                <ShieldCheck className="w-6 h-6" />
+          <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.18)" className="rounded-2xl bg-neutral-950 border border-white/10 hover:border-purple-500/50 shadow-xl">
+            <div className="p-6 h-full flex flex-col justify-between group">
+              <div>
+                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 w-fit mb-4 group-hover:scale-105 transition-transform">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Hospital Network Sync</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Seamless integration with hospital management systems for instant inventory sync and automated reordering.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Hospital Network Sync</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Seamless integration with hospital management systems for instant inventory sync and automated reordering.
-              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs text-purple-400 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Direct Hospital System Sync</span>
+              </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs text-purple-400 font-medium">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Direct Hospital System Sync</span>
-            </div>
-          </div>
+          </SpotlightCard>
 
-          <div className="p-6 rounded-2xl bg-neutral-950 border border-white/10 flex flex-col justify-between hover:border-purple-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 w-fit mb-4 group-hover:scale-105 transition-transform">
-                <Lock className="w-6 h-6" />
+          <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.18)" className="rounded-2xl bg-neutral-950 border border-white/10 hover:border-purple-500/50 shadow-xl">
+            <div className="p-6 h-full flex flex-col justify-between group">
+              <div>
+                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 w-fit mb-4 group-hover:scale-105 transition-transform">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">HIPAA Compliant Security</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Bank-grade encryption for donor records, hospital requests, and patient transfusion data.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">HIPAA Compliant Security</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Bank-grade encryption for donor records, hospital requests, and patient transfusion data.
-              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs text-purple-400 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Certified Data Encryption</span>
+              </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs text-purple-400 font-medium">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Certified Data Encryption</span>
-            </div>
-          </div>
+          </SpotlightCard>
         </div>
 
         {/* Hospital WebApp Callout Card - Pure Dark Purple */}
@@ -103,13 +113,15 @@ export const HospitalSection: React.FC<HospitalSectionProps> = ({ onOpenHospital
             </p>
           </div>
 
-          <button
+          <AnimatedButton
+            variant="secondary"
+            size="lg"
             onClick={onOpenHospitalModal}
-            className="shrink-0 bg-purple-600 hover:bg-purple-500 text-white font-semibold py-3.5 px-8 rounded-xl shadow-lg shadow-purple-950/60 transition-all flex items-center gap-2"
+            className="shrink-0"
           >
-            <span>Hospital Sign In</span>
+            <span>Open Hospital Portal</span>
             <ArrowRight className="w-4 h-4" />
-          </button>
+          </AnimatedButton>
         </div>
       </div>
     </section>
