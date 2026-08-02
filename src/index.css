@@ -28,6 +28,10 @@
   --hero-subtitle: hsl(210 17% 95%);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
