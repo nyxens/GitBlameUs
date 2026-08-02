@@ -7,7 +7,7 @@
 web
 
 ## Stack
-React + TypeScript + Vite + Tailwind CSS
+React + Javascript + Vite + Tailwind CSS
 
 ## Users
 - **Enterprise Healthcare Staff**: Blood bank managers, lab technicians, hospital doctors, emergency dispatchers, and receptionists operating in fast-paced clinical environments.
