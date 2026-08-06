@@ -1,156 +1,62 @@
-# 🩸 LifeVault — Online Blood Bank Management System (BBMS)
+# GitBlameUs — LifeVault BBMS
 
 > **Smart Blood Banking. Zero Waste.**  
-> A next-generation Blood Bank Management & Life Vault Telemetry System. Built with native JavaScript (ESM React + Express.js API) designed for emergency room trauma dispatches, FEFO expiration queueing, cold-chain storage telemetry, and citizen donor scheduling.
+> A next-generation Blood Bank Management & Life Vault Telemetry System built with React + Express.js.
 
 ---
 
-## 📌 Executive Summary
+## Directory Organization
 
-LifeVault bridges hospital emergency rooms, blood bank storage facilities, and voluntary donors in real time. It eliminates blood waste and shortage delays through:
-1. **FEFO (First-Expired-First-Out) Queue Engine**: Automated sorting that ensures blood bags nearing expiration are allocated first.
-2. **Cold-Chain Telemetry (2°C–6°C)**: Refrigerator sensor monitoring with instant anomaly alerts and automated compliance logs.
-3. **Emergency Cross-Hospital Dispatch**: 15-minute courier dispatches for critical trauma cases across regional health hubs.
-4. **Interactive Compatibility & Donor Scheduling**: Digital eligibility screening, blood compatibility guides, and life-impact notifications.
-
----
-
-## 🛠️ Technology Stack
-
-| Layer | Technology | Key Libraries / Frameworks |
-| :--- | :--- | :--- |
-| **Frontend Framework** | React 18 + Vite 5 | Fast HMR, ESM bundling |
-| **Styling & Design System** | TailwindCSS 3 + Vanilla CSS | Pitch-black dark mode, custom glassmorphism, Framer Motion 11 |
-| **Icons & Typography** | Lucide React + Fontsource | Inter font, Instrument Serif font |
-| **Backend Server** | Node.js (ESM) + Express.js 4 | Modular REST API (`/api/v1`), CORS, custom error handling middleware |
-| **Data Engine** | Native JS Storage Models | In-memory database schemas for Donors, Hospitals, Inventory & Requisitions |
-
----
-
-## 📂 Project Directory Architecture
+The repository is modularly structured into three distinct folders for independent development, testing, and deployment:
 
 ```
-bbms/
-├── backend/                  # Express.js REST API Server
-│   ├── config/               # Environment & Database Configuration
-│   │   ├── db.js             # Mock Database Engine & Models
-│   │   └── env.js            # Environment Variables (Port 5000)
-│   ├── controllers/          # Business Logic Controllers (Auth, Donor, Hospital, Inventory)
-│   ├── middleware/           # Express Middleware (Error Handling, Auth Validation)
-│   ├── routes/               # API Route Definitions (/api/v1/*)
-│   └── server.js             # Express Server Entry Point
-├── docs/                     # SRS & Architecture Specifications
-│   ├── ARCHITECTURE.md       # Directory layout & code conventions
-│   └── SRS.md                # Software Requirements Specification (v2.0)
-├── src/                      # Frontend React Source Code
-│   ├── components/           # UI Components & Layout
-│   │   ├── layout/           # Navbar, Footer, App Shell
-│   │   ├── modals/           # Auth Modal, Donor Schedule Modal, Hospital Requisition Modal
-│   │   └── ui/               # Design System Primitives (InteractiveHoverButton, SpotlightCard, etc.)
-│   ├── lib/                  # Utility Helpers (cn class merger)
-│   ├── pages/                # Landing Page & Application Portals
-│   │   ├── citizen/          # Citizen Donor Workspace Portal
-│   │   ├── dashboard/        # Interactive Dashboard Control Panel (Blood Reserve, Requests, Supply)
-│   │   ├── donor/            # Donor Section & Compatibility Guide
-│   │   ├── home/             # Hero, Pricing, Reviews, About Sections
-│   │   └── hospital/         # Hospital Emergency Portal Section
-│   ├── App.jsx               # Application Root State & Navigation Handler
-│   ├── index.css             # Design Tokens & Custom CSS Rules
-│   └── main.jsx              # Vite React Mounting Point
-├── jsconfig.json             # JS Alias Configuration (@ui, @pages, @layout, @backend)
-├── package.json              # Project Dependencies & NPM Scripts
-├── tailwind.config.js        # Tailwind Utility Customization
-└── vite.config.js            # Vite Bundler & Path Alias Resolver
+GitBlameUs/
+├── frontend/             # React + Vite + Tailwind CSS User Interface
+├── backend/              # Express.js REST API Server & FEFO Engine
+└── documents/            # Architecture, Design, SRS & Product Specs
 ```
 
 ---
 
-## ⚡ Module & Path Aliases
+## Workspace Breakdown
 
-To maintain clean imports without deep relative paths (`../../`), use configured path aliases in frontend files:
+### 1. Frontend (`/frontend`)
+Contains the user interface, component design system, and client-side page routes.
+- **Tech Stack**: React 18, Vite 8, Tailwind CSS, Framer Motion, Lucide Icons
+- **Independent Setup**:
+  ```bash
+  cd frontend
+  npm install
+  npm run dev
+  ```
+- **Deployment**: Deployable independently to Vercel, Netlify, Cloudflare Pages, or static web host (`npm run build`).
 
-| Alias | Resolves To | Description |
-| :--- | :--- | :--- |
-| `@ui` | `src/components/ui` | Design primitives (`InteractiveHoverButton`, `SpotlightCard`) |
-| `@layout` | `src/components/layout` | Shell layout components (`Navbar`, `Footer`) |
-| `@modals` | `src/components/modals` | Interactive modal overlays |
-| `@pages` | `src/pages` | Landing page sections & workspace portals |
-| `@services` | `src/services` | API client services |
-| `@backend` | `backend/` | Express server modules |
+### 2. Backend (`/backend`)
+Contains the Express.js API server, models, controllers, routes, and FEFO inventory algorithm.
+- **Tech Stack**: Node.js, Express, CORS, REST APIs
+- **Independent Setup**:
+  ```bash
+  cd backend
+  npm install
+  npm run dev
+  ```
+- **Deployment**: Deployable independently to Render, Railway, AWS ECS, Heroku, or Docker (`npm start`).
 
----
-
-## 🚀 Quick Start Guide
-
-### 1. Prerequisites
-- **Node.js**: v18.0.0 or higher
-- **npm**: v9.0.0 or higher
-
-### 2. Installation
-Clone the repository and install all dependencies:
-```bash
-git clone https://github.com/nyxens/GitBlameUs.git
-cd bbms
-npm install
-```
-
-### 3. Running the Development Servers
-
-#### **Start Frontend Dev Server (Vite)**:
-```bash
-npm run dev
-```
-*App will run locally at [http://localhost:5173](http://localhost:5173)*
-
-#### **Start Express API Backend Server**:
-In a separate terminal tab:
-```bash
-npm run server
-```
-*API Server will listen at [http://localhost:5000](http://localhost:5000)*
+### 3. Documents (`/documents`)
+Contains comprehensive project documentation:
+- [`ARCHITECTURE.md`](file:///home/student/424144/SE/OBBMS/GitBlameUs/documents/ARCHITECTURE.md) — Architectural design & system data flow
+- [`DESIGN.md`](file:///home/student/424144/SE/OBBMS/GitBlameUs/documents/DESIGN.md) — Liquid glass dark mode design system specifications
+- [`PRODUCT.md`](file:///home/student/424144/SE/OBBMS/GitBlameUs/documents/PRODUCT.md) — Product vision & operational workflows
+- [`SRS.md`](file:///home/student/424144/SE/OBBMS/GitBlameUs/documents/SRS.md) — Software Requirements Specification
+- [`PRODUCT_README.md`](file:///home/student/424144/SE/OBBMS/GitBlameUs/documents/PRODUCT_README.md) — Original product guide & features
 
 ---
 
-## 🛠️ Production Build
+## Development Commands (Root Orchestration)
 
-To compile the application bundle for production:
-```bash
-npm run build
-```
-Outputs static assets into the `dist/` directory. Verified clean build with 0 compilation errors.
+You can run individual workspaces from the root directory:
 
-To preview the built production bundle:
-```bash
-npm run preview
-```
-
----
-
-## 🔌 Express API Endpoint Reference (`/api/v1`)
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` | Server health check endpoint |
-| `POST` | `/api/v1/auth/login` | User authentication (Citizen Donor / Hospital Staff) |
-| `POST` | `/api/v1/auth/register` | Account registration for donors and healthcare personnel |
-| `POST` | `/api/v1/donors/schedule` | Book a blood donation slot |
-| `POST` | `/api/v1/hospital/requisition` | Create an emergency blood unit requisition |
-| `GET` | `/api/v1/inventory` | Fetch live blood bank stock levels |
-| `GET` | `/api/v1/requisitions` | Fetch active emergency hospital requisitions |
-
----
-
-## 🎨 UI/UX Design System Guidelines
-
-- **Theme Baseline**: Pitch-black (`#000000`), deep dark cards (`bg-neutral-950/80`), subtle glowing borders (`border-purple-500/30`, `border-red-500/30`).
-- **Typography**: Inter for crisp UI text; Instrument Serif for elegant italicized emphasis.
-- **Micro-Interactions**:
-  - `SpotlightCard`: Mouse radial light spotlight tracking cursor.
-  - `InteractiveHoverButton`: Fixed stationary icon pod on rest; smooth expanding background color fill on hover.
-  - **Framer Motion**: Smooth scroll entrance animations (`whileInView`) for all cards and section headers.
-
----
-
-## 📄 License & Compliance
-
-LifeVault is designed to comply with **HIPAA** and **AABB (American Association of Blood Banks)** accreditation standards for cold-chain audit logging and donor record encryption.
+- **Start Frontend**: `npm run dev:frontend`
+- **Start Backend**: `npm run dev:backend`
+- **Build Frontend**: `npm run build:frontend`
+- **Start Backend Server**: `npm run start:backend`
