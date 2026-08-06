@@ -50,6 +50,7 @@ body {
   position: relative;
   overflow: hidden;
 }
+
 .liquid-glass::before {
   content: '';
   position: absolute;
@@ -57,9 +58,9 @@ body {
   border-radius: inherit;
   padding: 1.4px;
   background: linear-gradient(180deg,
-    rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%,
-    rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
-    rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+      rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 20%,
+      rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%,
+      rgba(255, 255, 255, 0.15) 80%, rgba(255, 255, 255, 0.45) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -70,13 +71,42 @@ body {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: #000000;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #222222;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #333333;
+}
+
+/* ECG Heartbeat Line Animation - Hidden by default, visible only on hover */
+@keyframes heartbeat-cross {
+  0% {
+    stroke-dasharray: 60 230;
+    stroke-dashoffset: 230;
+  }
+
+  100% {
+    stroke-dasharray: 60 230;
+    stroke-dashoffset: -60;
+  }
+}
+
+.heartbeat-pulse-line {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.group\/guide:hover .heartbeat-pulse-line,
+.group\/heart:hover .heartbeat-pulse-line,
+.group:hover .heartbeat-pulse-line {
+  opacity: 1;
+  animation: heartbeat-cross 1.3s linear infinite;
 }

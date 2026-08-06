@@ -130,11 +130,10 @@ export const DonorSection = ({ onOpenDonorModal }) => {
                     <button
                       key={type}
                       onClick={() => setSelectedBloodType(type)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
-                        selectedBloodType === type
-                          ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-950/60 scale-105'
-                          : 'bg-black border-red-500/20 text-purple-200/70 hover:text-white hover:border-red-500/40'
-                      }`}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedBloodType === type
+                        ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-950/60 scale-105'
+                        : 'bg-black border-red-500/20 text-purple-200/70 hover:text-white hover:border-red-500/40'
+                        }`}
                     >
                       {type}
                     </button>
@@ -176,9 +175,62 @@ export const DonorSection = ({ onOpenDonorModal }) => {
                 </div>
               </div>
 
-              {/* Action Callout Box */}
-              <div className="flex flex-col items-center justify-center p-8 rounded-3xl bg-red-950/50 border border-red-500/40 text-center min-w-[280px] shadow-xl">
-                <Heart className="w-12 h-12 text-red-500 fill-red-500 animate-pulse mb-3" />
+              {/* Action Callout Box with Interactive Heartbeat Line on Hover */}
+              <div className={`flex flex-col items-center justify-center p-8 rounded-3xl border text-center min-w-[280px] shadow-xl relative overflow-hidden group/heart transition-all duration-300 'bg-red-950/50 border-red-500/40 hover:border-red-500/80' 
+                }`}>
+                {/* Heart & Heartbeat Line Container */}
+                <div className="relative w-28 h-24 flex items-center justify-center mb-2">
+                  {/* Glowing background aura on hover */}
+                  <div className="absolute w-16 h-16 bg-red-600/20 rounded-full blur-xl transition-all duration-500 group-hover/guide:bg-red-500/50 group-hover/guide:scale-150 group-hover/heart:bg-red-500/60 group-hover/heart:scale-150" />
+
+                  {/* Pulsing Central Heart */}
+                  <Heart className="w-14 h-14 text-red-500 fill-red-500 transition-transform duration-300 group-hover/guide:scale-110 group-hover/heart:scale-115 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]" />
+
+                  {/* ECG Heartbeat Line crossing over the heart */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 overflow-visible">
+                    <svg viewBox="0 0 160 50" className="w-48 h-14 overflow-visible">
+                      <defs>
+                        <linearGradient id="heartbeat-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#ef4444" stopOpacity="0" />
+                          <stop offset="25%" stopColor="#ef4444" stopOpacity="0.8" />
+                          <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+                          <stop offset="75%" stopColor="#ef4444" stopOpacity="0.8" />
+                          <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+                        </linearGradient>
+                        <filter id="heartbeat-glow" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur stdDeviation="2.5" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                      </defs>
+
+                      {/* Static baseline trace - Hidden by default, visible only on hover */}
+                      <path
+                        d="M 0 25 H 52 Q 58 17, 64 25 L 68 28 L 76 5 L 82 43 L 86 25 Q 93 15, 100 25 H 160"
+                        fill="none"
+                        stroke="rgba(239, 68, 68, 0.3)"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="opacity-0 group-hover/guide:opacity-100 group-hover/heart:opacity-100 transition-opacity duration-300"
+                      />
+
+                      {/* Animated ECG Pulse line with centered P, QRS, and T waves - Hidden by default, visible only on hover */}
+                      <path
+                        d="M 0 25 H 52 Q 58 17, 64 25 L 68 28 L 76 5 L 82 43 L 86 25 Q 93 15, 100 25 H 160"
+                        fill="none"
+                        stroke="url(#heartbeat-grad)"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        filter="url(#heartbeat-glow)"
+                        className="heartbeat-pulse-line"
+                      />
+                    </svg>
+                  </div>
+                </div>
                 <h4 className="text-lg font-bold text-white mb-1">Ready to Save a Life?</h4>
                 <p className="text-xs text-purple-200/80 mb-6">Book your appointment in 60 seconds</p>
                 <InteractiveHoverButton

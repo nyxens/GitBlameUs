@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-02T15:45:00Z",
+  "title": "Design System: LifeVault",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Royal Purple Accent", "canonical": "#a855f7", "tonalRamp": ["#3b0764", "#581c87", "#6b21a8", "#7e22ce", "#9333ea", "#a855f7", "#c084fc", "#e9d5ff"] },
+      "crimson": { "role": "secondary", "displayName": "Crimson Emergency", "canonical": "#f43f5e", "tonalRamp": ["#4c0519", "#881337", "#9f1239", "#be123c", "#e11d48", "#f43f5e", "#fb7185", "#fecdd3"] },
+      "background": { "role": "neutral", "displayName": "Void Black", "canonical": "#000000", "tonalRamp": ["#000000", "#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Inter Display", "purpose": "Hero and major section titles" },
+      "body": { "displayName": "Inter Body", "purpose": "General UI and clinical data" }
+    },
+    "shadows": [
+      { "name": "glow-purple", "value": "0 0 25px rgba(168,85,247,0.4)", "purpose": "Interactive button hover glow" }
+    ],
+    "motion": [
+      { "name": "ease-smooth", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Modal and dashboard card state transition" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Pill shaped action button with purple glow on hover",
+      "html": "<button class=\"ds-btn-primary\">Get Started</button>",
+      "css": ".ds-btn-primary { background: #a855f7; color: #ffffff; padding: 12px 24px; border-radius: 9999px; border: none; font-weight: 500; font-family: Inter, sans-serif; cursor: pointer; transition: all 0.2s ease; } .ds-btn-primary:hover { background: #9333ea; box-shadow: 0 0 25px rgba(168,85,247,0.4); transform: translateY(-1px); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Crimson Vault",
+    "overview": "LifeVault pairs deep dark mode surfaces with high-luminance crimson and royal purple glassmorphic accents, evoking clinical precision and urgent biological monitoring.",
+    "keyCharacteristics": [
+      "Pitch-black void backgrounds with dot-matrix vector grid overlays.",
+      "Liquid glassmorphism with multi-pass gradient borders and backdrop blur.",
+      "Dual typography hierarchy pairing sans-serif structural precision with serif emphasis."
+    ],
+    "rules": [
+      { "name": "The Crimson Urgency Rule", "body": "Crimson accents are reserved for emergency requisitions, stock shortages, and ABO incompatibility warnings.", "section": "colors" }
+    ],
+    "dos": [
+      "Do use Instrument Serif italics exclusively for emphasized key words within headings.",
+      "Do preserve high-contrast legibility for clinical blood group data."
+    ],
+    "donts": [
+      "Don't use solid light backgrounds; LifeVault is built exclusively on deep dark mode aesthetics."
+    ]
+  }
+}
