@@ -1,75 +1,34 @@
 import React, { useState } from 'react';
-import { Menu, X, Heart, Building2, Info, MessageSquare, CreditCard, LogOut, LayoutDashboard, Compass, ArrowRight, LogIn } from 'lucide-react';
+import { Menu, X, Heart, Building2, Info, MessageSquare, CreditCard, LogIn } from 'lucide-react';
 
-export const Navbar = ({
-  user,
-  onOpenAuthModal,
-  onLogout,
-  currentView,
-  onToggleView,
-}) => {
+export const Navbar = ({ onOpenAuthModal }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNavClick = (e, targetId) => {
     e.preventDefault();
-    if (currentView !== 'landing') {
-      onToggleView('landing');
-      setTimeout(() => {
-        const target = document.getElementById(targetId);
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    } else {
-      const target = document.getElementById(targetId);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+    const target = document.getElementById(targetId);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     setMobileMenuOpen(false);
   };
 
   return (
     <nav className="fixed top-0 inset-x-0 z-50 w-full px-6 md:px-16 bg-black/85 backdrop-blur-xl border-b border-white/10 select-none h-16 flex items-center justify-between">
-      {/* Left side: Brand Lockup & View Switcher */}
+      {/* Left side: Brand Lockup */}
       <div className="flex items-center gap-6">
-        {/* Brand Lockup */}
-        <button
-          onClick={() => onToggleView('landing')}
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           className="flex items-center gap-2 group text-left focus-visible:outline-none"
         >
           <span className="text-xl md:text-2xl font-extrabold tracking-tight text-white group-hover:text-purple-300 transition-colors">
             Life<span className="font-serif italic font-normal text-purple-400">Vault</span>
           </span>
-        </button>
-
-        {/* View Switcher Pill (shown when user is logged in) */}
-        {user && (
-          <div className="hidden sm:flex items-center p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs">
-            <button
-              onClick={() => onToggleView('landing')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                currentView === 'landing'
-                  ? 'bg-neutral-800 text-white font-bold shadow-sm'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5 text-blue-400" />
-              <span>Landing Page</span>
-            </button>
-            <button
-              onClick={() => onToggleView('workspace')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                currentView === 'workspace'
-                  ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-950/50'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <LayoutDashboard className="w-3.5 h-3.5 text-purple-300" />
-              <span>{user.role === 'CITIZEN' ? 'My Citizen Workspace' : 'Hospital WebApp Portal'}</span>
-            </button>
-          </div>
-        )}
+        </a>
       </div>
 
       {/* Center Nav links with Smooth Scrolling */}
@@ -116,46 +75,15 @@ export const Navbar = ({
         </a>
       </div>
 
-      {/* Right side: User Profile or Header-Matching Sign In Button */}
+      {/* Right side: Sign In / Get Started Button */}
       <div className="flex items-center gap-3">
-        {user ? (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => onToggleView('workspace')}
-              className="flex items-center gap-2.5 p-1.5 pr-3 bg-neutral-900 hover:bg-neutral-850 rounded-xl border border-white/10 transition-all text-xs"
-            >
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-7 h-7 rounded-lg object-cover" />
-              ) : (
-                <div className="w-7 h-7 rounded-lg bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-xs">
-                  {user.name.charAt(0)}
-                </div>
-              )}
-              <div className="text-left hidden sm:block">
-                <div className="text-white font-bold leading-tight">{user.name}</div>
-                <div className="text-[10px] text-neutral-400 font-mono">
-                  {user.role === 'CITIZEN' ? 'Citizen Donor' : 'Hospital Doctor'}
-                </div>
-              </div>
-            </button>
-
-            <button
-              onClick={onLogout}
-              title="Sign Out"
-              className="p-2 rounded-xl bg-white/5 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 border border-white/10 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={onOpenAuthModal}
-            className="px-3.5 py-2 rounded-xl text-neutral-300 hover:text-white hover:bg-white/5 border border-white/10 hover:border-purple-500/40 transition-all duration-300 flex items-center gap-2 text-xs font-semibold cursor-pointer group"
-          >
-            <LogIn className="w-3.5 h-3.5 text-purple-400 group-hover:scale-110 transition-transform" />
-            <span>Sign In / Get Started</span>
-          </button>
-        )}
+        <button
+          onClick={onOpenAuthModal}
+          className="px-3.5 py-2 rounded-xl text-neutral-300 hover:text-white hover:bg-white/5 border border-white/10 hover:border-purple-500/40 transition-all duration-300 flex items-center gap-2 text-xs font-semibold cursor-pointer group"
+        >
+          <LogIn className="w-3.5 h-3.5 text-purple-400 group-hover:scale-110 transition-transform" />
+          <span>Sign In / Get Started</span>
+        </button>
 
         {/* Mobile menu toggle */}
         <button
@@ -186,22 +114,22 @@ export const Navbar = ({
             <Info className="w-4 h-4" /> About
           </a>
 
-          {!user && (
-            <div className="pt-2 border-t border-white/10">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenAuthModal();
-                }}
-                className="w-full py-2.5 rounded-xl text-neutral-200 hover:text-white hover:bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-sm font-semibold"
-              >
-                <LogIn className="w-4 h-4 text-purple-400" />
-                <span>Sign In / Get Started</span>
-              </button>
-            </div>
-          )}
+          <div className="pt-2 border-t border-white/10">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenAuthModal();
+              }}
+              className="w-full py-2.5 rounded-xl text-neutral-200 hover:text-white hover:bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-sm font-semibold"
+            >
+              <LogIn className="w-4 h-4 text-purple-400" />
+              <span>Sign In / Get Started</span>
+            </button>
+          </div>
         </div>
       )}
     </nav>
   );
 };
+
+export default Navbar;

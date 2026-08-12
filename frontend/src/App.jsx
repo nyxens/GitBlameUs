@@ -3,14 +3,12 @@ import { Navbar, Footer } from '@layout/index';
 import { HeroSection, TestimonialSection, PricingSection, AboutSection } from '@pages/home';
 import { DonorSection } from '@pages/donor';
 import { HospitalSection } from '@pages/hospital';
-import { CitizenPortalPage } from '@pages/citizen';
-import { HospitalManagementWebApp } from '@pages/hospitalApp';
+import { BBMSWorkspace } from '@pages/bbms';
 import { DonorModal, HospitalPortalModal, FindBloodModal, GetStartedModal, AuthModal } from '@modals/index';
 
 export function App() {
-  // Authentication & Navigation State
+  // Authentication State
   const [user, setUser] = useState(null);
-  const [currentView, setCurrentView] = useState('landing');
 
   // Modal Visibility States
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -28,67 +26,48 @@ export function App() {
 
   const handleLoginSuccess = (loggedInUser) => {
     setUser(loggedInUser);
-    setCurrentView('workspace'); // Automatically navigate to role-specific workspace upon sign in
   };
 
   const handleLogout = () => {
     setUser(null);
-    setCurrentView('landing');
   };
 
+  // IF USER IS AUTHENTICATED: Launch isolated BBMS Application (Landing Page is completely hidden & inaccessible)
+  if (user) {
+    return <BBMSWorkspace user={user} onLogout={handleLogout} />;
+  }
+
+  // IF USER IS NOT AUTHENTICATED: Display Public Landing Page
   return (
     <div className="bg-background text-foreground min-h-screen flex flex-col font-sans selection:bg-purple-500 selection:text-white">
+      {/* Public Landing Page Navbar */}
+      <Navbar onOpenAuthModal={() => handleOpenAuth('CITIZEN')} />
 
-
-      {/* Global Application Navbar */}
-      <Navbar
-        user={user}
-        onOpenAuthModal={() => handleOpenAuth('CITIZEN')}
-        onLogout={handleLogout}
-        currentView={currentView}
-        onToggleView={(view) => setCurrentView(view)}
+      {/* Hero Section */}
+      <HeroSection
+        onOpenFindBloodModal={() => setFindBloodModalOpen(true)}
+        onOpenGetStartedModal={() => handleOpenAuth('CITIZEN')}
       />
 
-      {/* RENDER VIEW SWITCH: WORKSPACE VS LANDING */}
-      {currentView === 'workspace' && user ? (
-        user.role === 'CITIZEN' ? (
-          <CitizenPortalPage user={user} onOpenFindBlood={() => setFindBloodModalOpen(true)} />
-        ) : (
-          <HospitalManagementWebApp user={user} onOpenLanding={() => setCurrentView('landing')} />
-        )
-      ) : (
-        <>
-          {/* LANDING PAGE FLOW */}
+      {/* Citizen & Donor Section */}
+      <DonorSection onOpenDonorModal={() => handleOpenAuth('CITIZEN')} />
 
-          {/* Hero Section */}
-          <HeroSection
-            onOpenFindBloodModal={() => setFindBloodModalOpen(true)}
-            onOpenGetStartedModal={() => handleOpenAuth('CITIZEN')}
-          />
+      {/* Hospital Network Portal Section */}
+      <HospitalSection onOpenHospitalModal={() => handleOpenAuth('HOSPITAL')} />
 
-          {/* Citizen & Donor Section */}
-          <DonorSection onOpenDonorModal={() => handleOpenAuth('CITIZEN')} />
+      {/* Reviews & Testimonials Section */}
+      <TestimonialSection />
 
-          {/* Hospital Network Portal Section */}
-          <HospitalSection onOpenHospitalModal={() => handleOpenAuth('HOSPITAL')} />
+      {/* BBMS Licensing & Pricing Section */}
+      <PricingSection onOpenAuthModal={handleOpenAuth} />
 
-          {/* Reviews & Testimonials Section */}
-          <TestimonialSection />
+      {/* About Section */}
+      <AboutSection />
 
-          {/* BBMS Licensing & Pricing Section */}
-          <PricingSection onOpenAuthModal={handleOpenAuth} />
-
-          {/* About Section */}
-          <AboutSection />
-
-          {/* Footer */}
-          <Footer />
-        </>
-      )}
+      {/* Landing Page Footer */}
+      <Footer />
 
       {/* APPLICATION MODALS */}
-
-      {/* Unified Auth Modal */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
@@ -96,25 +75,21 @@ export function App() {
         initialRole={authInitialRole}
       />
 
-      {/* Donor Scheduling Modal */}
       <DonorModal
         isOpen={donorModalOpen}
         onClose={() => setDonorModalOpen(false)}
       />
 
-      {/* Hospital Access Modal */}
       <HospitalPortalModal
         isOpen={hospitalModalOpen}
         onClose={() => setHospitalModalOpen(false)}
       />
 
-      {/* Search Blood Modal */}
       <FindBloodModal
         isOpen={findBloodModalOpen}
         onClose={() => setFindBloodModalOpen(false)}
       />
 
-      {/* Get Started Options Modal */}
       <GetStartedModal
         isOpen={getStartedModalOpen}
         onClose={() => setGetStartedModalOpen(false)}

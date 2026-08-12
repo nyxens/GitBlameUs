@@ -40,11 +40,11 @@ export const HeroSection = ({ onOpenFindBloodModal, onOpenGetStartedModal }) => 
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-5xl md:text-7xl tracking-[-2px] font-medium leading-tight md:leading-[1.15] mb-4 text-foreground"
         >
-          Smart Blood Banking.{' '}
+          Connecting Donors.{' '}
           <br className="hidden sm:inline" />
-          Zero{' '}
+          Saving{' '}
           <span className="font-serif italic font-normal text-white drop-shadow-[0_0_25px_rgba(168,85,247,0.4)]">
-            Waste.
+            Lives.
           </span>
         </motion.h1>
 
@@ -55,7 +55,7 @@ export const HeroSection = ({ onOpenFindBloodModal, onOpenGetStartedModal }) => 
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-lg md:text-xl text-neutral-400 font-normal leading-relaxed max-w-3xl mb-8 text-balance"
         >
-          Real-time blood stock quantity monitoring, FEFO inventory queue control, and cold-chain storage compliance built for modern health networks.
+          A reliable blood bank network bridging voluntary donors and medical centers to ensure safe blood is always available when every second counts.
         </motion.p>
 
         {/* Action Buttons with Expanding Color Pop Effect */}

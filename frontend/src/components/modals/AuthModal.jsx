@@ -88,109 +88,103 @@ export const AuthModal = ({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-lg rounded-2xl bg-neutral-950 border border-white/15 p-6 md:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+          className="relative w-full max-w-md rounded-3xl bg-neutral-950 border border-white/10 p-6 md:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
         >
-          {/* Accent glow bar */}
-          <div
-            className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${
-              selectedRole === 'CITIZEN'
-                ? 'from-red-600 via-pink-500 to-red-600'
-                : 'from-purple-600 via-indigo-500 to-purple-600'
-            }`}
-          />
+          {/* Subtle elegant border line */}
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-neutral-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+            className="absolute top-4 right-4 text-neutral-400 hover:text-white p-2 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
 
           {/* Header */}
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-2xl font-extrabold text-white font-brand">
-                Life<span className="font-serif italic font-normal text-purple-400">Vault</span>
+              <span className="text-2xl font-extrabold text-white tracking-tight">
+                Life<span className="font-serif italic font-normal text-white/80">Vault</span>
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white">
-              {authMode === 'signin' ? 'Sign In to LifeVault' : 'Create Your LifeVault Account'}
+            <h3 className="text-lg font-bold text-white tracking-tight">
+              {authMode === 'signin' ? 'Sign In to Account' : 'Create Account'}
             </h3>
             <p className="text-xs text-neutral-400 mt-1">
-              Select your role to access your dedicated workspace
+              Select your access role to continue
             </p>
           </div>
 
-          {/* Role Selection Tabs */}
-          <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-900 rounded-xl border border-white/10 mb-6">
+          {/* Role Selection Tabs - Clean Elegant Button Styles */}
+          <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-900/60 rounded-2xl border border-white/10 mb-6">
             <button
               type="button"
               onClick={() => setSelectedRole('CITIZEN')}
-              className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 selectedRole === 'CITIZEN'
-                  ? 'bg-red-600 text-white shadow-lg shadow-red-950/60'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-white/10 text-white font-bold border border-white/15 shadow-sm'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
-              <Heart className="w-4 h-4 fill-current" />
+              <Heart className="w-3.5 h-3.5" />
               <span>Citizen / Donor</span>
             </button>
 
             <button
               type="button"
               onClick={() => setSelectedRole('HOSPITAL')}
-              className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 selectedRole === 'HOSPITAL'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-950/60'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-white/10 text-white font-bold border border-white/15 shadow-sm'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
-              <Building2 className="w-4 h-4" />
+              <Building2 className="w-3.5 h-3.5" />
               <span>Hospital / Bank</span>
             </button>
           </div>
 
           {/* Quick Demo Instant Access Buttons */}
-          <div className="mb-6 p-4 rounded-xl bg-neutral-900/90 border border-white/10 text-xs">
-            <div className="text-neutral-400 mb-2 font-medium flex items-center justify-between">
-              <span>⚡ One-Click Instant Demo Login:</span>
-              <span className="text-emerald-400 font-mono">NO PASSWORD NEEDED</span>
+          <div className="mb-6 p-3.5 rounded-2xl bg-neutral-900/50 border border-white/10 text-xs">
+            <div className="text-neutral-400 mb-2.5 font-medium flex items-center justify-between text-[11px]">
+              <span>Quick Demo Access:</span>
+              <span className="text-neutral-300 font-mono text-[10px]">Instant Sign In</span>
             </div>
 
             {selectedRole === 'CITIZEN' ? (
               <button
                 type="button"
                 onClick={() => handleQuickDemoLogin('CITIZEN')}
-                className="w-full py-2.5 px-4 rounded-xl bg-red-950/60 border border-red-500/40 hover:bg-red-900/60 text-white font-semibold flex items-center justify-between transition-all group"
+                className="w-full py-2 px-3.5 rounded-xl text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-200 flex items-center justify-between text-xs font-semibold cursor-pointer group"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-[10px] font-bold">
+                  <div className="w-5 h-5 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[9px] font-bold text-white">
                     O-
                   </div>
-                  <span>Login as Sarah Jenkins (Donor O- Negative)</span>
+                  <span>Sarah Jenkins (Donor)</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-red-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => handleQuickDemoLogin('HOSPITAL')}
-                className="w-full py-2.5 px-4 rounded-xl bg-purple-950/60 border border-purple-500/40 hover:bg-purple-900/60 text-white font-semibold flex items-center justify-between transition-all group"
+                className="w-full py-2 px-3.5 rounded-xl text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-200 flex items-center justify-between text-xs font-semibold cursor-pointer group"
               >
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-purple-400" />
-                  <span>Launch WebApp as Dr. Vance (St. Jude ER)</span>
+                  <Building2 className="w-3.5 h-3.5 text-neutral-400" />
+                  <span>Dr. Marcus Vance (St. Jude ER)</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-purple-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
               </button>
             )}
           </div>
 
           <div className="relative flex items-center justify-center mb-6">
             <div className="border-t border-white/10 w-full" />
-            <span className="bg-neutral-950 px-3 text-[11px] text-neutral-500 font-mono uppercase">
-              Or Enter Details
+            <span className="bg-neutral-950 px-3 text-[10px] text-neutral-500 font-mono uppercase">
+              Or Enter Credentials
             </span>
           </div>
 
@@ -202,7 +196,7 @@ export const AuthModal = ({
                   {selectedRole === 'CITIZEN' ? 'Full Name' : 'Hospital / Organization Name'}
                 </label>
                 <div className="relative">
-                  <UserIcon className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+                  <UserIcon className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
                   <input
                     type="text"
                     required
@@ -213,7 +207,7 @@ export const AuthModal = ({
                         ? setFormData({ ...formData, name: e.target.value })
                         : setFormData({ ...formData, hospitalName: e.target.value })
                     }
-                    className="w-full pl-9 pr-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-500"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-neutral-900/80 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white/30 transition-colors"
                   />
                 </div>
               </div>
@@ -222,14 +216,14 @@ export const AuthModal = ({
             <div>
               <label className="block text-xs font-medium text-neutral-400 mb-1">Email Address</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+                <Mail className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
                 <input
                   type="email"
                   required
                   placeholder="user@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-500"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-neutral-900/80 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white/30 transition-colors"
                 />
               </div>
             </div>
@@ -237,13 +231,13 @@ export const AuthModal = ({
             <div>
               <label className="block text-xs font-medium text-neutral-400 mb-1">Password</label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+                <Lock className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
                 <input
                   type="password"
                   required
                   placeholder="••••••••••••"
                   defaultValue="12345678"
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-500"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-neutral-900/80 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white/30 transition-colors"
                 />
               </div>
             </div>
@@ -254,7 +248,7 @@ export const AuthModal = ({
                 <select
                   value={formData.bloodGroup}
                   onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-red-500"
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-900/80 border border-white/10 text-xs text-white focus:outline-none focus:border-white/30 transition-colors"
                 >
                   {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
                     <option key={bg} value={bg}>
@@ -273,25 +267,21 @@ export const AuthModal = ({
                   required
                   value={formData.licenseId}
                   onChange={(e) => setFormData({ ...formData, licenseId: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-500 font-mono text-xs"
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-900/80 border border-white/10 text-xs text-white focus:outline-none focus:border-white/30 font-mono transition-colors"
                 />
               </div>
             )}
 
             <button
               type="submit"
-              className={`w-full py-3 rounded-xl font-semibold text-white shadow-lg transition-all flex items-center justify-center gap-2 ${
-                selectedRole === 'CITIZEN'
-                  ? 'bg-red-600 hover:bg-red-500 shadow-red-950/60'
-                  : 'bg-purple-600 hover:bg-purple-500 shadow-purple-950/60'
-              }`}
+              className="w-full py-2.5 px-4 rounded-xl text-white bg-white/10 hover:bg-white/15 border border-white/20 transition-all duration-300 flex items-center justify-center gap-2 text-xs font-semibold cursor-pointer group shadow-sm"
             >
               <span>
                 {authMode === 'signin'
                   ? `Sign In as ${selectedRole === 'CITIZEN' ? 'Citizen' : 'Hospital'}`
                   : `Create ${selectedRole === 'CITIZEN' ? 'Citizen' : 'Hospital'} Account`}
               </span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </form>
 
@@ -304,11 +294,11 @@ export const AuthModal = ({
             >
               {authMode === 'signin' ? (
                 <span>
-                  Don't have an account? <strong className="text-purple-400">Sign Up</strong>
+                  Don't have an account? <strong className="text-white underline underline-offset-4">Sign Up</strong>
                 </span>
               ) : (
                 <span>
-                  Already have an account? <strong className="text-purple-400">Sign In</strong>
+                  Already have an account? <strong className="text-white underline underline-offset-4">Sign In</strong>
                 </span>
               )}
             </button>
@@ -318,3 +308,5 @@ export const AuthModal = ({
     </AnimatePresence>
   );
 };
+
+export default AuthModal;
