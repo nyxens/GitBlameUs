@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { config } from './config/env.js';
+import { getConfig } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { setupAuthRoutes } from './routes/authRoutes.js';
 import { setupDonorRoutes } from './routes/donorRoutes.js';
@@ -10,6 +10,7 @@ import { setupRequisitionRoutes } from './routes/requisitionRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
+const config = getConfig();
 
 app.use(cors());
 app.use(express.json());

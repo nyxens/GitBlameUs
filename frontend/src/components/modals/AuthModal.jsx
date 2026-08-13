@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Building2, Lock, Mail, User as UserIcon, ArrowRight } from 'lucide-react';
+import { loginUser } from '../../services/authService.js';
 
 export const AuthModal = ({
   isOpen,
@@ -62,8 +63,11 @@ export const AuthModal = ({
     onClose();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.email) {
+      await loginUser(formData.email, formData.password);
+    }
     const newUser = {
       id: selectedRole === 'CITIZEN' ? `LV-DONOR-${Math.floor(1000 + Math.random() * 9000)}` : `HOSP-${Math.floor(1000 + Math.random() * 9000)}`,
       name: formData.name || (selectedRole === 'CITIZEN' ? 'John Doe' : formData.hospitalName),

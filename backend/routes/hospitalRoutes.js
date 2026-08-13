@@ -1,5 +1,5 @@
-import { HospitalController } from '../controllers/hospitalController.js';
+import { authenticateHospital } from '../controllers/hospitalController.js';
 
 export function setupHospitalRoutes(router) {
-  router.post('/hospitals/auth', HospitalController.authenticate);
+  router.post('/hospitals/auth', authenticateHospital);
 }

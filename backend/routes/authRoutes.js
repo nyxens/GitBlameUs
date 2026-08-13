@@ -1,5 +1,5 @@
-import { AuthController } from '../controllers/authController.js';
+import { login } from '../controllers/authController.js';
 
 export function setupAuthRoutes(router) {
-  router.post('/auth/login', AuthController.login);
+  router.post('/auth/login', login);
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Building2,
@@ -10,10 +10,16 @@ import {
   Bell,
   X,
 } from 'lucide-react';
+import { getLiveStock } from '../../services/inventoryService.js';
+import { submitEmergencyRequisition } from '../../services/hospitalService.js';
 
 export const HospitalManagementWebApp = ({ user, onOpenLanding }) => {
   const [activeTab, setActiveTab] = useState('inventory');
   const [notification, setNotification] = useState(null);
+
+  useEffect(() => {
+    getLiveStock().catch(console.error);
+  }, []);
 
   // Working Live Inventory State
   const [inventory, setInventory] = useState([

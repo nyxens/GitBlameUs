@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Building2, Lock, ShieldCheck, ArrowRight, CheckCircle } from 'lucide-react';
+import { authenticateHospital } from '../../services/hospitalService.js';
 
 export const HospitalPortalModal = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('signin');
@@ -8,8 +9,9 @@ export const HospitalPortalModal = ({ isOpen, onClose }) => {
   const [hospitalName, setHospitalName] = useState('St. Jude General Hospital');
   const [licenseId, setLicenseId] = useState('HOSP-NY-9042');
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
+    await authenticateHospital(licenseId, hospitalName);
     setIsAuthenticated(true);
   };
 

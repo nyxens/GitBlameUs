@@ -1,5 +1,5 @@
-import { RequisitionController } from '../controllers/requisitionController.js';
+import { createRequisition } from '../controllers/requisitionController.js';
 
 export function setupRequisitionRoutes(router) {
-  router.post('/requisitions', RequisitionController.createRequisition);
+  router.post('/requisitions', createRequisition);
 }

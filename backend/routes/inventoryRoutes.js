@@ -1,5 +1,5 @@
-import { InventoryController } from '../controllers/inventoryController.js';
+import { getStock } from '../controllers/inventoryController.js';
 
 export function setupInventoryRoutes(router) {
-  router.get('/inventory/stock', InventoryController.getStock);
+  router.get('/inventory/stock', getStock);
 }

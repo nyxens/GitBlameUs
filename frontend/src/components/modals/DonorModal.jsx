@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Calendar, MapPin, CheckCircle2, User, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { scheduleAppointment } from '../../services/donorService.js';
 
 export const DonorModal = ({ isOpen, onClose }) => {
   const [bloodGroup, setBloodGroup] = useState('O+');
@@ -16,8 +17,9 @@ export const DonorModal = ({ isOpen, onClose }) => {
 
   const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    await scheduleAppointment({ ...formData, bloodGroup });
     setStep('success');
   };
 

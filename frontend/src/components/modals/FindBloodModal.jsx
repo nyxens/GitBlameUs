@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Droplet, MapPin, Search, CheckCircle2, Phone } from 'lucide-react';
+import { getLiveStock } from '../../services/inventoryService.js';
 
 export const FindBloodModal = ({ isOpen, onClose }) => {
   const [selectedBlood, setSelectedBlood] = useState('O-');
@@ -13,8 +14,9 @@ export const FindBloodModal = ({ isOpen, onClose }) => {
     { name: 'Regional Emergency Storage Hub', dist: '5.5 miles', available: 65, temp: '2.2°C', phone: '+1 (555) 019-3310' },
   ];
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
+    await getLiveStock();
     setSearched(true);
   };
 
