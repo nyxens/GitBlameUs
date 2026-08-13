@@ -1,12 +1,12 @@
-export const UserSchema = {
+export const Users = {
   id: String,
   name: String,
   email: String,
-  role: String,
   phone: String,
   bloodGroup: String,
-  hospitalName: String,
-  licenseId: String,
-  city: String,
-  avatar: String,
+  pincode: String,
+  dob: String,
+  hashedPassword: String,
+  gender: String,
+  status: String,
 };
