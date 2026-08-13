@@ -1,5 +1,11 @@
-import { login } from '../controllers/authController.js';
+import express from 'express';
+import { signup, login, refreshToken } from '../controllers/authController.js';
 
-export function setupAuthRoutes(router) {
-  router.post('/auth/login', login);
-}
+const router = express.Router();
+
+router.post('/signup', signup);
+router.post('/login', login);
+router.post('/refresh', refreshToken);
+
+
+export default router;

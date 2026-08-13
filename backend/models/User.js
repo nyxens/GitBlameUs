@@ -1,4 +1,4 @@
-export const Users = {
+export const User = {
   id: String,
   name: String,
   email: String,
@@ -10,3 +10,5 @@ export const Users = {
   gender: String,
   status: String,
 };
+
+export default User;
