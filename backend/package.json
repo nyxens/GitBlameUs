@@ -10,7 +10,11 @@
     "seed": "node seed.js"
   },
   "dependencies": {
+<<<<<<< Updated upstream
     "bcryptjs": "^3.0.3",
+=======
+    "bcrypt": "^6.0.0",
+>>>>>>> Stashed changes
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^4.18.3",

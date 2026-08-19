@@ -24,6 +24,7 @@ const router = express.Router();
 // setupRequisitionRoutes(router);
 
 app.use('/api/v1', router);
+app.use('/api/auth', authRoutes);
 
 
 app.use('/api/v1/auth',authRoutes);
