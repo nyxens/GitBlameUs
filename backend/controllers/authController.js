@@ -1,7 +1,7 @@
 // controllers/authController.js
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/index.js';
+import { User, Donor, Hospital, Patient } from '../models/index.js';
 
 const SALT_ROUNDS = 12;
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || 'super-secret-lifevault-access-key-2026';
@@ -57,18 +57,66 @@ export async function signup(req, res) {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    const assignedRole = role || (hospitalName || licenseId ? 'HOSPITAL' : 'DONOR');
 
     const user = await User.create({
-      name,
+      name: name || hospitalName || 'LifeVault User',
       email,
       password: passwordHash,
-      phone,
-      bloodGroup,
+      phone: phone || '+1-555-0100',
+      bloodGroup: bloodGroup || 'O+',
       hospitalName,
       licenseId,
-      city,
-      ...(role ? { role } : {}),
+      city: city || 'New York',
+      role: assignedRole,
+      isVerified: true,
+      status: 'ACTIVE',
     });
+
+    // Auto-create domain record based on role
+    if (assignedRole === 'DONOR') {
+      try {
+        await Donor.create({
+          userId: user._id,
+          donorId: `#LV-DONOR-${Math.floor(1000 + Math.random() * 9000)}`,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          bloodGroup: user.bloodGroup,
+          city: user.city,
+          isEligible: true,
+          eligibilityStatus: 'ELIGIBLE',
+        });
+      } catch (_err) {
+        // Non-fatal error
+      }
+    } else if (assignedRole === 'HOSPITAL' || assignedRole === 'DOCTOR') {
+      try {
+        await Hospital.create({
+          userId: user._id,
+          name: hospitalName || user.name,
+          licenseId: licenseId || `HOSP-LIC-${Math.floor(1000 + Math.random() * 9000)}`,
+          city: user.city,
+          networkNode: 'NODE-REGIONAL-01',
+          isVerified: true,
+        });
+      } catch (_err) {
+        // Non-fatal error
+      }
+    } else if (assignedRole === 'PATIENT') {
+      try {
+        await Patient.create({
+          userId: user._id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          bloodGroup: user.bloodGroup,
+          city: user.city,
+        });
+      } catch (_err) {
+        // Non-fatal error
+      }
+    }
 
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
