@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Building2, Lock, Mail, User as UserIcon, ArrowRight, ShieldAlert, Loader2 } from 'lucide-react';
-import { loginUser, signupUser } from '../../services/authService.js';
+import { loginUser, signupUser, verifyOtpUser } from '../../services/authService.js';
 
 export const AuthModal = ({
   isOpen,
@@ -13,6 +13,9 @@ export const AuthModal = ({
   const [selectedRole, setSelectedRole] = useState(initialRole);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showOtpVerify, setShowOtpVerify] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [pendingSignupData, setPendingSignupData] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -26,6 +29,9 @@ export const AuthModal = ({
   // Reset states when modal role or mode changes
   useEffect(() => {
     setErrorMsg('');
+    setShowOtpVerify(false);
+    setOtpCode('');
+    setPendingSignupData(null);
     setFormData({
       name: '',
       email: '',
@@ -56,7 +62,8 @@ export const AuthModal = ({
 
     try {
       if (authMode === 'signin') {
-        const result = await loginUser(formData.email, formData.password);
+        const signinRole = selectedRole === 'CITIZEN' ? 'DONOR' : 'HOSPITAL';
+        const result = await loginUser(formData.email, formData.password, signinRole);
         if (result.success) {
           onLoginSuccess(result.user);
           onClose();
@@ -65,21 +72,33 @@ export const AuthModal = ({
         }
       } else {
         // signup mode
-        const signupRole = selectedRole === 'CITIZEN' ? 'DONOR' : 'HOSPITAL';
-        const signupData = {
-          name: selectedRole === 'CITIZEN' ? formData.name : formData.hospitalName,
-          email: formData.email,
-          password: formData.password,
-          role: signupRole,
-          ...(selectedRole === 'HOSPITAL' ? { hospitalName: formData.hospitalName, licenseId: formData.licenseId } : {}),
-        };
-
-        const result = await signupUser(signupData);
-        if (result.success) {
-          onLoginSuccess(result.user);
-          onClose();
+        if (showOtpVerify) {
+          // Verify OTP phase
+          const result = await verifyOtpUser(formData.email, otpCode, pendingSignupData);
+          if (result.success) {
+            onLoginSuccess(result.user);
+            onClose();
+          } else {
+            setErrorMsg(result.error || 'Invalid verification code');
+          }
         } else {
-          setErrorMsg(result.error || 'Failed to sign up');
+          // Request signup phase
+          const signupRole = selectedRole === 'CITIZEN' ? 'DONOR' : 'HOSPITAL';
+          const signupData = {
+            name: selectedRole === 'CITIZEN' ? formData.name : formData.hospitalName,
+            email: formData.email,
+            password: formData.password,
+            role: signupRole,
+            ...(selectedRole === 'HOSPITAL' ? { hospitalName: formData.hospitalName, licenseId: formData.licenseId } : {}),
+          };
+
+          const result = await signupUser(signupData);
+          if (result.success) {
+            setPendingSignupData(signupData);
+            setShowOtpVerify(true);
+          } else {
+            setErrorMsg(result.error || 'Failed to sign up');
+          }
         }
       }
     } catch (error) {
@@ -124,38 +143,40 @@ export const AuthModal = ({
               {authMode === 'signin' ? 'Welcome Back' : 'Create an Account'}
             </h3>
             <p className="text-xs text-neutral-400 mt-1">
-              Select access role below to continue
+              {showOtpVerify ? 'Please enter the 6-digit OTP code' : 'Select access role below to continue'}
             </p>
           </div>
 
           {/* Role Selection Tabs */}
-          <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-900/60 rounded-2xl border border-white/10 mb-6">
-            <button
-              type="button"
-              onClick={() => setSelectedRole('CITIZEN')}
-              className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                selectedRole === 'CITIZEN'
-                  ? 'bg-purple-600/15 text-purple-300 font-bold border border-purple-500/30 shadow-inner'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
-              }`}
-            >
-              <Heart className={`w-3.5 h-3.5 ${selectedRole === 'CITIZEN' ? 'text-purple-400' : 'text-neutral-400'}`} />
-              <span>Citizen / Donor</span>
-            </button>
+          {!showOtpVerify && (
+            <div className="grid grid-cols-2 gap-2 p-1 bg-neutral-900/60 rounded-2xl border border-white/10 mb-6">
+              <button
+                type="button"
+                onClick={() => setSelectedRole('CITIZEN')}
+                className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  selectedRole === 'CITIZEN'
+                    ? 'bg-purple-600/15 text-purple-300 font-bold border border-purple-500/30 shadow-inner'
+                    : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
+                }`}
+              >
+                <Heart className={`w-3.5 h-3.5 ${selectedRole === 'CITIZEN' ? 'text-purple-400' : 'text-neutral-400'}`} />
+                <span>Citizen / Donor</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setSelectedRole('HOSPITAL')}
-              className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                selectedRole === 'HOSPITAL'
-                  ? 'bg-purple-600/15 text-purple-300 font-bold border border-purple-500/30 shadow-inner'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
-              }`}
-            >
-              <Building2 className={`w-3.5 h-3.5 ${selectedRole === 'HOSPITAL' ? 'text-purple-400' : 'text-neutral-400'}`} />
-              <span>Hospital / Bank</span>
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRole('HOSPITAL')}
+                className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  selectedRole === 'HOSPITAL'
+                    ? 'bg-purple-600/15 text-purple-300 font-bold border border-purple-500/30 shadow-inner'
+                    : 'text-neutral-400 hover:text-white hover:bg-white/5 border border-transparent'
+                }`}
+              >
+                <Building2 className={`w-3.5 h-3.5 ${selectedRole === 'HOSPITAL' ? 'text-purple-400' : 'text-neutral-400'}`} />
+                <span>Hospital / Bank</span>
+              </button>
+            </div>
+          )}
 
           {/* Error Message Box */}
           {errorMsg && (
@@ -167,75 +188,110 @@ export const AuthModal = ({
 
           {/* Form container */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {authMode === 'signup' && (
+            {authMode === 'signup' && showOtpVerify ? (
               <div>
                 <label className="block text-xs font-medium text-neutral-400 mb-1.5">
-                  {selectedRole === 'CITIZEN' ? 'Full Name' : 'Hospital / Organization Name'}
+                  Verification OTP Code (sent to {formData.email})
                 </label>
                 <div className="relative">
-                  <UserIcon className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
+                  <Lock className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
                   <input
                     type="text"
                     required
-                    placeholder={selectedRole === 'CITIZEN' ? 'John Doe' : 'St. Jude Emergency Center'}
-                    value={selectedRole === 'CITIZEN' ? formData.name : formData.hospitalName}
-                    onChange={(e) =>
-                      handleInputChange(
-                        selectedRole === 'CITIZEN' ? 'name' : 'hospitalName',
-                        e.target.value
-                      )
-                    }
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
+                    placeholder="Enter 6-digit OTP"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 font-mono tracking-widest text-center transition-all"
+                    maxLength={6}
                   />
                 </div>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-medium text-neutral-400 mb-1.5">Email Address</label>
-              <div className="relative">
-                <Mail className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
-                <input
-                  type="email"
-                  required
-                  placeholder="user@example.com"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-neutral-400 mb-1.5">Password</label>
-              <div className="relative">
-                <Lock className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••••••"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
-                />
-              </div>
-            </div>
-
-            {selectedRole === 'HOSPITAL' && authMode === 'signup' && (
-              <div>
-                <label className="block text-xs font-medium text-neutral-400 mb-1.5">Medical License ID</label>
-                <div className="relative">
-                  <Building2 className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="HOSP-NY-9042"
-                    value={formData.licenseId}
-                    onChange={(e) => handleInputChange('licenseId', e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 font-mono transition-all"
-                  />
+                <div className="text-right mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowOtpVerify(false);
+                      setOtpCode('');
+                      setErrorMsg('');
+                    }}
+                    className="text-xs text-purple-400 hover:text-purple-300 hover:underline cursor-pointer"
+                  >
+                    Back to Signup
+                  </button>
                 </div>
               </div>
+            ) : (
+              <>
+                {authMode === 'signup' && (
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-400 mb-1.5">
+                      {selectedRole === 'CITIZEN' ? 'Full Name' : 'Hospital / Organization Name'}
+                    </label>
+                    <div className="relative">
+                      <UserIcon className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
+                      <input
+                        type="text"
+                        required
+                        placeholder={selectedRole === 'CITIZEN' ? 'John Doe' : 'St. Jude Emergency Center'}
+                        value={selectedRole === 'CITIZEN' ? formData.name : formData.hospitalName}
+                        onChange={(e) =>
+                          handleInputChange(
+                            selectedRole === 'CITIZEN' ? 'name' : 'hospitalName',
+                            e.target.value
+                          )
+                        }
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-medium text-neutral-400 mb-1.5">Email Address</label>
+                  <div className="relative">
+                    <Mail className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="user@example.com"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-neutral-400 mb-1.5">Password</label>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••••••"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {selectedRole === 'HOSPITAL' && authMode === 'signup' && (
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-400 mb-1.5">Medical License ID</label>
+                    <div className="relative">
+                      <Building2 className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="HOSP-NY-9042"
+                        value={formData.licenseId}
+                        onChange={(e) => handleInputChange('licenseId', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 font-mono transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             <button
@@ -253,7 +309,9 @@ export const AuthModal = ({
                   <span>
                     {authMode === 'signin'
                       ? `Sign In as ${selectedRole === 'CITIZEN' ? 'Citizen' : 'Hospital'}`
-                      : `Create ${selectedRole === 'CITIZEN' ? 'Citizen' : 'Hospital'} Account`}
+                      : showOtpVerify
+                      ? 'Verify Email & Create Account'
+                      : `Request Verification Code`}
                   </span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </>
@@ -262,23 +320,25 @@ export const AuthModal = ({
           </form>
 
           {/* Toggle authentication mode link */}
-          <div className="text-center mt-6 pt-4 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
-              className="text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
-            >
-              {authMode === 'signin' ? (
-                <span>
-                  Don't have an account? <strong className="text-purple-400 hover:text-purple-300 underline underline-offset-4 font-bold ml-1">Sign Up</strong>
-                </span>
-              ) : (
-                <span>
-                  Already have an account? <strong className="text-purple-400 hover:text-purple-300 underline underline-offset-4 font-bold ml-1">Sign In</strong>
-                </span>
-              )}
-            </button>
-          </div>
+          {!showOtpVerify && (
+            <div className="text-center mt-6 pt-4 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
+                className="text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                {authMode === 'signin' ? (
+                  <span>
+                    Don't have an account? <strong className="text-purple-400 hover:text-purple-300 underline underline-offset-4 font-bold ml-1">Sign Up</strong>
+                  </span>
+                ) : (
+                  <span>
+                    Already have an account? <strong className="text-purple-400 hover:text-purple-300 underline underline-offset-4 font-bold ml-1">Sign In</strong>
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
     </AnimatePresence>

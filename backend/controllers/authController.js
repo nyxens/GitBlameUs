@@ -1,6 +1,7 @@
 // controllers/authController.js
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 import { User, Donor, Hospital, Patient } from '../models/index.js';
 
 const SALT_ROUNDS = 12;
@@ -15,6 +16,18 @@ const baseCookieOptions = {
   secure: isProd,
   sameSite: isProd ? 'strict' : 'lax',
 };
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587', 10),
+  secure: process.env.SMTP_PORT === '465',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+const otpStorage = new Map();
 
 function signAccessToken(user) {
   return jwt.sign(
@@ -42,7 +55,7 @@ function setAuthCookies(res, accessToken, refreshToken) {
   });
 }
 
-// --- Signup ---
+// --- Signup (Request OTP) ---
 export async function signup(req, res) {
   try {
     const { name, email, password, phone, bloodGroup, hospitalName, licenseId, city, role } = req.body;
@@ -53,6 +66,76 @@ export async function signup(req, res) {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      return res.status(409).json({ success: false, error: 'Email already in use' });
+    }
+
+    // Generate a 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store temporarily in-memory with a 5-minute expiration
+    otpStorage.set(email, {
+      signupData: req.body,
+      otp,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
+    // Send OTP via email
+    try {
+      await transporter.sendMail({
+        from: `"LifeVault BBMS" <${process.env.SMTP_USER || 'no-reply@lifevault.org'}>`,
+        to: email,
+        subject: 'LifeVault Email Verification Code',
+        text: `Your LifeVault verification code is: ${otp}. It will expire in 5 minutes.`,
+        html: `<h3>LifeVault Verification Code</h3><p>Your LifeVault verification code is: <strong>${otp}</strong></p><p>It will expire in 5 minutes.</p>`,
+      });
+      console.log(`[SMTP] Verification email sent successfully to ${email}`);
+    } catch (mailErr) {
+      console.warn('[SMTP Warning] Failed to send email via SMTP:', mailErr.message);
+      console.log(`\n--------------------------------------------------`);
+      console.log(`🔑  [DEVELOPMENT MODE] Verification OTP for ${email}: ${otp}`);
+      console.log(`--------------------------------------------------\n`);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Verification OTP sent to email',
+      email,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// --- Verify OTP & Complete Signup ---
+export async function verifyOTP(req, res) {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, error: 'Email and OTP are required' });
+    }
+
+    const entry = otpStorage.get(email);
+    if (!entry) {
+      return res.status(400).json({ success: false, error: 'No verification request found for this email' });
+    }
+
+    if (entry.expiresAt < Date.now()) {
+      otpStorage.delete(email);
+      return res.status(400).json({ success: false, error: 'OTP has expired. Please request a new one.' });
+    }
+
+    if (entry.otp !== otp) {
+      return res.status(400).json({ success: false, error: 'Invalid verification OTP' });
+    }
+
+    // OTP is valid, perform the actual registration
+    const { name, password, phone, bloodGroup, hospitalName, licenseId, city, role } = entry.signupData;
+
+    // Check again in case another user registered the email in the meantime
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      otpStorage.delete(email);
       return res.status(409).json({ success: false, error: 'Email already in use' });
     }
 
@@ -118,6 +201,10 @@ export async function signup(req, res) {
       }
     }
 
+    // Clean up temporary OTP storage
+    otpStorage.delete(email);
+
+    // Sign Access & Refresh Tokens
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
     setAuthCookies(res, accessToken, refreshToken);

@@ -71,16 +71,43 @@ export async function signupUser(signupData) {
     console.warn('API connection unavailable, falling back to mock signup:', err);
     return {
       success: true,
+      message: 'Verification OTP sent to email',
+      email: signupData.email,
+    };
+  }
+}
+
+export async function verifyOtpUser(email, otp, signupData) {
+  try {
+    const url = getAuthUrl('/verify-otp');
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, otp }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `API Error: ${response.statusText} (${response.status})`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    console.warn('API connection unavailable, falling back to mock OTP verification:', err);
+    return {
+      success: true,
       user: {
-        id: signupData.role === 'HOSPITAL' ? `HOSP-${Math.floor(1000 + Math.random() * 9000)}` : `LV-DONOR-${Math.floor(1000 + Math.random() * 9000)}`,
-        name: signupData.name || signupData.hospitalName || 'User',
-        email: signupData.email,
-        role: signupData.role,
-        bloodGroup: signupData.bloodGroup,
-        hospitalName: signupData.hospitalName,
-        licenseId: signupData.licenseId,
-        phone: signupData.phone,
-        city: signupData.city || 'New York',
+        id: signupData?.role === 'HOSPITAL' ? `HOSP-${Math.floor(1000 + Math.random() * 9000)}` : `LV-DONOR-${Math.floor(1000 + Math.random() * 9000)}`,
+        name: signupData?.name || signupData?.hospitalName || 'User',
+        email: email,
+        role: signupData?.role || 'DONOR',
+        bloodGroup: signupData?.bloodGroup || 'O+',
+        hospitalName: signupData?.hospitalName,
+        licenseId: signupData?.licenseId,
+        phone: signupData?.phone,
+        city: signupData?.city || 'New York',
       },
     };
   }
@@ -89,4 +116,5 @@ export async function signupUser(signupData) {
 export const authService = {
   loginUser,
   signupUser,
+  verifyOtpUser,
 };
