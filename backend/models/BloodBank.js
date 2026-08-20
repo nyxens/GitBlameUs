@@ -1,49 +1,35 @@
 import mongoose from 'mongoose';
 
-const addressSchema = new mongoose.Schema(
-  {
-    street: { type: String, trim: true },
-    city: { type: String, trim: true },
-    state: { type: String, trim: true },
-    pincode: { type: String, trim: true },
-    coordinates: {
-      lat: { type: Number },
-      lng: { type: Number },
-    },
-  },
-  { _id: false }
-);
+const { Schema } = mongoose;
 
-export const bloodBankSchema = new mongoose.Schema(
+export const bloodBankSchema = new Schema(
   {
-    code: {
-      type: String,
-      required: [true, 'Blood bank code is required'],
-      unique: true,
-      trim: true,
-      index: true,
-    },
-    name: {
+    bank_name: {
       type: String,
       required: [true, 'Blood bank name is required'],
       trim: true,
+      index: true,
     },
-    licenseNumber: {
+    pincode: {
       type: String,
-      required: [true, 'License number is required'],
-      unique: true,
+      required: [true, 'Blood bank pincode is required'],
       trim: true,
       index: true,
     },
-    city: {
-      type: String,
-      required: [true, 'City is required'],
-      trim: true,
+    I_Id: {
+      type: Schema.Types.ObjectId,
+      ref: 'Inventory',
+      default: null,
       index: true,
     },
-    contactNumber: {
+    admin_id: {
+      type: Schema.Types.ObjectId,
+      ref: 'Admin',
+      default: null,
+      index: true,
+    },
+    contact_no: {
       type: String,
-      required: [true, 'Contact phone is required'],
       trim: true,
     },
     email: {
@@ -51,24 +37,27 @@ export const bloodBankSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    operatingHours: {
+    address: {
       type: String,
-      default: '24/7',
+      trim: true,
     },
-    storageCapacityUnits: {
-      type: Number,
-      default: 5000,
-    },
-    activeAlertsCount: {
-      type: Number,
-      default: 0,
-    },
-    address: addressSchema,
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+
+// Virtual for ER diagram primary key naming: bank_id
+bloodBankSchema.virtual('bank_id').get(function () {
+  return this._id;
+});
+
+// Backward-compatible virtual aliases
+bloodBankSchema.virtual('name').get(function () {
+  return this.bank_name;
+});
 
 export const BloodBankSchema = bloodBankSchema;
 export const BloodBank = mongoose.models.BloodBank || mongoose.model('BloodBank', bloodBankSchema);

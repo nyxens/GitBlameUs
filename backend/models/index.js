@@ -1,50 +1,46 @@
-import User, { UserSchema } from './User.js';
-import Donor, { DonorSchema } from './Donor.js';
-import Patient, { PatientSchema } from './Patient.js';
+import Admin, { AdminSchema } from './Admin.js';
 import Hospital, { HospitalSchema } from './Hospital.js';
 import BloodBank, { BloodBankSchema } from './BloodBank.js';
-import InventoryItem, { InventoryItemSchema, BloodUnit } from './InventoryItem.js';
-import Requisition, { RequisitionSchema, BloodRequest } from './Requisition.js';
-import Appointment, { AppointmentSchema } from './Appointment.js';
-import DonationDrive, { DonationDriveSchema } from './DonationDrive.js';
-import LabScreening, { LabScreeningSchema } from './LabScreening.js';
+import Staff, { StaffSchema } from './Staff.js';
+import User, { UserSchema } from './User.js';
+import Donor, { DonorSchema } from './Donor.js';
+import Inventory, { InventorySchema } from './Inventory.js';
+import BloodBag, { BloodBagSchema } from './BloodBag.js';
+import Request, { RequestSchema } from './Request.js';
+import Allotment, { AllotmentSchema } from './Allotment.js';
 
 export {
-  User,
-  UserSchema,
-  Donor,
-  DonorSchema,
-  Patient,
-  PatientSchema,
+  Admin,
+  AdminSchema,
   Hospital,
   HospitalSchema,
   BloodBank,
   BloodBankSchema,
-  InventoryItem,
-  InventoryItemSchema,
-  BloodUnit,
-  Requisition,
-  RequisitionSchema,
-  BloodRequest,
-  Appointment,
-  AppointmentSchema,
-  DonationDrive,
-  DonationDriveSchema,
-  LabScreening,
-  LabScreeningSchema,
+  Staff,
+  StaffSchema,
+  User,
+  UserSchema,
+  Donor,
+  DonorSchema,
+  Inventory,
+  InventorySchema,
+  BloodBag,
+  BloodBagSchema,
+  Request,
+  RequestSchema,
+  Allotment,
+  AllotmentSchema,
 };
 
 export default {
-  User,
-  Donor,
-  Patient,
+  Admin,
   Hospital,
   BloodBank,
-  InventoryItem,
-  BloodUnit,
-  Requisition,
-  BloodRequest,
-  Appointment,
-  DonationDrive,
-  LabScreening,
+  Staff,
+  User,
+  Donor,
+  Inventory,
+  BloodBag,
+  Request,
+  Allotment,
 };

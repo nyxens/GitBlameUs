@@ -1,75 +1,63 @@
 import mongoose from 'mongoose';
 
-const addressSchema = new mongoose.Schema(
-  {
-    street: { type: String, trim: true },
-    city: { type: String, trim: true },
-    state: { type: String, trim: true },
-    pincode: { type: String, trim: true },
-    coordinates: {
-      lat: { type: Number },
-      lng: { type: Number },
-    },
-  },
-  { _id: false }
-);
+const { Schema } = mongoose;
 
-export const hospitalSchema = new mongoose.Schema(
+export const hospitalSchema = new Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      index: true,
-    },
-    name: {
+    hos_name: {
       type: String,
       required: [true, 'Hospital name is required'],
       trim: true,
       index: true,
     },
-    licenseId: {
+    pincode: {
       type: String,
-      required: [true, 'License ID is required'],
-      unique: true,
+      required: [true, 'Hospital pincode is required'],
       trim: true,
       index: true,
     },
-    city: {
-      type: String,
-      required: [true, 'City is required'],
-      trim: true,
+    I_Id: {
+      type: Schema.Types.ObjectId,
+      ref: 'Inventory',
+      default: null,
       index: true,
     },
-    networkNode: {
-      type: String,
-      trim: true,
-    },
-    tier: {
-      type: String,
-      enum: ['LEVEL_1_TRAUMA', 'GENERAL_HOSPITAL', 'SPECIALTY_CLINIC'],
-      default: 'GENERAL_HOSPITAL',
+    admin_id: {
+      type: Schema.Types.ObjectId,
+      ref: 'Admin',
+      default: null,
+      index: true,
     },
     phone: {
       type: String,
       trim: true,
     },
-    emergencyContact: {
+    email: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+    address: {
       type: String,
       trim: true,
     },
-    isVerified: {
-      type: Boolean,
-      default: false,
-      index: true,
-    },
-    address: addressSchema,
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-hospitalSchema.index({ city: 1, isVerified: 1 });
+// Virtual for ER diagram primary key naming: hos_id
+hospitalSchema.virtual('hos_id').get(function () {
+  return this._id;
+});
+
+// Backward-compatible virtual aliases
+hospitalSchema.virtual('name').get(function () {
+  return this.hos_name;
+});
 
 export const HospitalSchema = hospitalSchema;
 export const Hospital = mongoose.models.Hospital || mongoose.model('Hospital', hospitalSchema);

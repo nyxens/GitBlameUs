@@ -1,30 +1,27 @@
-# LifeVault OBBMS — Software Requirements Specification (SRS) & System Architecture
+# LifeVault BBMS — Software Requirements Specification (SRS) & System Architecture
 
-**Document Version**: 2.0 (Enhanced Production Architecture)  
+**Document Version**: 2.1 (ER-Aligned Database & Production Architecture)  
 **System Name**: LifeVault — Online Blood Bank Management System (OBBMS)  
 **Platform**: Fullstack Web Application (React + Vite + Tailwind CSS / Node.js + Express + MongoDB)  
+**Specification Based On**: Master System ER Diagram (`documents/er_diagram.png`)  
 **Target Delivery**: Agile Scrum Sprints (Jira-ready Epics & User Stories)  
 
 ---
 
 ## Table of Contents
 1. [Executive Summary & Scope Revision](#1-executive-summary--scope-revision)
-2. [Audit & Gap Analysis of Initial SRS (DOCX Critique)](#2-audit--gap-analysis-of-initial-srs-docx-critique)
+2. [Audit & Gap Analysis of Initial Requirements](#2-audit--gap-analysis-of-initial-requirements)
 3. [User Classes & Role-Based Access Control (RBAC)](#3-user-classes--role-based-access-control-rbac)
 4. [System Architecture & Module Specification](#4-system-architecture--module-specification)
-   - [Module 1: Authentication & Authorization (RBAC)](#module-1-authentication--authorization-rbac)
-   - [Module 2: Donor Management & Eligibility Lifecycle](#module-2-donor-management--eligibility-lifecycle)
-   - [Module 3: Patient & Guardian Request Management](#module-3-patient--guardian-request-management)
-   - [Module 4: Blood Component Inventory & FEFO Engine](#module-4-blood-component-inventory--fefo-engine)
-   - [Module 5: Clinical ABO/Rh Compatibility & Request Matching](#module-5-clinical-aborh-compatibility--request-matching)
-   - [Module 6: Cold-Chain Telemetry & Refrigerator Storage](#module-6-cold-chain-telemetry--refrigerator-storage)
-   - [Module 7: Emergency Hospital Requisition & Dispatch](#module-7-emergency-hospital-requisition--dispatch)
-   - [Module 8: Donation Scheduling & Mobile Drive Management](#module-8-donation-scheduling--mobile-drive-management)
-   - [Module 9: Lab Screening & Cross-Matching Audit](#module-9-lab-screening--cross-matching-audit)
-   - [Module 10: Multi-Channel Notification & Alert Broadcast](#module-10-multi-channel-notification--alert-broadcast)
-   - [Module 11: Real-Time Availability & Geolocation Search](#module-11-real-time-availability--geolocation-search)
-   - [Module 12: Admin Dashboard, Analytics & Reporting](#module-12-admin-dashboard-analytics--reporting)
-5. [Database Schema Design (MongoDB / Mongoose)](#5-database-schema-design-mongodb--mongoose)
+   - [Module 1: Authentication & Identity Management (`User`, `Admin`, `Staff`)](#module-1-authentication--identity-management)
+   - [Module 2: Donor Management & Blood Collection (`Donor`, `BloodBag`)](#module-2-donor-management--blood-collection)
+   - [Module 3: Blood Request Placement & Tracking (`Request`)](#module-3-blood-request-placement--tracking)
+   - [Module 4: Cold Inventory & Cell/Shelf Storage (`Inventory`, `BloodBag`)](#module-4-cold-inventory--cellshelf-storage)
+   - [Module 5: Clinical ABO/Rh Compatibility Engine](#module-5-clinical-aborh-compatibility-engine)
+   - [Module 6: Requisition Allotment & Staff Approval (`Allotment`)](#module-6-requisition-allotment--staff-approval)
+   - [Module 7: Hospital & Blood Bank Network Management (`Hospital`, `BloodBank`)](#module-7-hospital--blood-bank-network-management)
+   - [Module 8: System Administration & Facility Governance (`Admin`)](#module-8-system-administration--facility-governance)
+5. [Database Schema Specification (10 Collections)](#5-database-schema-specification-10-collections)
 6. [Non-Functional Requirements (NFRs)](#6-non-functional-requirements-nfrs)
 7. [Implementation Action Plan for Web App Integration](#7-implementation-action-plan-for-web-app-integration)
 
@@ -32,222 +29,285 @@
 
 ## 1. Executive Summary & Scope Revision
 
-The **LifeVault Online Blood Bank Management System (OBBMS)** is an end-to-end, enterprise-grade SaaS healthcare platform designed to connect voluntary blood donors, patients/recipients, hospital emergency departments, and regional blood bank administrators. 
+The **LifeVault Online Blood Bank Management System (OBBMS)** is an enterprise healthcare management platform designed to connect voluntary blood donors, patients/recipients, hospitals, blood banks, staff members, and administrators into an integrated real-time network.
 
-### Core Mission
-- **Zero Expiry Waste**: Enforce strict **First-Expired-First-Out (FEFO)** queue management.
-- **Clinical Precision**: Eliminate manual transfusion errors with an automated **ABO/Rh Compatibility Engine** for all blood components (Whole Blood, PRBC, FFP, Platelets, Cryo).
-- **Emergency Velocity**: Streamline emergency requisitions for 15-minute hospital dispatch.
-- **Cold-Chain Assurance**: Provide continuous IoT temperature telemetry monitoring for blood storage lockers.
-
-Unlike basic record-keeping systems, LifeVault combines public donor engagement, interactive live telemetry, emergency dispatch routing, and multi-role clinical dashboards into a unified web application.
+### Core Objectives
+- **Zero Expiry & Decommission Waste**: Enforce strict **First-Expired-First-Out (FEFO)** query sorting on `bloodbags` and real-time discard tracking (`isdiscresed`).
+- **Clinical Compatibility Precision**: Automated **ABO/Rh Compatibility Engine** matching recipient requests to viable inventory units.
+- **Auditable Allotment Pipeline**: Atomic allocation of blood bags to patient requests authorized by registered medical staff.
+- **Multi-Facility Inventory Organization**: Pin-point physical tracking down to cell number (`cellno`) and shelf number (`shelfno`) across hospitals and blood banks.
 
 ---
 
-## 2. Audit & Gap Analysis of Initial SRS (DOCX Critique)
+## 2. Audit & Gap Analysis of Initial Requirements
 
-Following a comprehensive technical review of `Blood_Bank_Management_System_SRS.docx` (Version 1.0), several critical healthcare, architectural, and data-integrity gaps were identified. This revised SRS rectifies those flaws as detailed below:
+The database architecture has been refined to strictly adhere to the 10 core collections in `documents/er_diagram.png`:
 
-| # | Feature / Area | Identified Issue in Initial SRS (v1.0) | Resolution & Enhancement in LifeVault SRS (v2.0) |
+| # | Domain Entity | ER Field Structure | Key Benefit |
 |---|---|---|---|
-| 1 | **Blood Component Processing** | Treated blood as generic "Blood Units" or whole blood. | Added full support for component separation: **Packed Red Blood Cells (PRBC)**, **Fresh Frozen Plasma (FFP)**, **Platelet Concentrates**, and **Cryoprecipitate**, each with distinct shelf-lives and storage temperatures. |
-| 2 | **Clinical ABO/Rh Rules** | Assumed simple blood-group matching (e.g., O- for everyone). | Implemented component-specific compatibility matrix rules. *Note: FFP compatibility rules are the inverse of Red Blood Cell compatibility (AB is universal donor for FFP, O is universal recipient).* |
-| 3 | **Inventory Expiry Management** | Simple FIFO/generic inventory listing without queue priority. | Integrated strict **FEFO (First-Expired-First-Out)** algorithm to prioritize units closest to expiration while suppressing expired stock from matchable pools. |
-| 4 | **Cold-Chain Telemetry** | Complete absence of temperature and storage telemetry. | Created Module 6 (Cold-Chain Telemetry) monitoring storage temperatures ($2^\circ\text{C}-6^\circ\text{C}$ for RBC, $-18^\circ\text{C}$ for FFP, $20^\circ\text{C}-24^\circ\text{C}$ for Platelets) with automated breach alerts. |
-| 5 | **Emergency Dispatch** | Single-tier request creation without urgency dispatch protocols. | Introduced 3-tier request prioritization (**Emergency Trauma**, **Surgical Reserve**, **Routine**) with fast-track allocation and real-time courier tracking. |
-| 6 | **Lab Cross-Matching** | No laboratory validation phase between request approval and dispatch. | Added Module 9 (Lab Screening & Cross-Matching Audit) to record ABO re-typing, antibody screening, and compatibility cross-match verification before issuing blood units. |
-| 7 | **Landing & Marketing Scope** | Excluded public landing and availability search from scope. | Integrated public landing UI featuring live telemetry dashboards, interactive compatibility guides, and instant modal workflows for donors and hospitals. |
-| 8 | **Data Concurrency & State Machine** | No database transaction locking for unit reservations. | Enforced MongoDB ACID transactions (`mongoose.startSession()`) during request approval to prevent double allocation of scarce blood units. |
+| 1 | **ADMIN** | `admin_id`, `username`, `password`, `email` | Root administration governing hospitals, blood banks, and staff accounts. |
+| 2 | **HOSPITAL** | `hos_id`, `hos_name`, `pincode`, `I_Id` | Dedicated facility model with direct link to owned cold inventory storage. |
+| 3 | **BLOODBANK** | `bank_id`, `bank_name`, `pincode`, `I_Id` | Regional processing centers with owned storage capacity. |
+| 4 | **STAFF** | `S_Id`, `role`, `department`, `licence_id`, `hos/bank_id`, `u_id` | Medical staff with "is a" relation to `User` and polymorphic work assignment. |
+| 5 | **USER** | `u_Id`, `username`, `DOB`, `pincode`, `email`, `bloodgroup`, `gender`, `status`, `password` | Centralized identity foundation for donors, patients, and staff. |
+| 6 | **DONOR** | `D_Id`, `u_id`, `date_of_donation`, `weight_donated`, `bag_id`, `S_Id`, `pincode` | Captures individual donation sessions, collected by staff and producing blood bags. |
+| 7 | **INVENTORY** | `I_ID`, `cellno`, `shelfno`, `pincode`, `hos/bank_id`, `isfull` | Granular physical locker storage management. |
+| 8 | **BLOODBAG** | `bag_id`, `bloodgroup`, `haemoglobin`, `pressure`, `date_of_donation`, `isdiscresed`, `expired_date`, `S_Id`, `I_ID`, `status`, `weight`, `maxcost` | Clinical blood unit record with physiological metrics and expiration tracking. |
+| 9 | **REQUEST** | `req_id`, `u_id`, `bloodgroup`, `weight`, `pincode`, `date_of_request`, `date_of_requirement`, `A_id` | Recipient requirement record with deadline and fulfillment link. |
+| 10 | **ALLOTMENT** | `a_id`, `req_id`, `bag_id`, `s_id`, `date_of_allocation` | Legally auditable dispatch allocating a blood bag to a request with staff sign-off. |
 
 ---
 
 ## 3. User Classes & Role-Based Access Control (RBAC)
 
-The system supports five distinct user classes with granular permissions:
-
 ```
-                  ┌─────────────────────────────────────────┐
-                  │              SUPER ADMIN                │
-                  │   Platform-wide analytics, Blood Bank   │
-                  │     Branch CRUD, User Role Overrides    │
-                  └────────────────────┬────────────────────┘
-                                       │
-            ┌──────────────────────────┴──────────────────────────┐
-            ▼                                                     ▼
-┌───────────────────────┐                             ┌───────────────────────┐
-│   BLOOD BANK ADMIN    │                             │    HOSPITAL DOCTOR    │
-│ Branch stock, FEFO,   │                             │ Emergency orders, ER  │
-│ Approvals, Dispatches │                             │ dispatch, Patient link│
-└───────────┬───────────┘                             └───────────┬───────────┘
-            │                                                     │
-            ▼                                                     ▼
-┌───────────────────────┐                             ┌───────────────────────┐
-│    VOLUNTARY DONOR    │                             │   PATIENT / RECIPIENT │
-│ Registration, Slots,  │                             │ Track requests, Find  │
-│ Eligibility, Badges   │                             │ Blood, Guarded Orders │
-└───────────────────────┘                             └───────────────────────┘
+                         ┌─────────────────────────────────────────┐
+                         │                  ADMIN                  │
+                         │   Manages Hospitals, BloodBanks, Staff  │
+                         └────────────────────┬────────────────────┘
+                                              │
+                    ┌─────────────────────────┴─────────────────────────┐
+                    ▼                                                   ▼
+       ┌─────────────────────────┐                         ┌─────────────────────────┐
+       │   STAFF (Doctor/Tech)   │                         │          USER           │
+       │ Collects donor units,   │                         │  Places blood requests, │
+       │ Approves allotments     │                         │  Donates blood          │
+       └────────────┬────────────┘                         └────────────┬────────────┘
+                    │                                                   │
+                    ▼                                                   ▼
+       ┌─────────────────────────┐                         ┌─────────────────────────┐
+       │      ALLOTMENT MGR      │                         │          DONOR          │
+       │ Links BloodBag to Req   │                         │ Produces BloodBag unit  │
+       └─────────────────────────┘                         └─────────────────────────┘
 ```
 
-1. **Super Admin**: Platform-wide configuration, creation of blood bank branches, system-wide analytics, and audit log inspection.
-2. **Blood Bank Administrator (BBA)**: Branch-level manager overseeing blood stock, component processing, request approvals/rejections, and courier dispatches.
-3. **Hospital Doctor / Staff**: Authorized clinical user placing urgent transfusion orders, tracking live ER courier dispatches, and managing hospital reserves.
-4. **Voluntary Donor**: Registered citizen checking eligibility, booking donation appointments, viewing donation history, and earning life-saver badges.
-5. **Patient / Recipient**: Individual (or guardian) searching real-time regional blood availability, submitting requests, and tracking fulfillment status.
+1. **Admin**: Platform administrator with root control over `Hospital`, `BloodBank`, and `Staff` creation.
+2. **Staff (`DOCTOR`, `LAB_TECHNICIAN`, `PHLEBOTOMIST`, `MANAGER`)**: Healthcare personnel who collect blood from donors, monitor storage `Inventory`, and authorize `Allotment` dispatches.
+3. **User (`DONOR`, `PATIENT`)**: Base citizen profile capable of donating blood (`Donor` $\rightarrow$ `BloodBag`) or requesting blood units (`User` $\rightarrow$ `Request`).
 
 ---
 
 ## 4. System Architecture & Module Specification
 
-### Module 1: Authentication & Authorization (RBAC)
-- **Purpose**: Secure access control across all 5 roles via JWT tokens and encrypted sessions.
-- **Key Features**:
-  - Email/password signup with role selector (Donor, Patient, Hospital Doctor).
-  - JWT Access Token (15-min expiry) + HTTP-Only Refresh Token (7-day expiry).
-  - Password hashing via `bcrypt` (12 rounds).
-  - Role-based route guard middleware (`requireAuth`, `requireRole(['ADMIN', 'DOCTOR'])`).
-- **Data Schema (`User`)**:
-  ```ts
-  {
-    _id: ObjectId,
-    email: string,
-    passwordHash: string,
-    role: 'SUPER_ADMIN' | 'BBA' | 'DOCTOR' | 'DONOR' | 'PATIENT',
-    name: string,
-    phone: string,
-    isVerified: boolean,
-    createdAt: Date
-  }
-  ```
+### Module 1: Authentication & Identity Management
+- **Collections**: `users`, `admins`, `staff`
+- **Key Capabilities**:
+  - Secure bcrypt password hashing with `{ select: false }` query isolation.
+  - Role validation distinguishing system Admins, Facility Staff, and citizen Users.
+  - Staff "is a" relation linking `Staff.u_id` to `User._id`.
 
-### Module 2: Donor Management & Eligibility Lifecycle
-- **Purpose**: Manage donor registration, health screening, eligibility countdowns, and impact tracking.
-- **Key Features**:
-  - 90-day donation interval calculator (auto-computes `isEligible`).
-  - Physical health criteria verification (Age 18–65, Weight $\ge 50\text{kg}$, Hemoglobin $\ge 12.5\text{g/dL}$).
-  - Digital donor card generation with unique Donor ID (`#LV-DONOR-XXXX`).
-  - Search/filter eligible donors by blood group and city for emergency call-outs.
+### Module 2: Donor Management & Blood Collection
+- **Collections**: `donors`, `bloodbags`, `staff`
+- **Key Capabilities**:
+  - Record donation sessions (`Donor`) with donor `weight_donated`, collection date, and site `pincode`.
+  - Staff validation (`S_Id`) recording the technician who collected the blood.
+  - Direct 1-to-1 linkage from `Donor` session to produced `BloodBag` (`bag_id`).
 
-### Module 3: Patient & Guardian Request Management
-- **Purpose**: Facilitate patient-raised and guardian-raised blood requests with hospital linkage.
-- **Key Features**:
-  - Self or Guardian blood request forms.
-  - Hospital room / attending physician reference tagging.
-  - Real-time status tracker (Pending $\rightarrow$ Approved $\rightarrow$ Matched $\rightarrow$ Dispatched $\rightarrow$ Fulfilled).
+### Module 3: Blood Request Placement & Tracking
+- **Collections**: `requests`, `users`
+- **Key Capabilities**:
+  - Citizen or emergency request placement with specified `bloodgroup`, `weight` (volume), and delivery `pincode`.
+  - Urgency monitoring comparing `date_of_request` against `date_of_requirement`.
+  - Real-time status workflow (`PENDING` $\rightarrow$ `APPROVED` $\rightarrow$ `ALLOCATED` $\rightarrow$ `FULFILLED`).
 
-### Module 4: Blood Component Inventory & FEFO Engine
-- **Purpose**: System of record for tracking individual blood bags and enforcing First-Expired-First-Out (FEFO) queuing.
-- **Key Features**:
-  - Component tracking: Whole Blood (35 days), PRBC (42 days), FFP (1 year frozen), Platelets (5 days room temp).
-  - Barcode unit tagging (`#LV-UNIT-YYYY`).
-  - Automated cron job (`node-cron`) for daily auto-expiration of stock.
-  - FEFO queue algorithm (`sort((a, b) => a.expiryDate - b.expiryDate)`).
+### Module 4: Cold Inventory & Cell/Shelf Storage
+- **Collections**: `inventories`, `bloodbags`, `hospitals`, `bloodbanks`
+- **Key Capabilities**:
+  - Granular shelf & cell location indexing (`shelfno`, `cellno`).
+  - Storage capacity and fullness state flag (`isfull`).
+  - Polymorphic ownership assigning inventory units to either a `Hospital` or `BloodBank` via `hos_or_bank_id`.
 
-### Module 5: Clinical ABO/Rh Compatibility & Request Matching
-- **Purpose**: Automated compatibility calculator preventing illegal cross-transfusions.
-- **Key Features**:
-  - Component-aware compatibility matrix:
-    - **RBC / Whole Blood**: O- is Universal Donor; AB+ is Universal Recipient.
-    - **FFP (Plasma)**: AB is Universal Donor; O is Universal Recipient.
-    - **Platelets**: ABO compatible preferred.
-  - Multi-unit auto-allocation using active MongoDB ACID transactions.
+### Module 5: Clinical ABO/Rh Compatibility Engine
+- **Collections**: `bloodbags`, `requests`
+- **Key Capabilities**:
+  - Real-time compatibility matrix matching requested blood group with available `BloodBag` inventory.
+  - Enforce FEFO (First-Expired-First-Out) priority index `{ bloodgroup: 1, status: 1, isdiscresed: 1, expired_date: 1 }`.
 
-### Module 6: Cold-Chain Telemetry & Refrigerator Storage
-- **Purpose**: Real-time IoT temperature monitoring of blood storage lockers.
-- **Key Features**:
-  - Locker telemetry thresholds ($2^\circ\text{C}-6^\circ\text{C}$ for RBC, $-18^\circ\text{C}$ for FFP).
-  - Visual gauge indicators (Green = Optimal, Yellow = Warning, Red = Breach).
-  - Automated audit logging of temperature anomalies.
+### Module 6: Requisition Allotment & Staff Approval
+- **Collections**: `allotments`, `requests`, `bloodbags`, `staff`
+- **Key Capabilities**:
+  - Strict 1-to-1 allocation of a `BloodBag` to a `Request` verified by authorizing `Staff` (`s_id`).
+  - Database-level unique constraint on `Allotment.bag_id` preventing double-allocation.
+  - Updates `Request.A_id` and marks `BloodBag.status = 'ALLOCATED'`.
 
-### Module 7: Emergency Hospital Requisition & Dispatch
-- **Purpose**: Rapid-response portal for hospital emergency rooms and trauma centers.
-- **Key Features**:
-  - 3-tier urgency selector (**Emergency Trauma**, **Surgical Reserve**, **Routine**).
-  - Emergency alert banner for high-priority dispatches.
-  - Courier dispatch timer (15-minute SLA target).
+### Module 7: Hospital & Blood Bank Network Management
+- **Collections**: `hospitals`, `bloodbanks`, `inventories`
+- **Key Capabilities**:
+  - Maintenance of verified healthcare facilities and regional blood centers.
+  - Linked cold-chain inventory units (`I_Id`).
+  - Pincode-based proximity routing for localized blood dispatch.
 
-### Module 8: Donation Scheduling & Mobile Drive Management
-- **Purpose**: Appointment booking engine for blood centers and mobile donation camps.
-- **Key Features**:
-  - Time slot capacity limits to prevent overcrowding.
-  - Blood drive camp organization by blood banks.
-  - One-click post-donation check-in converting appointments directly into Inventory & History records.
-
-### Module 9: Lab Screening & Cross-Matching Audit
-- **Purpose**: Laboratory safety checkpoint before issuing blood units.
-- **Key Features**:
-  - Infectious disease screening log (HIV, Hepatitis B/C, Syphilis, Malaria).
-  - Major & minor cross-match test logging (Compatible / Incompatible).
-  - Immutable lab technician sign-off signature.
-
-### Module 10: Multi-Channel Notification & Alert Broadcast
-- **Purpose**: Real-time alerting for critical system events.
-- **Key Features**:
-  - Emergency SMS & Email broadcast to local donors during O- / B- shortages.
-  - In-app notification center (bell badge with unread counts).
-  - Automated status updates to patients and hospital staff.
-
-### Module 11: Real-Time Availability & Geolocation Search
-- **Purpose**: High-performance search for checking blood stocks across regional blood banks.
-- **Key Features**:
-  - Filter by Blood Group, Component, and City/Distance.
-  - Ready/Low/Critical availability status badges.
-  - Direct hospital & blood bank contact triggers.
-
-### Module 12: Admin Dashboard, Analytics & Reporting
-- **Purpose**: Executive control center for Blood Bank Admins and Super Admins.
-- **Key Features**:
-  - Live KPI cards (Total Units, Active Orders, Cold-Chain Status, Fulfillment Rate).
-  - Interactive charts (Donation trends, demand distribution, component turnover).
-  - Exportable audit reports in CSV and PDF formats.
+### Module 8: System Administration & Facility Governance
+- **Collections**: `admins`, `hospitals`, `bloodbanks`, `staff`
+- **Key Capabilities**:
+  - Creation and management of hospital and blood bank branch profiles.
+  - Staff licensing and departmental allocation oversight.
+  - Comprehensive system telemetry and inventory audit logs.
 
 ---
 
-## 5. Database Schema Design (MongoDB / Mongoose)
+## 5. Database Schema Specification (10 Collections)
+
+The system database is specified with the following 10 collections matching `documents/er_diagram.png`:
 
 ```mermaid
 erDiagram
-    USER ||--o{ DONOR : profile
-    USER ||--o{ PATIENT : profile
-    USER ||--o{ HOSPITAL : staff
-    BLOOD_BANK ||--o{ BLOOD_UNIT : stores
-    DONOR ||--o{ APPOINTMENT : books
-    DONOR ||--o{ BLOOD_UNIT : donates
-    PATIENT ||--o{ BLOOD_REQUEST : requests
-    HOSPITAL ||--o{ BLOOD_REQUEST : places
-    BLOOD_REQUEST ||--o{ REQUISITION_DISPATCH : triggers
+    ADMIN {
+        ObjectId admin_id PK
+        string username
+        string password
+        string email
+    }
+
+    HOSPITAL {
+        ObjectId hos_id PK
+        string hos_name
+        string pincode
+        ObjectId I_Id FK
+    }
+
+    BLOODBANK {
+        ObjectId bank_id PK
+        string bank_name
+        string pincode
+        ObjectId I_Id FK
+    }
+
+    STAFF {
+        ObjectId S_Id PK
+        string role
+        ObjectId hos_or_bank_id FK
+        string hos_or_bank_type
+        string department
+        ObjectId u_id FK
+        string licence_id
+    }
+
+    USER {
+        ObjectId u_Id PK
+        string username
+        date DOB
+        string pincode
+        string email
+        string bloodgroup
+        string gender
+        string status
+        string password
+    }
+
+    DONOR {
+        ObjectId D_Id PK
+        ObjectId u_id FK
+        date date_of_donation
+        number weight_donated
+        ObjectId bag_id FK
+        ObjectId S_Id FK
+        string pincode
+    }
+
+    INVENTORY {
+        ObjectId I_ID PK
+        string cellno
+        string shelfno
+        string pincode
+        ObjectId hos_or_bank_id FK
+        string hos_or_bank_type
+        boolean isfull
+    }
+
+    BLOODBAG {
+        ObjectId bag_id PK
+        string bloodgroup
+        number haemoglobin
+        string pressure
+        date date_of_donation
+        boolean isdiscresed
+        date expired_date
+        ObjectId S_Id FK
+        ObjectId I_ID FK
+        string status
+        number weight
+        number maxcost
+    }
+
+    REQUEST {
+        ObjectId req_id PK
+        ObjectId u_id FK
+        string bloodgroup
+        number weight
+        string pincode
+        date date_of_request
+        date date_of_requirement
+        ObjectId A_id FK
+    }
+
+    ALLOTMENT {
+        ObjectId a_id PK
+        ObjectId req_id FK
+        ObjectId bag_id FK
+        ObjectId s_id FK
+        date date_of_allocation
+    }
+
+    ADMIN ||--o{ HOSPITAL : "manages"
+    ADMIN ||--o{ BLOODBANK : "manages"
+    ADMIN ||--o{ STAFF : "manages"
+
+    HOSPITAL ||--o| INVENTORY : "owns"
+    BLOODBANK ||--o| INVENTORY : "owns"
+    BLOODBANK ||--o{ STAFF : "employs / works at"
+
+    USER ||--|| STAFF : "is a"
+    USER ||--o{ DONOR : "donates as"
+    USER ||--o{ REQUEST : "places"
+
+    STAFF ||--o{ DONOR : "collects"
+    STAFF ||--o{ ALLOTMENT : "approves / processes"
+
+    DONOR ||--|| BLOODBAG : "produces"
+    INVENTORY ||--o{ BLOODBAG : "stores"
+
+    REQUEST ||--o| ALLOTMENT : "fulfilled by"
+    ALLOTMENT ||--|| BLOODBAG : "allocates"
 ```
+
+*For complete field types, indexes, and Mongoose code definitions, refer to [DBSCHEMA.md](file:///c:/bbms/documents/DBSCHEMA.md).*
 
 ---
 
 ## 6. Non-Functional Requirements (NFRs)
 
-1. **Performance**: API responses for availability search and dashboard summary $\le 300\text{ms}$.
-2. **Security**: OWASP compliance, JWT bearer tokens, bcrypt password hashing, and role guard validation on all write routes.
-3. **Data Consistency**: Strict MongoDB transactions during inventory deduction and allocation.
-4. **Accessibility & Design**: Dark-mode glassmorphic theme with WCAG AA contrast compliance for high-stress clinical environments.
-5. **Reliability**: 99.9% uptime target with automated error boundary fallbacks.
+1. **Data Integrity & Concurrency**: Atomic MongoDB session transactions (`session.withTransaction()`) when creating `Allotment` and updating `BloodBag` / `Request` states.
+2. **Double-Allocation Prevention**: Enforced unique index `{ bag_id: 1 }` on the `allotments` collection.
+3. **Query Performance**: Sub-50ms query latency for FEFO allocation using `{ bloodgroup: 1, status: 1, isdiscresed: 1, expired_date: 1 }`.
+4. **Security**: Password hashing using bcrypt (12 rounds), JWT access & refresh tokens, and strict role guards on all mutation endpoints.
+5. **Auditability**: Complete timestamp tracking (`createdAt`, `updatedAt`) across all 10 collections.
 
 ---
 
 ## 7. Implementation Action Plan for Web App Integration
 
-To integrate these SRS specifications into the web application codebase immediately, the development team will execute the following action items:
+### 1. Database & Model Layer (`backend/models/`)
+- [x] Create `Admin.js` with password comparison methods.
+- [x] Update `Hospital.js` with `hos_name`, `pincode`, and `I_Id`.
+- [x] Update `BloodBank.js` with `bank_name`, `pincode`, and `I_Id`.
+- [x] Create `Staff.js` with `licence_id`, polymorphic `hos_or_bank_id`, and `u_id`.
+- [x] Update `User.js` with `DOB`, `bloodgroup`, and `pincode`.
+- [x] Update `Donor.js` with `weight_donated`, `bag_id`, and `S_Id`.
+- [x] Create `Inventory.js` with `cellno`, `shelfno`, and `isfull`.
+- [x] Create `BloodBag.js` with `haemoglobin`, `pressure`, `isdiscresed`, and FEFO index.
+- [x] Create `Request.js` with `date_of_requirement`, `weight`, and `A_id`.
+- [x] Create `Allotment.js` with unique `bag_id` constraint and `date_of_allocation`.
+- [x] Export all 10 models in `backend/models/index.js`.
 
-### 1. Frontend Integration (`src/`)
-- [x] **Modular Structure**: Organize code into `@ui`, `@layout`, `@modals`, `@pages`, `@services`, `@appTypes`, `@hooks`, and `@utils`.
-- [x] **Interactive Dashboard**: Build telemetry, stock monitoring, and order approval controls (`@pages/dashboard`).
-- [x] **Hospital & Donor Pages**: Implement dedicated section views and modals (`@pages/donor`, `@pages/hospital`, `@modals`).
-- [ ] **State & API Integration**: Wire frontend services (`@services/inventoryService`, `@services/hospitalService`) to backend REST APIs.
-
-### 2. Backend Integration (`backend/`)
-- [x] **Service Layer**: Implement `CompatibilityEngine` (ABO/Rh matrix) and `FEFOQueueService` (inventory sorting).
-- [x] **Controllers & Routes**: Structure Auth, Donor, Hospital, Inventory, and Requisition routes.
-- [ ] **MongoDB Persistence**: Connect Mongoose models to cloud MongoDB Atlas instance.
-- [ ] **Automated Cron Jobs**: Activate daily unit expiry checks via `node-cron`.
+### 2. Controller & Service Layer (`backend/controllers/`, `backend/services/`)
+- [x] Wire controllers to the new 10 Mongoose schemas.
+- [x] Compatibility aliasing for legacy endpoints.
+- [x] Verification of clean build and runtime integrity.
 
 ---
 
 ### Document Approval & Sign-Off
-*Architect & Lead Software Engineer*: **Antigravity AI / Lead Architect**  
-*Project Repository*: `C:\bbms`  
-*Specification Status*: **Approved for Sprint Execution**
+*Lead Architect*: **Antigravity AI / Lead Architect**  
+*System Model*: **10-Collection ER Architecture**  
+*Specification Status*: **Approved for Implementation**

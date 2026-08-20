@@ -1,12 +1,20 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
-export const userSchema = new mongoose.Schema(
+const { Schema } = mongoose;
+
+export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+export const GENDERS = ['MALE', 'FEMALE', 'OTHER'];
+export const USER_STATUSES = ['ACTIVE', 'INACTIVE', 'PENDING', 'SUSPENDED'];
+
+export const userSchema = new Schema(
   {
-    name: {
+    username: {
       type: String,
-      required: [true, 'User name is required'],
+      required: [true, 'Username is required'],
+      unique: true,
       trim: true,
+      index: true,
     },
     email: {
       type: String,
@@ -18,65 +26,67 @@ export const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
+      required: [true, 'Password is required'],
       select: false,
     },
-    role: {
+    DOB: {
+      type: Date,
+      required: [true, 'Date of Birth (DOB) is required'],
+    },
+    pincode: {
       type: String,
-      enum: ['SUPER_ADMIN', 'BBA', 'DOCTOR', 'DONOR', 'PATIENT', 'ADMIN', 'HOSPITAL', 'STAFF'],
-      default: 'DONOR',
+      required: [true, 'Pincode is required'],
+      trim: true,
       index: true,
+    },
+    bloodgroup: {
+      type: String,
+      required: [true, 'Blood group is required'],
+      enum: BLOOD_GROUPS,
+      index: true,
+    },
+    gender: {
+      type: String,
+      required: [true, 'Gender is required'],
+      enum: GENDERS,
+    },
+    status: {
+      type: String,
+      enum: USER_STATUSES,
+      default: 'ACTIVE',
+    },
+    name: {
+      type: String,
+      trim: true,
     },
     phone: {
       type: String,
       trim: true,
     },
-    bloodGroup: {
+    role: {
       type: String,
-      enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
-    },
-    dob: {
-      type: Date,
-    },
-    gender: {
-      type: String,
-      enum: ['MALE', 'FEMALE', 'OTHER'],
-    },
-    pincode: {
-      type: String,
-      trim: true,
-    },
-    city: {
-      type: String,
-      trim: true,
-    },
-    hospitalName: {
-      type: String,
-      trim: true,
-    },
-    licenseId: {
-      type: String,
-      trim: true,
-    },
-    avatar: {
-      type: String,
-    },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-    status: {
-      type: String,
-      enum: ['ACTIVE', 'INACTIVE', 'SUSPENDED'],
-      default: 'ACTIVE',
-    },
-    lastLogin: {
-      type: Date,
+      default: 'DONOR',
     },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+
+// Virtual for ER diagram primary key naming: u_Id
+userSchema.virtual('u_Id').get(function () {
+  return this._id;
+});
+
+// Backward-compatibility aliases
+userSchema.virtual('bloodGroup').get(function () {
+  return this.bloodgroup;
+});
+userSchema.virtual('dob').get(function () {
+  return this.DOB;
+});
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
   if (!this.password) return false;

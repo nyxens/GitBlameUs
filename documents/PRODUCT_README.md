@@ -1,17 +1,17 @@
 # 🩸 LifeVault — Online Blood Bank Management System (BBMS)
 
 > **Smart Blood Banking. Zero Waste.**  
-> A next-generation Blood Bank Management & Life Vault Telemetry System. Built with native JavaScript (ESM React + Express.js API) designed for emergency room trauma dispatches, FEFO expiration queueing, cold-chain storage telemetry, and citizen donor scheduling.
+> An enterprise-grade Blood Bank Management & Allocation System built with native JavaScript (React + Express.js API + MongoDB ODM). Designed around a 10-collection ER architecture for blood collection, cold storage tracking, FEFO expiration queueing, and emergency request fulfillment.
 
 ---
 
 ## 📌 Executive Summary
 
-LifeVault bridges hospital emergency rooms, blood bank storage facilities, and voluntary donors in real time. It eliminates blood waste and shortage delays through:
-1. **FEFO (First-Expired-First-Out) Queue Engine**: Automated sorting that ensures blood bags nearing expiration are allocated first.
-2. **Cold-Chain Telemetry (2°C–6°C)**: Refrigerator sensor monitoring with instant anomaly alerts and automated compliance logs.
-3. **Emergency Cross-Hospital Dispatch**: 15-minute courier dispatches for critical trauma cases across regional health hubs.
-4. **Interactive Compatibility & Donor Scheduling**: Digital eligibility screening, blood compatibility guides, and life-impact notifications.
+LifeVault bridges hospital healthcare facilities, regional blood banks, medical staff, and voluntary donors in real time. It eliminates blood waste and fulfillment delays through:
+1. **10-Collection ER Data Model**: High-integrity database schema supporting `Admin`, `Hospital`, `BloodBank`, `Staff`, `User`, `Donor`, `Inventory`, `BloodBag`, `Request`, and `Allotment`.
+2. **FEFO (First-Expired-First-Out) Queue Engine**: Automated sorting ensuring blood bags nearing expiration are allocated first.
+3. **Cold Storage Shelf & Cell Tracking**: Pinpoint physical tracking down to cell number (`cellno`) and shelf number (`shelfno`) across hospital and blood bank lockers.
+4. **Audited Allotment & Staff Approval**: Safe, atomic blood bag dispatch linking patient requests to physical units authorized by licensed medical staff.
 
 ---
 
@@ -22,8 +22,25 @@ LifeVault bridges hospital emergency rooms, blood bank storage facilities, and v
 | **Frontend Framework** | React 18 + Vite 5 | Fast HMR, ESM bundling |
 | **Styling & Design System** | TailwindCSS 3 + Vanilla CSS | Pitch-black dark mode, custom glassmorphism, Framer Motion 11 |
 | **Icons & Typography** | Lucide React + Fontsource | Inter font, Instrument Serif font |
-| **Backend Server** | Node.js (ESM) + Express.js 4 | Modular REST API (`/api/v1`), CORS, custom error handling middleware |
-| **Data Engine** | Native JS Storage Models | In-memory database schemas for Donors, Hospitals, Inventory & Requisitions |
+| **Backend Server** | Node.js (ESM) + Express.js 4 | Modular REST API (`/api/v1`), CORS, error handling middleware |
+| **Database & ODM** | MongoDB 6.0+ with Mongoose | 10 ER-aligned schemas with compound FEFO indexes and ACID transactions |
+
+---
+
+## 🗄️ Database Architecture (10 ER Collections)
+
+| Entity | Collection | Key Fields | Description |
+|---|---|---|---|
+| **ADMIN** | `admins` | `admin_id`, `username`, `email`, `password` | Root system administrators managing facilities and staff. |
+| **HOSPITAL** | `hospitals` | `hos_id`, `hos_name`, `pincode`, `I_Id` | Healthcare facilities with inventory storage links. |
+| **BLOODBANK** | `bloodbanks` | `bank_id`, `bank_name`, `pincode`, `I_Id` | Regional processing centers & blood banks. |
+| **STAFF** | `staff` | `S_Id`, `role`, `department`, `licence_id`, `hos_or_bank_id`, `u_id` | Clinical staff who collect blood and approve allotments. |
+| **USER** | `users` | `u_Id`, `username`, `DOB`, `pincode`, `email`, `bloodgroup`, `gender`, `status` | Base user profiles for donors, patients, and staff. |
+| **DONOR** | `donors` | `D_Id`, `u_id`, `date_of_donation`, `weight_donated`, `bag_id`, `S_Id`, `pincode` | Blood donation events producing blood bag units. |
+| **INVENTORY** | `inventories` | `I_ID`, `cellno`, `shelfno`, `pincode`, `hos_or_bank_id`, `isfull` | Cold storage compartments and shelves. |
+| **BLOODBAG** | `bloodbags` | `bag_id`, `bloodgroup`, `haemoglobin`, `pressure`, `date_of_donation`, `isdiscresed`, `expired_date`, `S_Id`, `I_ID`, `status`, `weight` | Individual blood units with physiological vitals and expiry. |
+| **REQUEST** | `requests` | `req_id`, `u_id`, `bloodgroup`, `weight`, `pincode`, `date_of_request`, `date_of_requirement`, `A_id` | Blood requirements placed by users/recipients. |
+| **ALLOTMENT** | `allotments` | `a_id`, `req_id`, `bag_id`, `s_id`, `date_of_allocation` | Legally auditable allotment linking a request to a blood bag with staff authorization. |
 
 ---
 
@@ -33,15 +50,21 @@ LifeVault bridges hospital emergency rooms, blood bank storage facilities, and v
 bbms/
 ├── backend/                  # Express.js REST API Server
 │   ├── config/               # Environment & Database Configuration
-│   │   ├── db.js             # Mock Database Engine & Models
-│   │   └── env.js            # Environment Variables (Port 5000)
-│   ├── controllers/          # Business Logic Controllers (Auth, Donor, Hospital, Inventory)
+│   ├── controllers/          # Business Logic Controllers (Auth, Donor, Hospital, Inventory, Requisition)
 │   ├── middleware/           # Express Middleware (Error Handling, Auth Validation)
+│   ├── models/               # 10 Core ER Models (Admin, Hospital, BloodBank, Staff, User,
+│   │                         #                     Donor, Inventory, BloodBag, Request, Allotment)
 │   ├── routes/               # API Route Definitions (/api/v1/*)
+│   ├── services/             # Compatibility & FEFO Queue Engines
 │   └── server.js             # Express Server Entry Point
-├── docs/                     # SRS & Architecture Specifications
+├── documents/                # System Specifications & Schemas
 │   ├── ARCHITECTURE.md       # Directory layout & code conventions
-│   └── SRS.md                # Software Requirements Specification (v2.0)
+│   ├── DBSCHEMA.md           # Master Database Schema & Data Dictionary (10 Collections)
+│   ├── DESIGN.md             # Liquid Glass Design System Guidelines
+│   ├── PRODUCT.md            # Product Positioning, Scope & Features
+│   ├── PRODUCT_README.md     # This Product Guide & API Reference
+│   ├── SRS.md                # Software Requirements Specification (v2.1)
+│   └── er_diagram.png        # System Entity Relationship Diagram
 ├── src/                      # Frontend React Source Code
 │   ├── components/           # UI Components & Layout
 │   │   ├── layout/           # Navbar, Footer, App Shell
@@ -57,26 +80,10 @@ bbms/
 │   ├── App.jsx               # Application Root State & Navigation Handler
 │   ├── index.css             # Design Tokens & Custom CSS Rules
 │   └── main.jsx              # Vite React Mounting Point
-├── jsconfig.json             # JS Alias Configuration (@ui, @pages, @layout, @backend)
 ├── package.json              # Project Dependencies & NPM Scripts
 ├── tailwind.config.js        # Tailwind Utility Customization
 └── vite.config.js            # Vite Bundler & Path Alias Resolver
 ```
-
----
-
-## ⚡ Module & Path Aliases
-
-To maintain clean imports without deep relative paths (`../../`), use configured path aliases in frontend files:
-
-| Alias | Resolves To | Description |
-| :--- | :--- | :--- |
-| `@ui` | `src/components/ui` | Design primitives (`InteractiveHoverButton`, `SpotlightCard`) |
-| `@layout` | `src/components/layout` | Shell layout components (`Navbar`, `Footer`) |
-| `@modals` | `src/components/modals` | Interactive modal overlays |
-| `@pages` | `src/pages` | Landing page sections & workspace portals |
-| `@services` | `src/services` | API client services |
-| `@backend` | `backend/` | Express server modules |
 
 ---
 
@@ -85,9 +92,9 @@ To maintain clean imports without deep relative paths (`../../`), use configured
 ### 1. Prerequisites
 - **Node.js**: v18.0.0 or higher
 - **npm**: v9.0.0 or higher
+- **MongoDB**: v6.0+ (or MongoDB Atlas connection URI)
 
 ### 2. Installation
-Clone the repository and install all dependencies:
 ```bash
 git clone https://github.com/nyxens/GitBlameUs.git
 cd bbms
@@ -103,7 +110,6 @@ npm run dev
 *App will run locally at [http://localhost:5173](http://localhost:5173)*
 
 #### **Start Express API Backend Server**:
-In a separate terminal tab:
 ```bash
 npm run server
 ```
@@ -113,41 +119,24 @@ npm run server
 
 ## 🛠️ Production Build
 
-To compile the application bundle for production:
 ```bash
 npm run build
 ```
-Outputs static assets into the `dist/` directory. Verified clean build with 0 compilation errors.
-
-To preview the built production bundle:
-```bash
-npm run preview
-```
+Outputs optimized static assets into the `dist/` directory.
 
 ---
 
 ## 🔌 Express API Endpoint Reference (`/api/v1`)
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` | Server health check endpoint |
-| `POST` | `/api/v1/auth/login` | User authentication (Citizen Donor / Hospital Staff) |
-| `POST` | `/api/v1/auth/register` | Account registration for donors and healthcare personnel |
-| `POST` | `/api/v1/donors/schedule` | Book a blood donation slot |
-| `POST` | `/api/v1/hospital/requisition` | Create an emergency blood unit requisition |
-| `GET` | `/api/v1/inventory` | Fetch live blood bank stock levels |
-| `GET` | `/api/v1/requisitions` | Fetch active emergency hospital requisitions |
-
----
-
-## 🎨 UI/UX Design System Guidelines
-
-- **Theme Baseline**: Pitch-black (`#000000`), deep dark cards (`bg-neutral-950/80`), subtle glowing borders (`border-purple-500/30`, `border-red-500/30`).
-- **Typography**: Inter for crisp UI text; Instrument Serif for elegant italicized emphasis.
-- **Micro-Interactions**:
-  - `SpotlightCard`: Mouse radial light spotlight tracking cursor.
-  - `InteractiveHoverButton`: Fixed stationary icon pod on rest; smooth expanding background color fill on hover.
-  - **Framer Motion**: Smooth scroll entrance animations (`whileInView`) for all cards and section headers.
+| Method | Endpoint | Description | Key Models |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/health` | Server health check endpoint | — |
+| `POST` | `/api/v1/auth/login` | User/Staff authentication | `User`, `Admin`, `Staff` |
+| `POST` | `/api/v1/auth/register` | Account registration for donors and healthcare personnel | `User`, `Staff` |
+| `POST` | `/api/v1/donors/schedule` | Record blood donation session | `Donor`, `BloodBag`, `Staff` |
+| `POST` | `/api/v1/hospital/requisition` | Create blood request | `Request`, `User` |
+| `GET` | `/api/v1/inventory` | Fetch live blood bank stock levels | `BloodBag`, `Inventory` |
+| `GET` | `/api/v1/requisitions` | Fetch active emergency requests and allocations | `Request`, `Allotment` |
 
 ---
 
