@@ -81,12 +81,33 @@ export async function signup(req, res) {
 
     // Send OTP via email
     try {
+      const emailHtml = `
+        <div style="background-color: #0a0a0a; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; text-align: center; border-radius: 16px; max-width: 500px; margin: 0 auto; border: 1px solid rgba(239, 68, 68, 0.2);">
+          <div style="margin-bottom: 24px;">
+            <span style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">
+              Life<span style="font-style: italic; color: #a855f7;">Vault</span>
+            </span>
+          </div>
+          <div style="background-color: #121212; border: 1px solid #262626; border-radius: 20px; padding: 32px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <h2 style="font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 12px; color: #ffffff;">Verify Your Email Address</h2>
+            <p style="font-size: 14px; color: #a3a3a3; line-height: 1.5; margin-bottom: 32px;">Thank you for registering with LifeVault. Use the verification code below to complete your sign-up process. This code is valid for 5 minutes.</p>
+            <div style="background-color: #171717; border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 16px 24px; display: inline-block; margin-bottom: 32px;">
+              <span style="font-size: 36px; font-weight: 800; font-family: monospace; letter-spacing: 6px; color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);">${otp}</span>
+            </div>
+            <p style="font-size: 12px; color: #737373; margin-bottom: 0; line-height: 1.5;">If you did not request this code, you can safely ignore this email.</p>
+          </div>
+          <div style="font-size: 11px; color: #525252;">
+            &copy; 2026 LifeVault Emergency Response Network. All rights reserved.
+          </div>
+        </div>
+      `;
+
       await transporter.sendMail({
         from: `"LifeVault BBMS" <${process.env.SMTP_USER || 'no-reply@lifevault.org'}>`,
         to: email,
         subject: 'LifeVault Email Verification Code',
         text: `Your LifeVault verification code is: ${otp}. It will expire in 5 minutes.`,
-        html: `<h3>LifeVault Verification Code</h3><p>Your LifeVault verification code is: <strong>${otp}</strong></p><p>It will expire in 5 minutes.</p>`,
+        html: emailHtml,
       });
       console.log(`[SMTP] Verification email sent successfully to ${email}`);
     } catch (mailErr) {

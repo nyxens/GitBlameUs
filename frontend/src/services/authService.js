@@ -18,23 +18,17 @@ const getAuthUrl = (endpoint) => {
   return `${base}${endpoint}`;
 };
 
-export async function loginUser(email, password) {
+export async function loginUser(email, password, role) {
+  let response;
   try {
     const url = getAuthUrl('/login');
-    const response = await fetch(url, {
+    response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, role }),
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `API Error: ${response.statusText} (${response.status})`);
-    }
-
-    return await response.json();
   } catch (err) {
     console.warn('API connection unavailable, falling back to mock login:', err);
     return {
@@ -44,29 +38,33 @@ export async function loginUser(email, password) {
         id: `LV-USER-${Math.floor(1000 + Math.random() * 9000)}`,
         name: email.split('@')[0],
         email,
-        role: email.includes('hospital') ? 'HOSPITAL' : 'DONOR',
+        role: role || (email.includes('hospital') ? 'HOSPITAL' : 'DONOR'),
       },
     };
   }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: errorData.error || `API Error: ${response.statusText} (${response.status})`,
+    };
+  }
+
+  return await response.json();
 }
 
 export async function signupUser(signupData) {
+  let response;
   try {
     const url = getAuthUrl('/signup');
-    const response = await fetch(url, {
+    response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(signupData),
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `API Error: ${response.statusText} (${response.status})`);
-    }
-
-    return await response.json();
   } catch (err) {
     console.warn('API connection unavailable, falling back to mock signup:', err);
     return {
@@ -75,25 +73,29 @@ export async function signupUser(signupData) {
       email: signupData.email,
     };
   }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: errorData.error || `API Error: ${response.statusText} (${response.status})`,
+    };
+  }
+
+  return await response.json();
 }
 
 export async function verifyOtpUser(email, otp, signupData) {
+  let response;
   try {
     const url = getAuthUrl('/verify-otp');
-    const response = await fetch(url, {
+    response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, otp }),
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `API Error: ${response.statusText} (${response.status})`);
-    }
-
-    return await response.json();
   } catch (err) {
     console.warn('API connection unavailable, falling back to mock OTP verification:', err);
     return {
@@ -111,6 +113,16 @@ export async function verifyOtpUser(email, otp, signupData) {
       },
     };
   }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: errorData.error || `API Error: ${response.statusText} (${response.status})`,
+    };
+  }
+
+  return await response.json();
 }
 
 export const authService = {
