@@ -125,38 +125,54 @@ export const DonorSection = ({ onOpenDonorModal }) => {
                 <div className="relative">
                   <Quote className="w-10 h-10 text-red-500/25 mb-4" />
 
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeQuoteIndex}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -12 }}
-                      transition={{ duration: 0.5, ease: 'easeOut' }}
-                    >
-                      <blockquote className="text-2xl md:text-3xl font-serif italic text-white leading-relaxed mb-6">
-                        "{quotes[activeQuoteIndex].text}"
-                      </blockquote>
-                      <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                        <cite className="text-xs font-mono text-neutral-400 not-italic tracking-wider uppercase">
-                          — {quotes[activeQuoteIndex].author}
-                        </cite>
-
-                        {/* Minimal progress indicators */}
-                        <div className="flex items-center gap-1.5">
-                          {quotes.map((_, i) => (
-                            <button
-                              key={i}
-                              onClick={() => setActiveQuoteIndex(i)}
-                              aria-label={`Go to quote ${i + 1}`}
-                              className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                                activeQuoteIndex === i ? 'w-5 bg-red-500' : 'w-1.5 bg-white/20 hover:bg-white/40'
-                              }`}
-                            />
-                          ))}
+                  <div className="relative min-h-[140px]">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activeQuoteIndex}
+                        initial={{ opacity: 0, x: 24 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -24 }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.2}
+                        onDragEnd={(e, { offset }) => {
+                          const swipeThreshold = 50;
+                          if (offset.x < -swipeThreshold) {
+                            setActiveQuoteIndex((prev) => (prev + 1) % quotes.length);
+                          } else if (offset.x > swipeThreshold) {
+                            setActiveQuoteIndex((prev) => (prev - 1 + quotes.length) % quotes.length);
+                          }
+                        }}
+                        className="cursor-grab active:cursor-grabbing select-none"
+                      >
+                        <blockquote className="text-2xl md:text-3xl font-serif italic text-white leading-relaxed mb-6">
+                          "{quotes[activeQuoteIndex].text}"
+                        </blockquote>
+                        <div className="pt-4 border-t border-white/10 pr-24">
+                          <cite className="text-xs font-mono text-neutral-400 not-italic tracking-wider uppercase">
+                            — {quotes[activeQuoteIndex].author}
+                          </cite>
                         </div>
+                      </motion.div>
+                    </AnimatePresence>
+
+                    {/* Progress indicators: Absolute positioned to remain static and not slide with text */}
+                    <div className="absolute bottom-0 right-0 h-8 flex items-center z-30 pointer-events-auto">
+                      <div className="flex items-center gap-1.5">
+                        {quotes.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setActiveQuoteIndex(i)}
+                            aria-label={`Go to quote ${i + 1}`}
+                            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                              activeQuoteIndex === i ? 'w-5 bg-red-500' : 'w-1.5 bg-white/20 hover:bg-white/40'
+                            }`}
+                          />
+                        ))}
                       </div>
-                    </motion.div>
-                  </AnimatePresence>
+                    </div>
+                  </div>
                 </div>
               </div>
 
