@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/index.js';
 
 const SALT_ROUNDS = 12;
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || 'super-secret-lifevault-access-key-2026';
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || process.env.JWT_REFRESH_SECRET || 'super-secret-lifevault-refresh-key-2026';
 const ACCESS_TOKEN_EXPIRES = '15m';
 const REFRESH_TOKEN_EXPIRES = '7d';
 const isProd = process.env.NODE_ENV === 'production';
@@ -76,6 +76,8 @@ export async function signup(req, res) {
 
     return res.status(201).json({
       success: true,
+      token: accessToken,
+      accessToken,
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
@@ -109,6 +111,8 @@ export async function login(req, res) {
 
     return res.status(200).json({
       success: true,
+      token: accessToken,
+      accessToken,
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
@@ -140,7 +144,7 @@ export async function refresh(req, res) {
     const newRefreshToken = signRefreshToken(user);
     setAuthCookies(res, newAccessToken, newRefreshToken);
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, token: newAccessToken });
   } catch (err) {
     return res.status(400).json({ success: false, error: err.message });
   }

@@ -14,22 +14,23 @@ const addressSchema = new mongoose.Schema(
   { _id: false }
 );
 
-export const hospitalSchema = new mongoose.Schema(
+export const bloodBankSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    code: {
+      type: String,
+      required: [true, 'Blood bank code is required'],
+      unique: true,
+      trim: true,
       index: true,
     },
     name: {
       type: String,
-      required: [true, 'Hospital name is required'],
+      required: [true, 'Blood bank name is required'],
       trim: true,
-      index: true,
     },
-    licenseId: {
+    licenseNumber: {
       type: String,
-      required: [true, 'License ID is required'],
+      required: [true, 'License number is required'],
       unique: true,
       trim: true,
       index: true,
@@ -40,27 +41,27 @@ export const hospitalSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-    networkNode: {
+    contactNumber: {
       type: String,
+      required: [true, 'Contact phone is required'],
       trim: true,
     },
-    tier: {
+    email: {
       type: String,
-      enum: ['LEVEL_1_TRAUMA', 'GENERAL_HOSPITAL', 'SPECIALTY_CLINIC'],
-      default: 'GENERAL_HOSPITAL',
-    },
-    phone: {
-      type: String,
+      lowercase: true,
       trim: true,
     },
-    emergencyContact: {
+    operatingHours: {
       type: String,
-      trim: true,
+      default: '24/7',
     },
-    isVerified: {
-      type: Boolean,
-      default: false,
-      index: true,
+    storageCapacityUnits: {
+      type: Number,
+      default: 5000,
+    },
+    activeAlertsCount: {
+      type: Number,
+      default: 0,
     },
     address: addressSchema,
   },
@@ -69,8 +70,6 @@ export const hospitalSchema = new mongoose.Schema(
   }
 );
 
-hospitalSchema.index({ city: 1, isVerified: 1 });
-
-export const HospitalSchema = hospitalSchema;
-export const Hospital = mongoose.models.Hospital || mongoose.model('Hospital', hospitalSchema);
-export default Hospital;
+export const BloodBankSchema = bloodBankSchema;
+export const BloodBank = mongoose.models.BloodBank || mongoose.model('BloodBank', bloodBankSchema);
+export default BloodBank;

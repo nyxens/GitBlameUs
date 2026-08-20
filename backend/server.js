@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import { getConfig } from './config/env.js';
 import { connectDB } from './config/db.js';
-// import { setupAuthRoutes } from './routes/authRoutes.js';
 import { setupDonorRoutes } from './routes/donorRoutes.js';
 import { setupHospitalRoutes } from './routes/hospitalRoutes.js';
 import { setupInventoryRoutes } from './routes/inventoryRoutes.js';
@@ -17,17 +16,14 @@ app.use(cors());
 app.use(express.json());
 
 const router = express.Router();
-// setupAuthRoutes(router);
-// setupDonorRoutes(router);
-// setupHospitalRoutes(router);
-// setupInventoryRoutes(router);
-// setupRequisitionRoutes(router);
+setupDonorRoutes(router);
+setupHospitalRoutes(router);
+setupInventoryRoutes(router);
+setupRequisitionRoutes(router);
 
 app.use('/api/v1', router);
 app.use('/api/auth', authRoutes);
-
-
-app.use('/api/v1/auth',authRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'OK', server: 'LifeVault BBMS Express Backend Server', timestamp: new Date() });
@@ -43,4 +39,3 @@ async function startServer() {
 }
 
 startServer();
-
