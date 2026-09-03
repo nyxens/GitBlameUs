@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Dependencies
+node_modules
+*/node_modules
+
+# Build output
+dist
+*/dist
+build
+*/build
+
+# Secrets & Environment variables
+.env
+.env.*
+!.env.example
+*/*.env
+*/*.env.*
+!*/.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Editor & OS files
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Documentation & IDE cache
+documents
+.gemini
+.agents

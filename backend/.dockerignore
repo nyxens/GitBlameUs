@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Environment files & secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+*.log
+
+# Version control
+.git/
+.gitignore
+
+# Tests & temp files
+test/
+tests/
+*.tmp
