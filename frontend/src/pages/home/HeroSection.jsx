@@ -43,7 +43,7 @@ export const HeroSection = ({ onOpenFindBloodModal, onOpenGetStartedModal }) => 
           Connecting Donors.{' '}
           <br className="hidden sm:inline" />
           Saving{' '}
-          <span className="font-serif italic font-normal text-white drop-shadow-[0_0_25px_rgba(168,85,247,0.4)]">
+          <span className="font-serif italic font-normal bg-gradient-to-r from-red-500 via-rose-400 to-purple-400 bg-clip-text text-transparent">
             Lives.
           </span>
         </motion.h1>

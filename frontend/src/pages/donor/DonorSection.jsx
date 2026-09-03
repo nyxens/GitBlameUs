@@ -3,6 +3,48 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Calendar, ShieldCheck, Award, ArrowRight, Quote } from 'lucide-react';
 import { SpotlightCard, InteractiveHoverButton } from '@ui/index';
 
+const TypewriterQuote = ({ text, author }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(true);
+
+  useEffect(() => {
+    setDisplayedText('');
+    setIsTyping(true);
+    let currentIndex = 0;
+
+    const interval = setInterval(() => {
+      currentIndex++;
+      if (currentIndex <= text.length) {
+        setDisplayedText(text.slice(0, currentIndex));
+      } else {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
+    }, 24);
+
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return (
+    <div>
+      <blockquote className="text-2xl md:text-3xl font-serif italic text-white leading-relaxed mb-6 min-h-[5.5rem] md:min-h-[4.5rem]">
+        “{displayedText}”
+        {isTyping && (
+          <span
+            aria-hidden="true"
+            className="inline-block w-0.5 h-[0.9em] bg-red-400 ml-1.5 translate-y-[2px] animate-pulse shadow-[0_0_8px_rgba(248,113,113,0.8)]"
+          />
+        )}
+      </blockquote>
+      <div className="pt-4 border-t border-white/10 pr-24">
+        <cite className="text-xs font-mono text-neutral-400 not-italic tracking-wider uppercase">
+          — {author}
+        </cite>
+      </div>
+    </div>
+  );
+};
+
 export const DonorSection = ({ onOpenDonorModal }) => {
   const [activeQuoteIndex, setActiveQuoteIndex] = useState(0);
 
@@ -21,11 +63,11 @@ export const DonorSection = ({ onOpenDonorModal }) => {
     },
   ];
 
-  // Auto-rotate quotes every 6 seconds
+  // Auto-rotate quotes every 8.5 seconds (gives time for realtime typing + reading)
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveQuoteIndex((prev) => (prev + 1) % quotes.length);
-    }, 6000);
+    }, 8500);
     return () => clearInterval(timer);
   }, [quotes.length]);
 
@@ -123,16 +165,19 @@ export const DonorSection = ({ onOpenDonorModal }) => {
               {/* Left side: Ultra-Clean Animated Quote Layout */}
               <div className="flex-1 w-full flex flex-col justify-between py-2">
                 <div className="relative">
-                  <Quote className="w-10 h-10 text-red-500/25 mb-4" />
+                  {/* Quote icon elevated upwards */}
+                  <div className="relative -translate-y-2 md:-translate-y-3 mb-2 flex items-center">
+                    <Quote className="w-10 h-10 text-red-500/60 fill-red-500/15 drop-shadow-[0_0_12px_rgba(239,68,68,0.4)]" />
+                  </div>
 
                   <div className="relative min-h-[140px]">
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={activeQuoteIndex}
-                        initial={{ opacity: 0, x: 24 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -24 }}
-                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
                         drag="x"
                         dragConstraints={{ left: 0, right: 0 }}
                         dragElastic={0.2}
@@ -146,14 +191,10 @@ export const DonorSection = ({ onOpenDonorModal }) => {
                         }}
                         className="cursor-grab active:cursor-grabbing select-none"
                       >
-                        <blockquote className="text-2xl md:text-3xl font-serif italic text-white leading-relaxed mb-6">
-                          "{quotes[activeQuoteIndex].text}"
-                        </blockquote>
-                        <div className="pt-4 border-t border-white/10 pr-24">
-                          <cite className="text-xs font-mono text-neutral-400 not-italic tracking-wider uppercase">
-                            — {quotes[activeQuoteIndex].author}
-                          </cite>
-                        </div>
+                        <TypewriterQuote
+                          text={quotes[activeQuoteIndex].text}
+                          author={quotes[activeQuoteIndex].author}
+                        />
                       </motion.div>
                     </AnimatePresence>
 
