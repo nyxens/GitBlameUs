@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, Boxes, Users, UserCheck, History, Menu, X } from 'lucide-react';
+import { LogOut, Boxes, Users, UserCheck, History, HandHeart, UserSearch, Menu, X } from 'lucide-react';
 
 export const BBMSHeader = ({ activeSection, onSelectSection, onLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -9,6 +9,8 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout }) => {
     { id: 'donors', label: 'Donors', icon: Users, iconColor: 'text-red-400' },
     { id: 'recipients', label: 'Recipients', icon: UserCheck, iconColor: 'text-emerald-400' },
     { id: 'history', label: 'History', icon: History, iconColor: 'text-amber-400' },
+    { id: 'giver', label: 'Giver', icon: HandHeart, iconColor: 'text-rose-400' },
+    { id: 'seeker', label: 'Seeker', icon: UserSearch, iconColor: 'text-cyan-400' },
   ];
 
   return (

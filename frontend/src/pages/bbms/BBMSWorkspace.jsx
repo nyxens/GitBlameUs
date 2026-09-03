@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { BBMSHeader } from '@layout/BBMSHeader';
 import { RecipientsPage } from './RecipientsPage';
 import { HistoryPage } from './HistoryPage';
+import { GiverPage } from './GiverPage';
+import { SeekerPage } from './SeekerPage';
 import {
   Boxes,
   Users,
@@ -351,6 +353,12 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
 
         {/* 4. HISTORY SECTION */}
         {activeSection === 'history' && <HistoryPage />}
+
+        {/* 5. GIVER SECTION */}
+        {activeSection === 'giver' && <GiverPage />}
+
+        {/* 6. SEEKER SECTION */}
+        {activeSection === 'seeker' && <SeekerPage />}
       </main>
     </div>
   );
