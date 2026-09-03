@@ -18,4 +18,7 @@ export default defineConfig({
       '@backend': path.resolve(__dirname, './backend'),
     },
   },
+  build: {
+    cssMinify: false,
+  },
 })

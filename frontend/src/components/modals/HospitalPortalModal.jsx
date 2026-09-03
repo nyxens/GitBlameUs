@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Building2, Lock, ShieldCheck, ArrowRight, CheckCircle } from 'lucide-react';
+import { X, Building2, Lock, ShieldCheck, ArrowRight, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { authenticateHospital } from '../../services/hospitalService.js';
 
 export const HospitalPortalModal = ({ isOpen, onClose }) => {
@@ -8,6 +8,7 @@ export const HospitalPortalModal = ({ isOpen, onClose }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hospitalName, setHospitalName] = useState('St. Jude General Hospital');
   const [licenseId, setLicenseId] = useState('HOSP-NY-9042');
+  const [showPasscode, setShowPasscode] = useState(false);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -108,13 +109,26 @@ export const HospitalPortalModal = ({ isOpen, onClose }) => {
                   <div>
                     <label className="block text-xs font-medium text-neutral-400 mb-1">Passcode / Access Key</label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
+                      <Lock className="w-4 h-4 text-neutral-500 absolute left-3 top-3 pointer-events-none" />
                       <input
-                        type="password"
+                        type={showPasscode ? 'text' : 'password'}
                         required
                         defaultValue="••••••••••••"
-                        className="w-full pl-9 pr-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-blue-500"
+                        className="w-full pl-9 pr-10 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-blue-500"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPasscode(!showPasscode)}
+                        className="absolute right-2.5 top-2 p-1 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                        title={showPasscode ? 'Hide passcode' : 'Show passcode'}
+                        aria-label={showPasscode ? 'Hide passcode' : 'Show passcode'}
+                      >
+                        {showPasscode ? (
+                          <EyeOff className="w-4 h-4 text-blue-400" />
+                        ) : (
+                          <Eye className="w-4 h-4 text-neutral-400" />
+                        )}
+                      </button>
                     </div>
                   </div>
 
