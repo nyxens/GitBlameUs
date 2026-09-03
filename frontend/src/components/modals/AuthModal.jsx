@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart, Building2, Lock, Mail, User as UserIcon, ArrowRight, ShieldAlert, Loader2 } from 'lucide-react';
+import { X, Heart, Building2, Lock, Mail, User as UserIcon, ArrowRight, ShieldAlert, Loader2, Eye, EyeOff } from 'lucide-react';
 import { loginUser, signupUser, verifyOtpUser } from '../../services/authService.js';
 
 export const AuthModal = ({
@@ -16,6 +16,7 @@ export const AuthModal = ({
   const [showOtpVerify, setShowOtpVerify] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [pendingSignupData, setPendingSignupData] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -30,6 +31,7 @@ export const AuthModal = ({
   useEffect(() => {
     setErrorMsg('');
     setShowOtpVerify(false);
+    setShowPassword(false);
     setOtpCode('');
     setPendingSignupData(null);
     setFormData({
@@ -263,15 +265,28 @@ export const AuthModal = ({
                 <div>
                   <label className="block text-xs font-medium text-neutral-400 mb-1.5">Password</label>
                   <div className="relative">
-                    <Lock className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
+                    <Lock className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3 pointer-events-none" />
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
                       placeholder="••••••••••••"
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
+                      className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-2 p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-3.5 h-3.5 text-purple-400" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5 text-neutral-400" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
