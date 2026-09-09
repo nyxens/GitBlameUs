@@ -22,6 +22,8 @@ setupInventoryRoutes(router);
 setupRequisitionRoutes(router);
 
 app.use('/api/v1', router);
+app.use('/api', router);
+app.use('/', router);
 app.use('/api/auth', authRoutes);
 app.use('/api/v1/auth', authRoutes);
 

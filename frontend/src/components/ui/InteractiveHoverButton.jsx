@@ -53,36 +53,35 @@ export const InteractiveHoverButton = React.forwardRef(
         transition={{ type: 'spring', stiffness: 450, damping: 25 }}
         onClick={onClick}
         className={cn(
-          'group relative cursor-pointer overflow-hidden rounded-full border-2 bg-neutral-950 pl-1 transition-all duration-300 select-none shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 flex items-center justify-between gap-2',
+          'group relative isolate cursor-pointer overflow-hidden rounded-full border-2 bg-neutral-950 pl-1 transition-colors duration-300 select-none shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 flex items-center justify-between gap-2',
           isSmall ? 'h-9 min-w-[165px] pr-3.5 text-xs' : 'h-12 min-w-[185px] pr-5 text-sm',
           theme.border,
-          theme.buttonHoverBg,
           className
         )}
         {...props}
       >
-        {/* 100% Opaque Expanding Color Background Layer */}
+        {/* GPU-Accelerated Expanding Color Background Layer (Concentric & Symmetrical) */}
         <span
           className={cn(
-            'absolute left-1 top-1 z-0 rounded-full transition-all duration-500 ease-out group-hover:left-0 group-hover:top-0 group-hover:w-full group-hover:h-full group-hover:rounded-full pointer-events-none opacity-100 shadow-md',
-            isSmall ? 'w-6.5 h-6.5' : 'w-9 h-9',
+            'absolute left-1 top-1/2 -translate-y-1/2 z-0 rounded-full transition-transform duration-500 ease-out origin-center group-hover:scale-[25] transform-gpu will-change-transform pointer-events-none opacity-100 shadow-md',
+            isSmall ? 'w-7 h-7' : 'w-9 h-9',
             theme.circleBg
           )}
           aria-hidden="true"
         />
 
-        {/* Fixed Icon Pod Layer (Stationary at left-1 top-1) */}
+        {/* Fixed Icon Pod Layer (Concentric at left-1 top-1/2) */}
         <div
           className={cn(
-            'absolute left-1 top-1 z-10 flex items-center justify-center rounded-full shrink-0 pointer-events-none',
-            isSmall ? 'w-6.5 h-6.5' : 'w-9 h-9'
+            'absolute left-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center rounded-full shrink-0 pointer-events-none',
+            isSmall ? 'w-7 h-7' : 'w-9 h-9'
           )}
         >
           <Icon className={cn('transition-transform duration-300 group-hover:scale-110 origin-center', isSmall ? 'w-3.5 h-3.5' : 'w-4 h-4', theme.iconColor)} />
         </div>
 
         {/* Left Spacer matching icon container footprint */}
-        <div className={cn('shrink-0 pointer-events-none z-0', isSmall ? 'w-6.5 h-6.5' : 'w-9 h-9')} />
+        <div className={cn('shrink-0 pointer-events-none z-0', isSmall ? 'w-7 h-7' : 'w-9 h-9')} />
 
         {/* Button Label Text */}
         <span
