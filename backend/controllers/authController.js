@@ -56,7 +56,7 @@ function setAuthCookies(res, accessToken, refreshToken) {
   res.cookie('refreshToken', refreshToken, {
     ...baseCookieOptions,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/api/auth/refresh',
+    path: '/',
   });
 }
 
@@ -349,7 +349,7 @@ export async function refresh(req, res) {
 // --- Logout ---
 export async function logout(_req, res) {
   res.clearCookie('accessToken', baseCookieOptions);
-  res.clearCookie('refreshToken', { ...baseCookieOptions, path: '/api/auth/refresh' });
+  res.clearCookie('refreshToken', { ...baseCookieOptions, path: '/' });
   return res.status(200).json({ success: true, message: 'Logged out successfully' });
 }
 
