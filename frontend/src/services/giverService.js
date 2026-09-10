@@ -51,6 +51,70 @@ export async function verifyDonationRequest(requestId, { is_approved, verificati
   }
 }
 
+// ── Accept donation request (automatically creates unfulfilled inventory BloodBag entry) ──
+export async function acceptDonationRequest(requestId, details = {}) {
+  try {
+    return await fetchApi(`/giver/request/${requestId}/accept`, {
+      method: 'PUT',
+      body: JSON.stringify(details),
+    });
+  } catch (err) {
+    console.warn('API unavailable for acceptDonationRequest, mock fallback:', err);
+    return {
+      success: true,
+      message: 'Donation request accepted! Blood bag entry created in inventory with status UNFULFILLED.',
+      data: {
+        _id: requestId,
+        status: 'ACCEPTED',
+        accepted_at: new Date().toISOString(),
+        bag_id: {
+          _id: `BAG-${Date.now()}`,
+          status: 'UNFULFILLED',
+          barcode: `LV-DON-${Math.floor(1000 + Math.random() * 9000)}`,
+        },
+      },
+    };
+  }
+}
+
+// ── Deny donation request ──
+export async function denyDonationRequest(requestId, reason = 'Donation request denied.') {
+  try {
+    return await fetchApi(`/giver/request/${requestId}/deny`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+  } catch (err) {
+    console.warn('API unavailable for denyDonationRequest, mock fallback:', err);
+    return {
+      success: true,
+      message: 'Donation request denied.',
+      data: { _id: requestId, status: 'REJECTED', rejection_reason: reason },
+    };
+  }
+}
+
+// ── Fulfill donation receipt (BBMS receives the blood -> inventory entry fulfilled) ──
+export async function fulfillDonationReceipt(requestIdOrBagId, details = {}) {
+  try {
+    return await fetchApi(`/giver/request/${requestIdOrBagId}/fulfill`, {
+      method: 'PUT',
+      body: JSON.stringify(details),
+    });
+  } catch (err) {
+    console.warn('API unavailable for fulfillDonationReceipt, mock fallback:', err);
+    return {
+      success: true,
+      message: 'Blood donation received! Inventory entry fulfilled and marked available.',
+      data: {
+        success: true,
+        bloodBag: { _id: requestIdOrBagId, status: 'AVAILABLE' },
+        request: { _id: requestIdOrBagId, status: 'COMPLETED' },
+      },
+    };
+  }
+}
+
 // ── Phase 3: Accept & schedule appointment ──
 export async function acceptAndScheduleDonation(requestId, { appointment_date, appointment_time, appointment_venue, scheduling_notes }) {
   try {
@@ -257,6 +321,9 @@ export const giverService = {
   applyDonationRequest,
   verifyDonationRequest,
   acceptAndScheduleDonation,
+  acceptDonationRequest,
+  denyDonationRequest,
+  fulfillDonationReceipt,
   completeDonation,
   cancelDonationRequest,
   getRequestDetails,

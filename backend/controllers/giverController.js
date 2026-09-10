@@ -348,69 +348,99 @@ export async function getAllRequests(req, res) {
 }
 
 /**
- * QUERY: Get donor's own profile for form pre-fill
- * GET /api/v1/giver/donor-profile
+ * Accept donation request & automatically create unfulfilled inventory BloodBag entry
+ * PUT /api/v1/giver/request/:id/accept
  */
-export async function getDonorProfile(req, res) {
+export async function acceptDonationRequest(req, res) {
   try {
-    const userId = req.user?.sub || req.user?.id || req.user?._id || req.query.u_id;
-    if (!userId) {
-      return res.status(400).json({ success: false, error: 'User ID required. Please login.' });
-    }
-    const user = await giverService.getUserProfile(userId);
-    return res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    return res.status(404).json({ success: false, error: err.message });
-  }
-}
+    const { id } = req.params;
+    const {
+      appointment_date,
+      appointment_time,
+      appointment_venue,
+      scheduling_notes,
+      staff_id,
+    } = req.body || {};
 
-/**
- * QUERY: Get the current active (non-terminal) donation request for the logged-in donor
- * GET /api/v1/giver/active-request
- */
-export async function getActiveRequest(req, res) {
-  try {
-    const userId = req.user?.sub || req.user?.id || req.user?._id || req.query.u_id;
-    if (!userId) {
-      return res.status(400).json({ success: false, error: 'User ID required. Please login.' });
-    }
-    const active = await giverService.getActiveRequestByDonor(userId);
-    return res.status(200).json({ success: true, data: active || null });
-  } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
-}
+    const adminId = req.user?.id || req.user?._id || req.user?.sub || req.body?.admin_id;
 
-/**
- * QUERY: Find nearby hospitals and blood banks by pincode proximity
- * GET /api/v1/giver/nearby?pincode=&type=ALL|HOSPITAL|BLOOD_BANK&radius=
- *
- * radius param maps to maxScore thresholds:
- *   5   -> 500
- *   10  -> 1000
- *   25  -> 2500
- *   50  -> 5000
- *   any -> Infinity
- */
-export async function getNearbyInstitutions(req, res) {
-  try {
-    const { pincode, type = 'ALL', radius } = req.query;
-    if (!pincode) {
-      return res.status(400).json({ success: false, error: 'pincode query parameter is required' });
-    }
+    const result = await giverService.acceptDonationRequest(id, {
+      admin_id: adminId,
+      staff_id: req.user?.staffId || staff_id,
+      appointment_date,
+      appointment_time,
+      appointment_venue,
+      scheduling_notes,
+    });
 
-    // Map radius label to numeric maxScore
-    const RADIUS_MAP = { '5': 500, '10': 1000, '25': 2500, '50': 5000 };
-    const maxScore = radius && RADIUS_MAP[radius] !== undefined ? RADIUS_MAP[radius] : Infinity;
-
-    const institutions = await giverService.getNearbyInstitutions(pincode, { type, maxScore });
     return res.status(200).json({
       success: true,
-      count: institutions.length,
-      data: institutions,
+      message: 'Donation request accepted! Blood bag entry created in inventory with status UNFULFILLED.',
+      data: result.request,
+      bloodBag: result.bloodBag,
     });
   } catch (err) {
-    return res.status(400).json({ success: false, error: err.message });
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * Deny donation request
+ * PUT /api/v1/giver/request/:id/deny
+ */
+export async function denyDonationRequest(req, res) {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body || {};
+    const adminId = req.user?.id || req.user?._id || req.user?.sub || req.body?.admin_id;
+
+    const updatedRequest = await giverService.denyDonationRequest(id, {
+      reason: reason || 'Donation request denied by BBMS administration.',
+      admin_id: adminId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Donation request denied.',
+      data: updatedRequest,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * Fulfill the inventory entry for blood donation
+ * PUT /api/v1/giver/request/:id/fulfill
+ */
+export async function fulfillDonationReceipt(req, res) {
+  try {
+    const { id } = req.params;
+    const { staff_id, haemoglobin, pressure, weight } = req.body || {};
+
+    const result = await giverService.fulfillDonationReceipt(id, {
+      staff_id: req.user?.staffId || staff_id,
+      haemoglobin,
+      pressure,
+      weight,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Blood donation received! Inventory entry fulfilled and marked available.',
+      data: result,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
   }
 }
 
@@ -419,6 +449,9 @@ export class GiverController {
   static applyDonationRequest = applyDonationRequest;
   static verifyDonationRequest = verifyDonationRequest;
   static acceptAndScheduleDonation = acceptAndScheduleDonation;
+  static acceptDonationRequest = acceptDonationRequest;
+  static denyDonationRequest = denyDonationRequest;
+  static fulfillDonationReceipt = fulfillDonationReceipt;
   static completeDonation = completeDonation;
   static cancelDonationRequest = cancelDonationRequest;
   static getRequestDetails = getRequestDetails;

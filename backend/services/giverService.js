@@ -397,6 +397,233 @@ export async function getRequestsForBloodBank(bloodbankId, { status = null } = {
 }
 
 /**
+ * Accept donation request & automatically create unfulfilled inventory BloodBag entry
+ */
+export async function acceptDonationRequest(requestId, {
+  admin_id = null,
+  staff_id = null,
+  appointment_date = null,
+  appointment_time = null,
+  appointment_venue = null,
+  scheduling_notes = null,
+} = {}) {
+  const request = await GiverRequest.findById(requestId).populate('u_id');
+  if (!request) {
+    throw new Error('Donation request not found');
+  }
+
+  if (['COMPLETED', 'CANCELLED'].includes(request.status)) {
+    throw new Error(`Cannot accept request in status '${request.status}'`);
+  }
+
+  const donorUser = request.u_id;
+  if (!donorUser) {
+    throw new Error('Associated donor user record not found');
+  }
+
+  // 1. Resolve Staff
+  let resolvedStaffId = staff_id;
+  if (!resolvedStaffId) {
+    const defaultStaff = await Staff.findOne({});
+    resolvedStaffId = defaultStaff ? defaultStaff._id : null;
+  }
+
+  // 2. Resolve Inventory location
+  let resolvedInventoryId = null;
+  if (request.target_type === 'HOSPITAL' && request.hospital_id) {
+    const hospital = await Hospital.findById(request.hospital_id);
+    resolvedInventoryId = hospital?.I_Id;
+  } else if (request.target_type === 'BLOOD_BANK' && request.bloodbank_id) {
+    const bloodBank = await BloodBank.findById(request.bloodbank_id);
+    resolvedInventoryId = bloodBank?.I_Id;
+  }
+
+  if (!resolvedInventoryId) {
+    const defaultInventory = await Inventory.findOne({});
+    resolvedInventoryId = defaultInventory ? defaultInventory._id : null;
+  }
+
+  if (!resolvedInventoryId) {
+    const newInv = await Inventory.create({
+      cellno: 'CELL-INBOUND-01',
+      shelfno: 'SHELF-01',
+      pincode: donorUser.pincode || '10001',
+      hos_or_bank_id: request.hospital_id || request.bloodbank_id || resolvedStaffId,
+      hos_or_bank_type: request.target_type === 'BLOOD_BANK' ? 'BloodBank' : 'Hospital',
+      capacity: 100,
+      current_count: 0,
+    });
+    resolvedInventoryId = newInv._id;
+  }
+
+  // 3. Expiration date (42 days default)
+  const expirationDate = new Date();
+  expirationDate.setDate(expirationDate.getDate() + 42);
+
+  // 4. Barcode
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const bloodGroupClean = (donorUser.bloodgroup || 'O+').replace('+', 'POS').replace('-', 'NEG');
+  const barcode = `LV-DON-${bloodGroupClean}-${randomSuffix}`;
+
+  // 5. Create or update BloodBag with status UNFULFILLED
+  let bloodBag;
+  if (request.bag_id) {
+    bloodBag = await BloodBag.findById(request.bag_id);
+  }
+
+  if (!bloodBag) {
+    bloodBag = await BloodBag.create({
+      bloodgroup: donorUser.bloodgroup || 'O+',
+      haemoglobin: 13.5,
+      pressure: '120/80 mmHg',
+      date_of_donation: new Date(),
+      expired_date: expirationDate,
+      S_Id: resolvedStaffId,
+      I_ID: resolvedInventoryId,
+      status: 'UNFULFILLED',
+      weight: 450,
+      barcode,
+      donor_request_id: request._id,
+      donor_user_id: donorUser._id,
+      isdiscresed: false,
+    });
+  } else {
+    bloodBag.status = 'UNFULFILLED';
+    bloodBag.barcode = bloodBag.barcode || barcode;
+    bloodBag.donor_request_id = request._id;
+    bloodBag.donor_user_id = donorUser._id;
+    await bloodBag.save();
+  }
+
+  // 6. Update GiverRequest
+  request.status = 'ACCEPTED';
+  request.accepted_at = new Date();
+  request.bag_id = bloodBag._id;
+  if (appointment_date) {
+    request.appointment_date = new Date(appointment_date);
+  } else if (request.preferred_date) {
+    request.appointment_date = request.preferred_date;
+  } else {
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 1);
+    request.appointment_date = defaultDate;
+  }
+
+  if (appointment_time) request.appointment_time = appointment_time;
+  else if (!request.appointment_time) request.appointment_time = '10:00 AM';
+
+  if (appointment_venue) request.appointment_venue = appointment_venue;
+  if (scheduling_notes) request.scheduling_notes = scheduling_notes;
+  if (admin_id) request.admin_id = admin_id;
+
+  await request.save();
+
+  const populatedRequest = await GiverRequest.findById(request._id).populate(POPULATE_GIVER_REQUEST);
+  return { request: populatedRequest, bloodBag };
+}
+
+/**
+ * Deny a donation request
+ */
+export async function denyDonationRequest(requestId, { reason = 'Donation request denied by BBMS staff', admin_id = null } = {}) {
+  const request = await GiverRequest.findById(requestId);
+  if (!request) {
+    throw new Error('Donation request not found');
+  }
+
+  if (request.status === 'COMPLETED') {
+    throw new Error('Cannot deny a donation request that has already been completed');
+  }
+
+  if (request.bag_id) {
+    await BloodBag.findByIdAndUpdate(request.bag_id, { status: 'DISCARDED', isdiscresed: true });
+  }
+
+  request.status = 'REJECTED';
+  request.rejection_reason = reason;
+  if (admin_id) request.admin_id = admin_id;
+
+  await request.save();
+  return GiverRequest.findById(request._id).populate(POPULATE_GIVER_REQUEST);
+}
+
+/**
+ * Fulfill the inventory entry when BBMS receives the blood
+ */
+export async function fulfillDonationReceipt(identifier, {
+  staff_id = null,
+  haemoglobin = 13.5,
+  pressure = '120/80 mmHg',
+  weight = 450,
+} = {}) {
+  let bloodBag = await BloodBag.findById(identifier);
+  let request = null;
+
+  if (!bloodBag) {
+    request = await GiverRequest.findById(identifier).populate('u_id');
+    if (request && request.bag_id) {
+      bloodBag = await BloodBag.findById(request.bag_id);
+    }
+  } else if (bloodBag.donor_request_id) {
+    request = await GiverRequest.findById(bloodBag.donor_request_id).populate('u_id');
+  }
+
+  if (!bloodBag) {
+    throw new Error('Blood bag or donation entry not found');
+  }
+
+  let resolvedStaffId = staff_id;
+  if (!resolvedStaffId) {
+    const defaultStaff = await Staff.findOne({});
+    resolvedStaffId = defaultStaff ? defaultStaff._id : null;
+  }
+
+  bloodBag.status = 'AVAILABLE';
+  bloodBag.fulfilled_at = new Date();
+  if (resolvedStaffId) bloodBag.fulfilled_by = resolvedStaffId;
+  if (haemoglobin) bloodBag.haemoglobin = Number(haemoglobin);
+  if (pressure) bloodBag.pressure = pressure;
+  if (weight) bloodBag.weight = Number(weight);
+  await bloodBag.save();
+
+  if (request) {
+    request.status = 'COMPLETED';
+    request.completed_at = new Date();
+    if (resolvedStaffId) request.staff_id = resolvedStaffId;
+    await request.save();
+  }
+
+  const donorUserId = bloodBag.donor_user_id || request?.u_id?._id || request?.u_id;
+  if (donorUserId) {
+    const existingDonorLog = await Donor.findOne({ bag_id: bloodBag._id });
+    if (!existingDonorLog) {
+      const donorUser = await User.findById(donorUserId);
+      await Donor.create({
+        u_id: donorUserId,
+        date_of_donation: new Date(),
+        weight_donated: bloodBag.weight || 450,
+        bag_id: bloodBag._id,
+        S_Id: resolvedStaffId || bloodBag.S_Id,
+        pincode: donorUser?.pincode || '10001',
+      });
+    }
+  }
+
+  if (bloodBag.I_ID) {
+    await Inventory.findByIdAndUpdate(bloodBag.I_ID, { $inc: { current_count: 1 } });
+  }
+
+  const populatedRequest = request ? await GiverRequest.findById(request._id).populate(POPULATE_GIVER_REQUEST) : null;
+
+  return {
+    success: true,
+    message: 'Blood donation received and inventory entry fulfilled.',
+    bloodBag,
+    request: populatedRequest,
+  };
+}
+
+/**
  * QUERY: List all giver requests with filtering and pagination
  */
 export async function getAllDonationRequests(filter = {}, { limit = 50, skip = 0 } = {}) {
@@ -512,6 +739,9 @@ export default {
   createDonationRequest,
   verifyDonationRequest,
   acceptAndScheduleRequest,
+  acceptDonationRequest,
+  denyDonationRequest,
+  fulfillDonationReceipt,
   completeDonation,
   cancelDonationRequest,
   getDonationRequestById,

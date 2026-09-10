@@ -149,8 +149,6 @@ export const giverRequestSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'BloodBag',
       default: null,
-      unique: true,
-      sparse: true,
       index: true,
     },
     staff_id: {
