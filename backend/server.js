@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 import { getConfig } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { setupDonorRoutes } from './routes/donorRoutes.js';
@@ -14,23 +13,36 @@ import authRoutes from './routes/authRoutes.js';
 const app = express();
 const config = getConfig();
 
-// Allow credentials (cookies) from the frontend origin
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:5173',
-];
+// Resilient cookie parser: use package if available, else simple fallback
+let cookieParserMiddleware;
+try {
+  const cp = (await import('cookie-parser')).default;
+  cookieParserMiddleware = cp();
+} catch (_err) {
+  cookieParserMiddleware = (req, _res, next) => {
+    req.cookies = req.cookies || {};
+    const header = req.headers?.cookie;
+    if (header) {
+      header.split(';').forEach((c) => {
+        const [k, ...v] = c.trim().split('=');
+        if (k) req.cookies[k] = decodeURIComponent(v.join('='));
+      });
+    }
+    next();
+  };
+}
 
+// Allow credentials (cookies) from any localhost/127.0.0.1 dev port
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow requests with no origin (e.g. same-origin, curl, mobile apps)
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return cb(null, true);
+    }
     cb(null, false);
   },
   credentials: true,
 }));
-app.use(cookieParser());
+app.use(cookieParserMiddleware);
 app.use(express.json());
 
 const router = express.Router();
