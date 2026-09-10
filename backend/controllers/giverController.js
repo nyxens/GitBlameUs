@@ -460,6 +460,9 @@ export class GiverController {
   static getHospitalRequests = getHospitalRequests;
   static getBloodBankRequests = getBloodBankRequests;
   static getAllRequests = getAllRequests;
+  static getDonorProfile = getDonorProfile;
+  static getActiveRequest = getActiveRequest;
+  static getNearbyInstitutions = getNearbyInstitutions;
 }
 
 export default GiverController;
