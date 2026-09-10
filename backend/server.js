@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { getConfig } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { setupDonorRoutes } from './routes/donorRoutes.js';
@@ -13,7 +14,23 @@ import authRoutes from './routes/authRoutes.js';
 const app = express();
 const config = getConfig();
 
-app.use(cors());
+// Allow credentials (cookies) from the frontend origin
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+];
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow requests with no origin (e.g. same-origin, curl, mobile apps)
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(null, false);
+  },
+  credentials: true,
+}));
+app.use(cookieParser());
 app.use(express.json());
 
 const router = express.Router();

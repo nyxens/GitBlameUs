@@ -27,6 +27,7 @@ export async function loginUser(email, password, role) {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ email, password, role }),
     });
   } catch (err) {
@@ -63,6 +64,7 @@ export async function signupUser(signupData) {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(signupData),
     });
   } catch (err) {
@@ -94,6 +96,7 @@ export async function verifyOtpUser(email, otp, signupData) {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ email, otp }),
     });
   } catch (err) {
@@ -125,8 +128,69 @@ export async function verifyOtpUser(email, otp, signupData) {
   return await response.json();
 }
 
+/**
+ * Fetch the currently authenticated user from the server using the httpOnly cookie.
+ * Used on page load to rehydrate the session without requiring a new login.
+ */
+export async function fetchCurrentUser() {
+  try {
+    const url = getAuthUrl('/me');
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      return { success: false };
+    }
+
+    return await response.json();
+  } catch {
+    return { success: false };
+  }
+}
+
+/**
+ * Refresh the access token using the httpOnly refresh token cookie.
+ */
+export async function refreshAccessToken() {
+  try {
+    const url = getAuthUrl('/refresh');
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      return { success: false };
+    }
+
+    return await response.json();
+  } catch {
+    return { success: false };
+  }
+}
+
+/**
+ * Log out the current user by calling the backend to clear httpOnly auth cookies.
+ */
+export async function logoutUser() {
+  try {
+    const url = getAuthUrl('/logout');
+    await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } catch {
+    // Even if the API call fails, we still clear local state
+  }
+}
+
 export const authService = {
   loginUser,
   signupUser,
   verifyOtpUser,
+  fetchCurrentUser,
+  refreshAccessToken,
+  logoutUser,
 };
