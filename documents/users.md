@@ -1,0 +1,14 @@
+  console.log('\n======================================================');
+  console.log('🎉 SEEDING COMPLETED SUCCESSFULLY!');
+  console.log('======================================================');
+  console.log('\n🔑 Test Login Credentials:');
+  console.log('┌──────────────────────┬────────────────────────────────┬──────────────────────┐');
+  console.log('│ Role                 │ Email                          │ Password             │');
+  console.log('├──────────────────────┼────────────────────────────────┼──────────────────────┤');
+  console.log('│ Master Super Admin   │ admin@lifevault.org            │ LifeVaultAdmin2026!  │');
+  console.log('│ Facility Admin       │ facility.admin@metrohealth.org │ AdminPass2026!       │');
+  console.log('│ Staff (Doctor)       │ sarah.connor@metrohealth.org   │ UserPass2026!        │');
+  console.log('│ Staff (Lab Tech)     │ david.miller@metroblood.org    │ UserPass2026!        │');
+  console.log('│ Donor (Alex Rivers)  │ alex.rivers@gmail.com          │ UserPass2026!        │');
+  console.log('│ Patient (John Doe)   │ john.doe@patient.org           │ UserPass2026!        │');
+  console.log('└──────────────────────┴────────────────────────────────┴──────────────────────┘\n');

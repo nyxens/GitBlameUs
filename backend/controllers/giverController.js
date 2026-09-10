@@ -347,11 +347,111 @@ export async function getAllRequests(req, res) {
   }
 }
 
+/**
+ * Accept donation request & automatically create unfulfilled inventory BloodBag entry
+ * PUT /api/v1/giver/request/:id/accept
+ */
+export async function acceptDonationRequest(req, res) {
+  try {
+    const { id } = req.params;
+    const {
+      appointment_date,
+      appointment_time,
+      appointment_venue,
+      scheduling_notes,
+      staff_id,
+    } = req.body || {};
+
+    const adminId = req.user?.id || req.user?._id || req.user?.sub || req.body?.admin_id;
+
+    const result = await giverService.acceptDonationRequest(id, {
+      admin_id: adminId,
+      staff_id: req.user?.staffId || staff_id,
+      appointment_date,
+      appointment_time,
+      appointment_venue,
+      scheduling_notes,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Donation request accepted! Blood bag entry created in inventory with status UNFULFILLED.',
+      data: result.request,
+      bloodBag: result.bloodBag,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * Deny donation request
+ * PUT /api/v1/giver/request/:id/deny
+ */
+export async function denyDonationRequest(req, res) {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body || {};
+    const adminId = req.user?.id || req.user?._id || req.user?.sub || req.body?.admin_id;
+
+    const updatedRequest = await giverService.denyDonationRequest(id, {
+      reason: reason || 'Donation request denied by BBMS administration.',
+      admin_id: adminId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Donation request denied.',
+      data: updatedRequest,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * Fulfill the inventory entry for blood donation
+ * PUT /api/v1/giver/request/:id/fulfill
+ */
+export async function fulfillDonationReceipt(req, res) {
+  try {
+    const { id } = req.params;
+    const { staff_id, haemoglobin, pressure, weight } = req.body || {};
+
+    const result = await giverService.fulfillDonationReceipt(id, {
+      staff_id: req.user?.staffId || staff_id,
+      haemoglobin,
+      pressure,
+      weight,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Blood donation received! Inventory entry fulfilled and marked available.',
+      data: result,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
 // Named class export for object-oriented or grouped imports
 export class GiverController {
   static applyDonationRequest = applyDonationRequest;
   static verifyDonationRequest = verifyDonationRequest;
   static acceptAndScheduleDonation = acceptAndScheduleDonation;
+  static acceptDonationRequest = acceptDonationRequest;
+  static denyDonationRequest = denyDonationRequest;
+  static fulfillDonationReceipt = fulfillDonationReceipt;
   static completeDonation = completeDonation;
   static cancelDonationRequest = cancelDonationRequest;
   static getRequestDetails = getRequestDetails;

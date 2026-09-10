@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BBMSHeader } from '@layout/BBMSHeader';
 import { RecipientsPage } from './RecipientsPage';
 import { DonorsPage } from './DonorsPage';
@@ -12,7 +12,12 @@ import {
   ShieldCheck,
   AlertTriangle,
   Droplet,
+  PackageCheck,
+  CheckCircle2,
+  RefreshCw,
+  X,
 } from 'lucide-react';
+import { getInventoryItems, fulfillInventoryItem } from '../../services/inventoryService.js';
 
 export const BBMSWorkspace = ({ user, onLogout }) => {
   const [activeSection, setActiveSection] = useState('inventory');
@@ -20,26 +25,77 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
   // Inventory Search & Filter State
   const [inventorySearch, setInventorySearch] = useState('');
   const [inventoryGroupFilter, setInventoryGroupFilter] = useState('ALL');
+  const [inventory, setInventory] = useState([]);
+  const [isRefreshingInv, setIsRefreshingInv] = useState(false);
+  const [actionLoadingBarcode, setActionLoadingBarcode] = useState(null);
+  const [invNotification, setInvNotification] = useState(null);
 
-  // Working Live Inventory Data
-  const [inventory] = useState([
-    { barcode: 'LV-UNIT-8091', type: 'O-', component: 'PRBC (Packed Red Cells)', units: 12, expiry: '4 Days (FEFO #1)', temp: '2.4°C', status: 'CRITICAL' },
-    { barcode: 'LV-UNIT-8092', type: 'O+', component: 'Whole Blood', units: 180, expiry: '28 Days', temp: '2.5°C', status: 'OPTIMAL' },
-    { barcode: 'LV-UNIT-8093', type: 'A+', component: 'FFP (Plasma)', units: 65, expiry: '120 Days', temp: '-18.2°C', status: 'OPTIMAL' },
-    { barcode: 'LV-UNIT-8094', type: 'A-', component: 'Whole Blood', units: 48, expiry: '14 Days', temp: '2.4°C', status: 'LOW' },
-    { barcode: 'LV-UNIT-8095', type: 'B+', component: 'Platelets', units: 140, expiry: '3 Days (FEFO #2)', temp: '22.1°C', status: 'OPTIMAL' },
-    { barcode: 'LV-UNIT-8096', type: 'B-', component: 'PRBC', units: 8, expiry: '2 Days (FEFO #1)', temp: '2.4°C', status: 'CRITICAL' },
-    { barcode: 'LV-UNIT-8097', type: 'AB+', component: 'Whole Blood', units: 92, expiry: '24 Days', temp: '2.3°C', status: 'OPTIMAL' },
-    { barcode: 'LV-UNIT-8098', type: 'AB-', component: 'FFP (Plasma)', units: 28, expiry: '7 Days', temp: '-18.0°C', status: 'CRITICAL' },
-  ]);
+  // Load Inventory Items (including unfulfilled inbound donations)
+  const loadInventory = async (showIndicator = false) => {
+    if (showIndicator) setIsRefreshingInv(true);
+    try {
+      const items = await getInventoryItems();
+      if (items && items.length > 0) {
+        setInventory(items);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch inventory:', err);
+    } finally {
+      if (showIndicator) setIsRefreshingInv(false);
+    }
+  };
+
+  useEffect(() => {
+    loadInventory();
+  }, [activeSection]);
+
+  // Handle fulfill inventory entry
+  const handleFulfillItem = async (item) => {
+    setActionLoadingBarcode(item.barcode);
+    try {
+      const res = await fulfillInventoryItem(item.id || item.barcode);
+      if (res && res.success) {
+        setInvNotification(
+          `Blood donation receipt confirmed for unit ${item.barcode}! Inventory entry marked FULFILLED.`
+        );
+        setTimeout(() => setInvNotification(null), 5000);
+        setInventory((prev) =>
+          prev.map((i) =>
+            i.barcode === item.barcode
+              ? {
+                  ...i,
+                  status: 'OPTIMAL',
+                  rawStatus: 'AVAILABLE',
+                  component: 'Whole Blood',
+                  expiry: '35 Days',
+                  temp: '2.4°C',
+                  units: 1,
+                }
+              : i
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to fulfill inventory item:', err);
+    } finally {
+      setActionLoadingBarcode(null);
+    }
+  };
 
   const filteredInventory = inventory.filter((item) => {
+    const barcode = item.barcode || '';
+    const component = item.component || '';
+    const donorName = item.donorName || '';
     const matchesSearch =
-      item.barcode.toLowerCase().includes(inventorySearch.toLowerCase()) ||
-      item.component.toLowerCase().includes(inventorySearch.toLowerCase());
+      barcode.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+      component.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+      donorName.toLowerCase().includes(inventorySearch.toLowerCase());
     const matchesGroup = inventoryGroupFilter === 'ALL' || item.type === inventoryGroupFilter;
     return matchesSearch && matchesGroup;
   });
+
+  const unfulfilledCount = inventory.filter((i) => i.status === 'UNFULFILLED').length;
+  const totalUnits = inventory.reduce((sum, i) => sum + (i.units || 1), 0);
 
   return (
     <div className="min-h-screen bg-black text-white font-sans flex flex-col relative selection:bg-purple-500 selection:text-white">
@@ -56,6 +112,22 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
         {/* 1. INVENTORY SECTION */}
         {activeSection === 'inventory' && (
           <section className="w-full space-y-8 animate-fadeIn">
+            {/* Notification Banner */}
+            {invNotification && (
+              <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 flex items-center justify-between shadow-xl">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <span className="text-xs font-medium">{invNotification}</span>
+                </div>
+                <button
+                  onClick={() => setInvNotification(null)}
+                  className="p-1 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -71,26 +143,48 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
                   </p>
                 </div>
               </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => loadInventory(true)}
+                  disabled={isRefreshingInv}
+                  className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/40 text-neutral-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 text-xs font-semibold group disabled:opacity-50"
+                  title="Refresh Inventory"
+                >
+                  <RefreshCw
+                    className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-180 transition-transform duration-500 ${
+                      isRefreshingInv ? 'animate-spin' : ''
+                    }`}
+                  />
+                  <span>Refresh Inventory</span>
+                </button>
+              </div>
             </div>
 
             {/* Quick Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-purple-500/40 transition-colors">
                 <div className="flex items-center justify-between text-neutral-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider">Total Stored Units</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider">Total Vault Stock</span>
                   <Droplet className="w-4 h-4 text-purple-400" />
                 </div>
-                <div className="text-3xl font-extrabold text-white tracking-tight">573 Units</div>
+                <div className="text-3xl font-extrabold text-white tracking-tight">
+                  {totalUnits} Units
+                </div>
                 <div className="text-[11px] text-neutral-400 mt-1">Across 8 blood groups</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-red-500/40 transition-colors">
+              <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-orange-500/40 transition-colors">
                 <div className="flex items-center justify-between text-neutral-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider">Critical Reserves</span>
-                  <AlertTriangle className="w-4 h-4 text-red-400" />
+                  <span className="text-xs font-semibold uppercase tracking-wider">Unfulfilled Inbound</span>
+                  <PackageCheck className="w-4 h-4 text-orange-400" />
                 </div>
-                <div className="text-3xl font-extrabold text-red-400 tracking-tight">3 Types</div>
-                <div className="text-[11px] text-neutral-400 mt-1">O-, B-, AB- below threshold</div>
+                <div className="text-3xl font-extrabold text-orange-400 tracking-tight">
+                  {unfulfilledCount} Entries
+                </div>
+                <div className="text-[11px] text-neutral-400 mt-1">
+                  {unfulfilledCount > 0 ? 'Awaiting blood receipt intake' : 'All donations fulfilled'}
+                </div>
               </div>
 
               <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-cyan-500/40 transition-colors">
@@ -120,7 +214,7 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
                   type="text"
                   value={inventorySearch}
                   onChange={(e) => setInventorySearch(e.target.value)}
-                  placeholder="Search unit barcode or component type..."
+                  placeholder="Search unit barcode, component, or donor..."
                   className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500/50"
                 />
               </div>
@@ -150,36 +244,70 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
                       <th className="py-3.5 px-4 font-semibold">Expiration / FEFO</th>
                       <th className="py-3.5 px-4 font-semibold">Telemetry Temp</th>
                       <th className="py-3.5 px-4 font-semibold">Reserve Status</th>
+                      <th className="py-3.5 px-4 font-semibold text-right">Intake Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-neutral-300 font-sans">
-                    {filteredInventory.map((item) => (
-                      <tr key={item.barcode} className="hover:bg-white/[0.03] transition-colors">
-                        <td className="py-3.5 px-4 font-mono font-medium text-white">{item.barcode}</td>
-                        <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold font-mono">
-                            {item.type}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-neutral-300">{item.component}</td>
-                        <td className="py-3.5 px-4 font-bold text-white">{item.units} Units</td>
-                        <td className="py-3.5 px-4 text-neutral-300">{item.expiry}</td>
-                        <td className="py-3.5 px-4 font-mono text-cyan-400">{item.temp}</td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                              item.status === 'CRITICAL'
-                                ? 'bg-red-500/15 text-red-400 border border-red-500/30'
-                                : item.status === 'LOW'
-                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                                : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredInventory.map((item) => {
+                      const isUnfulfilled = item.status === 'UNFULFILLED';
+
+                      return (
+                        <tr key={item.barcode || item.id} className="hover:bg-white/[0.03] transition-colors">
+                          <td className="py-3.5 px-4 font-mono font-medium text-white">
+                            <div>{item.barcode}</div>
+                            {item.donorName && (
+                              <div className="text-[10px] text-neutral-500 font-sans">
+                                {item.donorName}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold font-mono">
+                              {item.type}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-neutral-300">{item.component}</td>
+                          <td className="py-3.5 px-4 font-bold text-white">
+                            {isUnfulfilled ? '0 Units (Awaiting)' : `${item.units} Units`}
+                          </td>
+                          <td className="py-3.5 px-4 text-neutral-300">{item.expiry}</td>
+                          <td className="py-3.5 px-4 font-mono text-cyan-400">{item.temp}</td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                                isUnfulfilled
+                                  ? 'bg-orange-500/15 text-orange-400 border border-orange-500/30 inline-flex items-center gap-1.5'
+                                  : item.status === 'CRITICAL'
+                                  ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+                                  : item.status === 'LOW'
+                                  ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                                  : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                              }`}
+                            >
+                              {isUnfulfilled && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-ping" />
+                              )}
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            {isUnfulfilled ? (
+                              <button
+                                onClick={() => handleFulfillItem(item)}
+                                disabled={actionLoadingBarcode === item.barcode}
+                                className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(168,85,247,0.35)] transition-all cursor-pointer disabled:opacity-50 ml-auto"
+                                title="Confirm BBMS received blood & fulfill inventory entry"
+                              >
+                                <PackageCheck className="w-3.5 h-3.5" />
+                                <span>Fulfill</span>
+                              </button>
+                            ) : (
+                              <span className="text-[11px] text-neutral-500 font-mono">In Stock ✓</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

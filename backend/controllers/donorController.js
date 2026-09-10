@@ -1,4 +1,5 @@
 import { Donor, BloodBag, User, Staff } from '../models/index.js';
+import GiverRequest from '../models/GiverRequest.js';
 
 export async function scheduleDonation(req, res) {
   try {
@@ -124,6 +125,9 @@ export async function getDonors(_req, res) {
 
     const eligibleNow = donorsList.filter((d) => d.eligibility.startsWith('ELIGIBLE')).length;
     const totalDonatedUnits = donorsList.reduce((acc, d) => acc + d.totalDonations, 0);
+    const incomingRequestsCount = await GiverRequest.countDocuments({
+      status: { $in: ['NOT_VERIFIED', 'PENDING', 'VERIFIED', 'ACCEPTED'] },
+    });
 
     return res.status(200).json({
       success: true,
@@ -132,7 +136,7 @@ export async function getDonors(_req, res) {
         registeredDonors: donorsList.length,
         eligibleNow,
         totalDonatedUnits,
-        activeDrives: 6,
+        incomingRequests: incomingRequestsCount,
       },
       donors: donorsList,
     });

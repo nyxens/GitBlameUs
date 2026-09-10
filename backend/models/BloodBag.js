@@ -3,7 +3,17 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-export const BLOODBAG_STATUSES = ['AVAILABLE', 'TESTING', 'RESERVED', 'ALLOCATED', 'TRANSFUSED', 'DISCARDED', 'EXPIRED'];
+export const BLOODBAG_STATUSES = [
+  'UNFULFILLED', // Blood donation accepted, awaiting physical receipt by BBMS
+  'FULFILLED',   // Blood physically received by BBMS and confirmed
+  'AVAILABLE',   // Available in inventory for transfusion / matching
+  'TESTING',
+  'RESERVED',
+  'ALLOCATED',
+  'TRANSFUSED',
+  'DISCARDED',
+  'EXPIRED',
+];
 
 export const bloodBagSchema = new Schema(
   {
@@ -15,12 +25,12 @@ export const bloodBagSchema = new Schema(
     },
     haemoglobin: {
       type: Number,
-      required: [true, 'Haemoglobin level is required'],
+      default: 13.5,
       min: [0, 'Haemoglobin cannot be negative'],
     },
     pressure: {
       type: String,
-      required: [true, 'Blood pressure reading is required'],
+      default: '120/80 mmHg',
       trim: true,
     },
     date_of_donation: {
@@ -59,11 +69,39 @@ export const bloodBagSchema = new Schema(
     weight: {
       type: Number,
       required: [true, 'Bag weight/volume is required'],
+      default: 450,
       min: [0, 'Weight cannot be negative'],
     },
     maxcost: {
       type: Number,
       default: 0.0,
+    },
+    barcode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    donor_request_id: {
+      type: Schema.Types.ObjectId,
+      ref: 'GiverRequest',
+      default: null,
+      index: true,
+    },
+    donor_user_id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+      index: true,
+    },
+    fulfilled_at: {
+      type: Date,
+      default: null,
+    },
+    fulfilled_by: {
+      type: Schema.Types.ObjectId,
+      ref: 'Staff',
+      default: null,
     },
   },
   {

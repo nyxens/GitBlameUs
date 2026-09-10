@@ -2,6 +2,9 @@ import {
   applyDonationRequest,
   verifyDonationRequest,
   acceptAndScheduleDonation,
+  acceptDonationRequest,
+  denyDonationRequest,
+  fulfillDonationReceipt,
   completeDonation,
   cancelDonationRequest,
   getRequestDetails,
@@ -18,6 +21,16 @@ export function setupGiverRoutes(router) {
 
   // Phase 2: Admin verifies donor credentials
   router.put('/giver/request/:id/verify', verifyDonationRequest);
+
+  // Accept or Deny donation requests (adds unfulfilled blood entry to inventory on accept)
+  router.put('/giver/request/:id/accept', acceptDonationRequest);
+  router.post('/giver/request/:id/accept', acceptDonationRequest);
+  router.put('/giver/request/:id/deny', denyDonationRequest);
+  router.post('/giver/request/:id/deny', denyDonationRequest);
+
+  // Fulfill donation entry when BBMS receives the blood
+  router.put('/giver/request/:id/fulfill', fulfillDonationReceipt);
+  router.post('/giver/request/:id/fulfill', fulfillDonationReceipt);
 
   // Phase 3: Hospital/BloodBank accepts & schedules appointment
   router.put('/giver/request/:id/schedule', acceptAndScheduleDonation);
