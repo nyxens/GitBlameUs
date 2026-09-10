@@ -347,6 +347,73 @@ export async function getAllRequests(req, res) {
   }
 }
 
+/**
+ * QUERY: Get donor's own profile for form pre-fill
+ * GET /api/v1/giver/donor-profile
+ */
+export async function getDonorProfile(req, res) {
+  try {
+    const userId = req.user?.sub || req.user?.id || req.user?._id || req.query.u_id;
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID required. Please login.' });
+    }
+    const user = await giverService.getUserProfile(userId);
+    return res.status(200).json({ success: true, data: user });
+  } catch (err) {
+    return res.status(404).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * QUERY: Get the current active (non-terminal) donation request for the logged-in donor
+ * GET /api/v1/giver/active-request
+ */
+export async function getActiveRequest(req, res) {
+  try {
+    const userId = req.user?.sub || req.user?.id || req.user?._id || req.query.u_id;
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID required. Please login.' });
+    }
+    const active = await giverService.getActiveRequestByDonor(userId);
+    return res.status(200).json({ success: true, data: active || null });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * QUERY: Find nearby hospitals and blood banks by pincode proximity
+ * GET /api/v1/giver/nearby?pincode=&type=ALL|HOSPITAL|BLOOD_BANK&radius=
+ *
+ * radius param maps to maxScore thresholds:
+ *   5   -> 500
+ *   10  -> 1000
+ *   25  -> 2500
+ *   50  -> 5000
+ *   any -> Infinity
+ */
+export async function getNearbyInstitutions(req, res) {
+  try {
+    const { pincode, type = 'ALL', radius } = req.query;
+    if (!pincode) {
+      return res.status(400).json({ success: false, error: 'pincode query parameter is required' });
+    }
+
+    // Map radius label to numeric maxScore
+    const RADIUS_MAP = { '5': 500, '10': 1000, '25': 2500, '50': 5000 };
+    const maxScore = radius && RADIUS_MAP[radius] !== undefined ? RADIUS_MAP[radius] : Infinity;
+
+    const institutions = await giverService.getNearbyInstitutions(pincode, { type, maxScore });
+    return res.status(200).json({
+      success: true,
+      count: institutions.length,
+      data: institutions,
+    });
+  } catch (err) {
+    return res.status(400).json({ success: false, error: err.message });
+  }
+}
+
 // Named class export for object-oriented or grouped imports
 export class GiverController {
   static applyDonationRequest = applyDonationRequest;
@@ -360,6 +427,9 @@ export class GiverController {
   static getHospitalRequests = getHospitalRequests;
   static getBloodBankRequests = getBloodBankRequests;
   static getAllRequests = getAllRequests;
+  static getDonorProfile = getDonorProfile;
+  static getActiveRequest = getActiveRequest;
+  static getNearbyInstitutions = getNearbyInstitutions;
 }
 
 export default GiverController;

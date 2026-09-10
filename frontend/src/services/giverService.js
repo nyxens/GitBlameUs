@@ -264,4 +264,40 @@ export const giverService = {
   getPendingVerifications,
   getHospitalGiverRequests,
   getAllGiverRequests,
+  getDonorProfile,
+  getActiveRequest,
+  getNearbyInstitutions,
 };
+
+// ── Query: Get logged-in donor's profile for form pre-fill ──
+export async function getDonorProfile() {
+  try {
+    return await fetchApi('/giver/donor-profile');
+  } catch (err) {
+    console.warn('getDonorProfile failed:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+// ── Query: Get current active (non-terminal) request for logged-in donor ──
+export async function getActiveRequest() {
+  try {
+    return await fetchApi('/giver/active-request');
+  } catch (err) {
+    console.warn('getActiveRequest failed:', err.message);
+    return { success: false, data: null };
+  }
+}
+
+// ── Query: Find nearby hospitals & blood banks by pincode ──
+export async function getNearbyInstitutions({ pincode, type = 'ALL', radius = '' } = {}) {
+  try {
+    const params = new URLSearchParams({ pincode });
+    if (type && type !== 'ALL') params.set('type', type);
+    if (radius) params.set('radius', String(radius));
+    return await fetchApi(`/giver/nearby?${params.toString()}`);
+  } catch (err) {
+    console.warn('getNearbyInstitutions failed:', err.message);
+    return { success: false, error: err.message, data: [] };
+  }
+}
