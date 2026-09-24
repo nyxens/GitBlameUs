@@ -357,9 +357,16 @@ export async function getActiveRequest() {
 }
 
 // ── Query: Find nearby hospitals & blood banks by pincode ──
-export async function getNearbyInstitutions({ pincode, type = 'ALL', radius = '' } = {}) {
+export async function getNearbyInstitutions({ pincode, lat, lng, type = 'ALL', radius = '' } = {}) {
   try {
-    const params = new URLSearchParams({ pincode });
+    const params = new URLSearchParams();
+    // Coordinate mode takes priority when both lat & lng are present
+    if (lat !== undefined && lat !== null && lng !== undefined && lng !== null) {
+      params.set('lat', String(lat));
+      params.set('lng', String(lng));
+    } else if (pincode) {
+      params.set('pincode', pincode);
+    }
     if (type && type !== 'ALL') params.set('type', type);
     if (radius) params.set('radius', String(radius));
     return await fetchApi(`/giver/nearby?${params.toString()}`);

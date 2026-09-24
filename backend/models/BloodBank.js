@@ -41,6 +41,18 @@ export const bloodBankSchema = new Schema(
       type: String,
       trim: true,
     },
+    latitude: {
+      type: Number,
+      default: null,
+      min: -90,
+      max: 90,
+    },
+    longitude: {
+      type: Number,
+      default: null,
+      min: -180,
+      max: 180,
+    },
   },
   {
     timestamps: true,
@@ -48,6 +60,9 @@ export const bloodBankSchema = new Schema(
     toObject: { virtuals: true },
   }
 );
+
+// Support geo queries once lat/lng is populated
+bloodBankSchema.index({ latitude: 1, longitude: 1 });
 
 // Virtual for ER diagram primary key naming: bank_id
 bloodBankSchema.virtual('bank_id').get(function () {

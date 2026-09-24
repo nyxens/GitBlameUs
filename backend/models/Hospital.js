@@ -41,6 +41,18 @@ export const hospitalSchema = new Schema(
       type: String,
       trim: true,
     },
+    latitude: {
+      type: Number,
+      default: null,
+      min: -90,
+      max: 90,
+    },
+    longitude: {
+      type: Number,
+      default: null,
+      min: -180,
+      max: 180,
+    },
   },
   {
     timestamps: true,
@@ -48,6 +60,9 @@ export const hospitalSchema = new Schema(
     toObject: { virtuals: true },
   }
 );
+
+// Support geo queries once lat/lng is populated
+hospitalSchema.index({ latitude: 1, longitude: 1 });
 
 // Virtual for ER diagram primary key naming: hos_id
 hospitalSchema.virtual('hos_id').get(function () {

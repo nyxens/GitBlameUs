@@ -444,6 +444,124 @@ export async function fulfillDonationReceipt(req, res) {
   }
 }
 
+/**
+ * QUERY: Get the logged-in user's profile (for donor form pre-fill)
+ * GET /api/v1/giver/donor-profile
+ */
+export async function getDonorProfile(req, res) {
+  try {
+    const userId = req.user?.id || req.user?._id || req.user?.sub;
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User must be logged in to fetch donor profile.',
+      });
+    }
+
+    const user = await giverService.getUserProfile(userId);
+    return res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    return res.status(404).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * QUERY: Get the current non-terminal donation request for the logged-in donor
+ * GET /api/v1/giver/active-request
+ */
+export async function getActiveRequest(req, res) {
+  try {
+    const userId = req.user?.id || req.user?._id || req.user?.sub;
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User must be logged in to fetch an active request.',
+      });
+    }
+
+    const request = await giverService.getActiveRequestByDonor(userId);
+    return res.status(200).json({
+      success: true,
+      data: request,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * QUERY: Find nearby hospitals/blood banks — supports two modes:
+ *   1. Coordinate mode (preferred, real distance): ?lat=&lng=&type=&radius=
+ *   2. Pincode mode (fallback, proximity proxy):    ?pincode=&type=&radius=
+ * If both lat/lng and pincode are sent, lat/lng takes priority.
+ * GET /api/v1/giver/nearby
+ */
+export async function getNearbyInstitutions(req, res) {
+  try {
+    const { pincode, lat, lng, type = 'ALL', radius } = req.query;
+
+    // ── Mode 1: Coordinates (from browser Geolocation API) ──────────────────
+    if (lat !== undefined && lng !== undefined && lat !== '' && lng !== '') {
+      const latitude = Number(lat);
+      const longitude = Number(lng);
+      if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid latitude/longitude provided.',
+        });
+      }
+
+      const maxDistanceKm = radius !== undefined && radius !== '' ? Number(radius) : Infinity;
+      const results = await giverService.getNearbyInstitutionsByCoords(latitude, longitude, {
+        type,
+        maxDistanceKm,
+      });
+
+      return res.status(200).json({
+        success: true,
+        mode: 'coords',
+        count: results.length,
+        data: results,
+      });
+    }
+
+    // ── Mode 2: Pincode ───────────────────────────────────────────────────
+    if (!pincode) {
+      return res.status(400).json({
+        success: false,
+        error: 'Either lat/lng or pincode is required.',
+      });
+    }
+
+    const maxScore = radius !== undefined && radius !== '' ? Number(radius) : Infinity;
+    const results = await giverService.getNearbyInstitutions(pincode, {
+      type,
+      maxScore,
+    });
+
+    return res.status(200).json({
+      success: true,
+      mode: 'pincode',
+      count: results.length,
+      data: results,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
 // Named class export for object-oriented or grouped imports
 export class GiverController {
   static applyDonationRequest = applyDonationRequest;
