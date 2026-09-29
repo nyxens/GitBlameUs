@@ -328,7 +328,7 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
         {activeSection === 'giver' && <GiverPage />}
 
         {/* 6. SEEKER SECTION */}
-        {activeSection === 'seeker' && <SeekerPage />}
+        {activeSection === 'seeker' && <SeekerPage user={user} />}
       </main>
     </div>
   );
