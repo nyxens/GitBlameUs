@@ -1,2 +1,6 @@
 add forget password field in login
 manage padding in hospital registration page ( after adding reset password)
+
+
+RajVaibhav85 (feature/Giver3)
+Need to change backend algorithm for searching hospitals vian pincode after using longitudes and latitudes

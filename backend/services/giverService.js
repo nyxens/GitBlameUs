@@ -55,6 +55,19 @@ export async function createDonationRequest({
     throw new Error('Donor user not found');
   }
 
+  // 1b. One-active-request guard: donor cannot have more than one non-terminal request
+  const TERMINAL_STATUSES = ['COMPLETED', 'REJECTED', 'CANCELLED'];
+  const existingActive = await GiverRequest.findOne({
+    u_id,
+    status: { $nin: TERMINAL_STATUSES },
+  });
+  if (existingActive) {
+    throw new Error(
+      `You already have an active donation request (status: ${existingActive.status}). ` +
+      'Please wait for it to be processed, or cancel it before submitting a new one.'
+    );
+  }
+
   // 2. Validate target institution exists
   if (target_type === 'HOSPITAL') {
     if (!hospital_id) {
@@ -626,6 +639,102 @@ export async function getAllDonationRequests(filter = {}, { limit = 50, skip = 0
   return { total, count: requests.length, requests };
 }
 
+/**
+ * QUERY: Get donor User profile for form pre-fill
+ */
+export async function getUserProfile(userId) {
+  const user = await User.findById(userId).lean();
+  if (!user) {
+    throw new Error('User not found');
+  }
+  return user;
+}
+
+/**
+ * QUERY: Get the current active (non-terminal) request for a donor.
+ * Returns null if none exists.
+ */
+export async function getActiveRequestByDonor(userId) {
+  const TERMINAL_STATUSES = ['COMPLETED', 'REJECTED', 'CANCELLED'];
+  return GiverRequest.findOne({
+    u_id: userId,
+    status: { $nin: TERMINAL_STATUSES },
+  }).populate(POPULATE_GIVER_REQUEST);
+}
+
+/**
+ * QUERY: Find nearby hospitals and blood banks using pincode proximity.
+ * Algorithm: numeric distance |institution_pincode - user_pincode|.
+ * A lower score means closer (same area code range).
+ *
+ * @param {string} pincode  - User's pincode (reference point)
+ * @param {object} options
+ *   @param {'ALL'|'HOSPITAL'|'BLOOD_BANK'} options.type - Filter by institution type
+ *   @param {number} options.maxScore - Max allowed pincode numeric distance (radius proxy)
+ * @returns {Array} Sorted results with distance_score and institution_type fields
+ */
+export async function getNearbyInstitutions(pincode, { type = 'ALL', maxScore = Infinity } = {}) {
+  const userPin = parseInt(pincode, 10);
+  if (isNaN(userPin)) {
+    throw new Error('Invalid pincode provided');
+  }
+
+  const results = [];
+
+  // Fetch hospitals unless type is BLOOD_BANK only
+  if (type === 'ALL' || type === 'HOSPITAL') {
+    const hospitals = await Hospital.find({}).select(
+      'hos_name pincode phone email address admin_id I_Id'
+    ).lean();
+    for (const h of hospitals) {
+      const hPin = parseInt(h.pincode, 10);
+      if (isNaN(hPin)) continue;
+      const score = Math.abs(hPin - userPin);
+      if (score <= maxScore) {
+        results.push({
+          _id: h._id,
+          name: h.hos_name,
+          institution_type: 'HOSPITAL',
+          pincode: h.pincode,
+          phone: h.phone || null,
+          email: h.email || null,
+          address: h.address || null,
+          distance_score: score,
+        });
+      }
+    }
+  }
+
+  // Fetch blood banks unless type is HOSPITAL only
+  if (type === 'ALL' || type === 'BLOOD_BANK') {
+    const bloodBanks = await BloodBank.find({}).select(
+      'bank_name pincode contact_no email address admin_id I_Id'
+    ).lean();
+    for (const bb of bloodBanks) {
+      const bbPin = parseInt(bb.pincode, 10);
+      if (isNaN(bbPin)) continue;
+      const score = Math.abs(bbPin - userPin);
+      if (score <= maxScore) {
+        results.push({
+          _id: bb._id,
+          name: bb.bank_name,
+          institution_type: 'BLOOD_BANK',
+          pincode: bb.pincode,
+          phone: bb.contact_no || null,
+          email: bb.email || null,
+          address: bb.address || null,
+          distance_score: score,
+        });
+      }
+    }
+  }
+
+  // Sort by proximity (ascending distance_score), then name
+  results.sort((a, b) => a.distance_score - b.distance_score || a.name.localeCompare(b.name));
+
+  return results;
+}
+
 export default {
   createDonationRequest,
   verifyDonationRequest,
@@ -641,4 +750,7 @@ export default {
   getRequestsForHospital,
   getRequestsForBloodBank,
   getAllDonationRequests,
+  getUserProfile,
+  getActiveRequestByDonor,
+  getNearbyInstitutions,
 };
