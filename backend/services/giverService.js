@@ -735,6 +735,126 @@ export async function getNearbyInstitutions(pincode, { type = 'ALL', maxScore = 
   return results;
 }
 
+const EARTH_RADIUS_KM = 6371;
+const GEOCODE_ATTEMPT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const MAX_GEOCODES_PER_REQUEST = 5;
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(a));
+}
+
+const hasCoords = (doc) => Number.isFinite(doc.latitude) && Number.isFinite(doc.longitude);
+
+/** Geocode an address (falling back to pincode) via OpenStreetMap Nominatim. Returns {lat,lng} or null. */
+async function geocode(doc) {
+  const queries = [doc.address, doc.pincode].filter(Boolean);
+  for (const q of queries) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+        { headers: { 'User-Agent': 'LifeVault-BBMS/1.0' }, signal: AbortSignal.timeout(4000) }
+      );
+      if (!res.ok) continue;
+      const [hit] = await res.json();
+      if (hit) return { lat: Number(hit.lat), lng: Number(hit.lon) };
+    } catch (_err) {
+      // network failure / timeout: try next query
+    }
+  }
+  return null;
+}
+
+/** Fill in missing coordinates (bounded per request, rate-limited by a cooldown) and persist them. */
+async function ensureCoordinates(Model, docs) {
+  const now = Date.now();
+  const pending = docs
+    .filter((d) => !hasCoords(d)
+      && !(d.geocodeAttemptedAt && now - new Date(d.geocodeAttemptedAt).getTime() < GEOCODE_ATTEMPT_COOLDOWN_MS))
+    .slice(0, MAX_GEOCODES_PER_REQUEST);
+  for (const d of pending) {
+    const point = await geocode(d);
+    const update = point
+      ? { latitude: point.lat, longitude: point.lng, geocodeAttemptedAt: new Date() }
+      : { geocodeAttemptedAt: new Date() };
+    await Model.updateOne({ _id: d._id }, update);
+    Object.assign(d, update);
+  }
+}
+
+/**
+ * QUERY: Find nearby hospitals and blood banks by real distance (Haversine) from GPS coordinates.
+ * Institutions without coordinates are geocoded lazily; any still unlocated are listed last
+ * with distance_km = null.
+ *
+ * @param {number} lat
+ * @param {number} lng
+ * @param {object} options
+ *   @param {'ALL'|'HOSPITAL'|'BLOOD_BANK'} options.type
+ *   @param {number} options.radiusKm - max distance in km (Infinity = no limit)
+ */
+export async function getNearbyInstitutionsByLocation(lat, lng, { type = 'ALL', radiusKm = Infinity } = {}) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    throw new Error('Invalid latitude/longitude provided');
+  }
+
+  const sources = [];
+  if (type === 'ALL' || type === 'HOSPITAL') {
+    sources.push({
+      Model: Hospital,
+      institution_type: 'HOSPITAL',
+      select: 'hos_name pincode phone email address latitude longitude geocodeAttemptedAt',
+      nameKey: 'hos_name',
+      phoneKey: 'phone',
+    });
+  }
+  if (type === 'ALL' || type === 'BLOOD_BANK') {
+    sources.push({
+      Model: BloodBank,
+      institution_type: 'BLOOD_BANK',
+      select: 'bank_name pincode contact_no email address latitude longitude geocodeAttemptedAt',
+      nameKey: 'bank_name',
+      phoneKey: 'contact_no',
+    });
+  }
+
+  const located = [];
+  const unlocated = [];
+  for (const src of sources) {
+    const docs = await src.Model.find({}).select(src.select).lean();
+    await ensureCoordinates(src.Model, docs);
+    for (const d of docs) {
+      const base = {
+        _id: d._id,
+        name: d[src.nameKey],
+        institution_type: src.institution_type,
+        pincode: d.pincode,
+        phone: d[src.phoneKey] || null,
+        email: d.email || null,
+        address: d.address || null,
+        latitude: hasCoords(d) ? d.latitude : null,
+        longitude: hasCoords(d) ? d.longitude : null,
+      };
+      if (!hasCoords(d)) {
+        unlocated.push({ ...base, distance_km: null, distance_score: Number.MAX_SAFE_INTEGER });
+        continue;
+      }
+      const km = haversineKm(lat, lng, d.latitude, d.longitude);
+      if (km <= radiusKm) {
+        located.push({ ...base, distance_km: Math.round(km * 10) / 10, distance_score: km });
+      }
+    }
+  }
+
+  located.sort((a, b) => a.distance_score - b.distance_score || a.name.localeCompare(b.name));
+  unlocated.sort((a, b) => a.name.localeCompare(b.name));
+  return [...located, ...unlocated];
+}
+
 export default {
   createDonationRequest,
   verifyDonationRequest,
@@ -753,4 +873,5 @@ export default {
   getUserProfile,
   getActiveRequestByDonor,
   getNearbyInstitutions,
+  getNearbyInstitutionsByLocation,
 };

@@ -258,6 +258,131 @@ export async function getMyRequests(req, res) {
 }
 
 /**
+ * QUERY: Get the logged-in donor profile for form pre-fill
+ * GET /api/v1/giver/donor-profile
+ */
+export async function getDonorProfile(req, res) {
+  try {
+    const userId = req.user?.id || req.user?._id || req.user?.sub;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authenticated user ID is required.',
+      });
+    }
+
+    const profile = await giverService.getUserProfile(userId);
+    return res.status(200).json({
+      success: true,
+      data: profile,
+    });
+  } catch (err) {
+    return res.status(404).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * QUERY: Get the logged-in donor's active donation request
+ * GET /api/v1/giver/active-request
+ */
+export async function getActiveRequest(req, res) {
+  try {
+    const userId = req.user?.id || req.user?._id || req.user?.sub;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authenticated user ID is required.',
+      });
+    }
+
+    const request = await giverService.getActiveRequestByDonor(userId);
+    return res.status(200).json({
+      success: true,
+      data: request,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * QUERY: Find nearby hospitals and blood banks
+ * GET /api/v1/giver/nearby
+ */
+export async function getNearbyInstitutions(req, res) {
+  try {
+    const userId = req.user?.id || req.user?._id || req.user?.sub;
+    const pincode = req.query.pincode;
+    const type = req.query.type || 'ALL';
+    const radius = req.query.radius === undefined ? Infinity : Number(req.query.radius);
+
+    const hasLat = req.query.lat !== undefined && req.query.lat !== '';
+    const hasLng = req.query.lng !== undefined && req.query.lng !== '';
+
+    // ── Location mode: real distance from GPS coordinates ──
+    if (hasLat || hasLng) {
+      const lat = Number(req.query.lat);
+      const lng = Number(req.query.lng);
+      if (!hasLat || !hasLng || !Number.isFinite(lat) || !Number.isFinite(lng)
+        || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+        return res.status(400).json({ success: false, error: 'Valid lat and lng are required.' });
+      }
+      if (!Number.isFinite(radius) && radius !== Infinity) {
+        return res.status(400).json({ success: false, error: 'Radius must be a number.' });
+      }
+      const institutions = await giverService.getNearbyInstitutionsByLocation(lat, lng, {
+        type,
+        radiusKm: radius,
+      });
+      return res.status(200).json({
+        success: true,
+        mode: 'location',
+        count: institutions.length,
+        data: institutions,
+      });
+    }
+
+    if (!userId && !pincode) {
+      return res.status(400).json({
+        success: false,
+        error: 'Pincode is required when no authenticated user profile is available.',
+      });
+    }
+
+    if (!Number.isFinite(radius) && radius !== Infinity) {
+      return res.status(400).json({
+        success: false,
+        error: 'Radius must be a number.',
+      });
+    }
+
+    const profile = pincode ? null : await giverService.getUserProfile(userId);
+    const institutions = await giverService.getNearbyInstitutions(pincode || profile.pincode, {
+      type,
+      maxScore: radius,
+    });
+
+    return res.status(200).json({
+      success: true,
+      mode: 'pincode',
+      count: institutions.length,
+      data: institutions,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
  * QUERY: Get requests awaiting Admin credential verification
  * GET /api/v1/giver/admin/pending
  */
