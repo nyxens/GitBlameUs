@@ -25,3 +25,20 @@ export function authMiddleware(req, res, next) {
     return res.status(401).json({ success: false, error: 'Invalid or expired access token.' });
   }
 }
+
+/**
+ * Non-blocking variant: populates req.user when a valid token is present,
+ * but lets anonymous / mock-session requests through.
+ */
+export function optionalAuthMiddleware(req, _res, next) {
+  const token = req.cookies?.accessToken
+    || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
+  if (token) {
+    try {
+      req.user = jwt.verify(token, ACCESS_TOKEN_SECRET);
+    } catch (_err) {
+      // invalid token: continue as anonymous
+    }
+  }
+  next();
+}

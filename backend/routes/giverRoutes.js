@@ -17,7 +17,7 @@ import {
   getActiveRequest,
   getNearbyInstitutions,
 } from '../controllers/giverController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/authMiddleware.js';
 // import { donorOnlyMiddleware } from '../middleware/donorOnlyMiddleware.js'; // TODO: create when role gating is ready
 
 export function setupGiverRoutes(router) {
@@ -25,7 +25,7 @@ export function setupGiverRoutes(router) {
 
   // GET /giver/nearby?pincode=&type=ALL|HOSPITAL|BLOOD_BANK&radius=5|10|25|50
   router.get('/giver/nearby',
-    authMiddleware,            // populates req.user (non-blocking — cookie optional)
+    optionalAuthMiddleware,    // populates req.user when logged in; anonymous allowed with lat/lng or pincode
     // donorOnlyMiddleware,   // Uncomment to restrict to DONOR/SEEKER role
     getNearbyInstitutions
   );

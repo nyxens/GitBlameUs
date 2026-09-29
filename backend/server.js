@@ -7,6 +7,7 @@ import { setupHospitalRoutes } from './routes/hospitalRoutes.js';
 import { setupInventoryRoutes } from './routes/inventoryRoutes.js';
 import { setupRequisitionRoutes } from './routes/requisitionRoutes.js';
 import { setupGiverRoutes } from './routes/giverRoutes.js';
+import { setupHistoryRoutes } from './routes/historyRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 
@@ -51,6 +52,7 @@ setupHospitalRoutes(router);
 setupInventoryRoutes(router);
 setupRequisitionRoutes(router);
 setupGiverRoutes(router);
+setupHistoryRoutes(router);
 
 app.use('/api/v1', router);
 app.use('/api', router);

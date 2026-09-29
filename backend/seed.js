@@ -105,6 +105,8 @@ async function seedDatabase() {
       phone: '+1-212-555-4001',
       email: 'contact@metrohealth.org',
       address: '450 First Ave, New York, NY 10001',
+      latitude: 40.7396,
+      longitude: -73.975,
     },
     {
       hos_name: 'St. Jude General Trauma Center',
@@ -113,6 +115,8 @@ async function seedDatabase() {
       phone: '+1-212-555-4002',
       email: 'emergency@stjude.org',
       address: '128 E 17th St, New York, NY 10003',
+      latitude: 40.7351,
+      longitude: -73.988,
     },
   ]);
 
@@ -124,6 +128,8 @@ async function seedDatabase() {
       contact_no: '+1-212-555-5001',
       email: 'dispatch@metroblood.org',
       address: '720 2nd Ave, New York, NY 10001',
+      latitude: 40.7473,
+      longitude: -73.9709,
     },
     {
       bank_name: 'Central Red Cross Blood Bank',
@@ -132,6 +138,8 @@ async function seedDatabase() {
       contact_no: '+1-212-555-5002',
       email: 'operations@redcross.org',
       address: '520 W 49th St, New York, NY 10002',
+      latitude: 40.7628,
+      longitude: -73.993,
     },
   ]);
   console.log('   ✓ Created 2 Hospitals and 2 BloodBanks.');
