@@ -26,19 +26,24 @@ export function authMiddleware(req, res, next) {
   }
 }
 
-/**
- * Non-blocking variant: populates req.user when a valid token is present,
- * but lets anonymous / mock-session requests through.
- */
 export function optionalAuthMiddleware(req, _res, next) {
-  const token = req.cookies?.accessToken
-    || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
-  if (token) {
-    try {
-      req.user = jwt.verify(token, ACCESS_TOKEN_SECRET);
-    } catch (_err) {
-      // invalid token: continue as anonymous
+  let token = req.cookies?.accessToken;
+
+  if (!token) {
+    const authHeader = req.headers?.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.slice(7);
     }
   }
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
+      req.user = decoded; // { sub, email, role, iat, exp }
+    } catch (_err) {
+      // Ignore invalid or expired token for optional auth
+    }
+  }
+
   next();
 }

@@ -25,20 +25,20 @@ export function setupGiverRoutes(router) {
 
   // GET /giver/nearby?pincode=&type=ALL|HOSPITAL|BLOOD_BANK&radius=5|10|25|50
   router.get('/giver/nearby',
-    optionalAuthMiddleware,    // populates req.user when logged in; anonymous allowed with lat/lng or pincode
+    optionalAuthMiddleware,    // populates req.user (non-blocking — cookie optional)
     // donorOnlyMiddleware,   // Uncomment to restrict to DONOR/SEEKER role
     getNearbyInstitutions
   );
 
   // GET /giver/donor-profile — returns logged-in user's profile for form pre-fill
   router.get('/giver/donor-profile',
-    authMiddleware,
+    optionalAuthMiddleware,
     getDonorProfile
   );
 
   // GET /giver/active-request — returns current non-terminal request for logged-in donor
   router.get('/giver/active-request',
-    authMiddleware,
+    optionalAuthMiddleware,
     getActiveRequest
   );
 
