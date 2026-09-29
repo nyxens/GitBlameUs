@@ -444,6 +444,92 @@ export async function fulfillDonationReceipt(req, res) {
   }
 }
 
+/**
+ * QUERY: Get donor User profile for form pre-fill
+ * GET /api/v1/giver/donor-profile
+ */
+export async function getDonorProfile(req, res) {
+  try {
+    const userId = req.user?.sub || req.user?.id || req.user?._id || req.query.u_id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Donor user ID is required. Please login or provide u_id.',
+      });
+    }
+
+    const profile = await giverService.getUserProfile(userId);
+    return res.status(200).json({
+      success: true,
+      data: profile,
+    });
+  } catch (err) {
+    return res.status(404).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * QUERY: Get the current active (non-terminal) request for a donor
+ * GET /api/v1/giver/active-request
+ */
+export async function getActiveRequest(req, res) {
+  try {
+    const userId = req.user?.sub || req.user?.id || req.user?._id || req.query.u_id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Donor user ID is required. Please login or provide u_id.',
+      });
+    }
+
+    const activeRequest = await giverService.getActiveRequestByDonor(userId);
+    return res.status(200).json({
+      success: true,
+      data: activeRequest || null,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
+ * QUERY: Find nearby hospitals and blood banks using pincode proximity
+ * GET /api/v1/giver/nearby?pincode=&type=ALL|HOSPITAL|BLOOD_BANK&radius=5|10|25|50
+ */
+export async function getNearbyInstitutions(req, res) {
+  try {
+    const { pincode, type = 'ALL', radius } = req.query;
+    if (!pincode) {
+      return res.status(400).json({
+        success: false,
+        error: 'Pincode query parameter is required.',
+      });
+    }
+
+    const institutions = await giverService.getNearbyInstitutions(pincode, {
+      type,
+      maxScore: radius ? Number(radius) : Infinity,
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: institutions.length,
+      data: institutions,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
 // Named class export for object-oriented or grouped imports
 export class GiverController {
   static applyDonationRequest = applyDonationRequest;

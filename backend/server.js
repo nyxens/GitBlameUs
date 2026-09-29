@@ -52,11 +52,15 @@ setupInventoryRoutes(router);
 setupRequisitionRoutes(router);
 setupGiverRoutes(router);
 
+// Mount authentication routes first
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
+// Mount core business API routes
 app.use('/api/v1', router);
 app.use('/api', router);
 app.use('/', router);
-app.use('/api/auth', authRoutes);
-app.use('/api/v1/auth', authRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'OK', server: 'LifeVault BBMS Express Backend Server', timestamp: new Date() });
@@ -66,8 +70,16 @@ app.use(errorHandler);
 
 async function startServer() {
   await connectDB();
-  app.listen(config.port, () => {
+  const server = app.listen(config.port, () => {
     console.log(`[Server] LifeVault BBMS Express API listening on http://localhost:${config.port} (${config.nodeEnv})`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`[Server Error] Port ${config.port} is already in use. Please free port ${config.port} or configure a different PORT.`);
+    } else {
+      console.error('[Server Error]', err);
+    }
   });
 }
 
