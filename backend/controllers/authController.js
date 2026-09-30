@@ -5,8 +5,10 @@ import nodemailer from 'nodemailer';
 import { User, Admin, Staff, Hospital, Donor } from '../models/index.js';
 
 const SALT_ROUNDS = 12;
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || 'super-secret-lifevault-access-key-2026';
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || process.env.JWT_REFRESH_SECRET || 'super-secret-lifevault-refresh-key-2026';
+const getAccessTokenSecret = () =>
+  process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || 'super-secret-lifevault-access-key-2026';
+const getRefreshTokenSecret = () =>
+  process.env.REFRESH_TOKEN_SECRET || process.env.JWT_REFRESH_SECRET || 'super-secret-lifevault-refresh-key-2026';
 const ACCESS_TOKEN_EXPIRES = '15m';
 const REFRESH_TOKEN_EXPIRES = '7d';
 const isProd = process.env.NODE_ENV === 'production';
@@ -14,7 +16,8 @@ const isProd = process.env.NODE_ENV === 'production';
 const baseCookieOptions = {
   httpOnly: true,
   secure: isProd,
-  sameSite: isProd ? 'strict' : 'lax',
+  sameSite: isProd ? 'none' : 'lax',
+  path: '/',
 };
 
 function getTransporter() {
@@ -36,14 +39,14 @@ const otpStorage = new Map();
 
 function signAccessToken(user) {
   return jwt.sign(
-    { sub: user._id || user.id, email: user.email, role: user.role || 'USER' },
-    ACCESS_TOKEN_SECRET,
+    { sub: user._id || user.id, id: user._id || user.id, email: user.email, role: user.role || 'USER' },
+    getAccessTokenSecret(),
     { expiresIn: ACCESS_TOKEN_EXPIRES }
   );
 }
 
 function signRefreshToken(user) {
-  return jwt.sign({ sub: user._id || user.id }, REFRESH_TOKEN_SECRET, {
+  return jwt.sign({ sub: user._id || user.id, id: user._id || user.id }, getRefreshTokenSecret(), {
     expiresIn: REFRESH_TOKEN_EXPIRES,
   });
 }
@@ -52,6 +55,7 @@ function setAuthCookies(res, accessToken, refreshToken) {
   res.cookie('accessToken', accessToken, {
     ...baseCookieOptions,
     maxAge: 15 * 60 * 1000,
+    path: '/',
   });
   res.cookie('refreshToken', refreshToken, {
     ...baseCookieOptions,
@@ -310,8 +314,16 @@ export async function login(req, res) {
         username: user.username,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         bloodgroup: user.bloodgroup,
+        gender: user.gender,
         pincode: user.pincode,
+        DOB: user.DOB,
+        emergencyContactName: user.emergencyContactName,
+        emergencyContactPhone: user.emergencyContactPhone,
+        emergencyContactRelation: user.emergencyContactRelation,
+        medicalConditions: user.medicalConditions,
+        donationPrecautions: user.donationPrecautions,
         role,
         staffDetails: staff || null,
       },
@@ -324,13 +336,23 @@ export async function login(req, res) {
 // --- Refresh Token ---
 export async function refresh(req, res) {
   try {
-    const token = req.cookies?.refreshToken || req.body?.refreshToken;
+    const token = req.cookies?.refreshToken || req.body?.refreshToken || req.headers?.['x-refresh-token'];
     if (!token) {
       return res.status(401).json({ success: false, error: 'No refresh token provided' });
     }
 
-    const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET);
-    const user = await User.findById(decoded.sub);
+    const decoded = jwt.verify(token, getRefreshTokenSecret());
+    const userId = decoded.sub;
+
+    const admin = await Admin.findById(userId);
+    if (admin) {
+      const newAccessToken = signAccessToken({ ...admin.toObject(), role: 'ADMIN' });
+      res.cookie('accessToken', newAccessToken, { ...baseCookieOptions, maxAge: 15 * 60 * 1000, path: '/' });
+      res.setHeader('x-access-token', newAccessToken);
+      return res.status(200).json({ success: true, accessToken: newAccessToken, token: newAccessToken, role: 'ADMIN' });
+    }
+
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(401).json({ success: false, error: 'User no longer exists' });
     }
@@ -338,9 +360,10 @@ export async function refresh(req, res) {
     const staff = await Staff.findOne({ u_id: user._id });
     const role = staff ? staff.role : (user.role || 'USER');
     const newAccessToken = signAccessToken({ ...user.toObject(), role });
-    res.cookie('accessToken', newAccessToken, { ...baseCookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('accessToken', newAccessToken, { ...baseCookieOptions, maxAge: 15 * 60 * 1000, path: '/' });
+    res.setHeader('x-access-token', newAccessToken);
 
-    return res.status(200).json({ success: true, accessToken: newAccessToken, token: newAccessToken });
+    return res.status(200).json({ success: true, accessToken: newAccessToken, token: newAccessToken, role });
   } catch (_err) {
     return res.status(401).json({ success: false, error: 'Invalid or expired refresh token' });
   }
@@ -348,7 +371,7 @@ export async function refresh(req, res) {
 
 // --- Logout ---
 export async function logout(_req, res) {
-  res.clearCookie('accessToken', baseCookieOptions);
+  res.clearCookie('accessToken', { ...baseCookieOptions, path: '/' });
   res.clearCookie('refreshToken', { ...baseCookieOptions, path: '/' });
   return res.status(200).json({ success: true, message: 'Logged out successfully' });
 }
@@ -356,7 +379,7 @@ export async function logout(_req, res) {
 // --- Current User Profile ---
 export async function me(req, res) {
   try {
-    const userId = req.user?.sub;
+    const userId = req.user?.sub || req.user?.id || req.user?._id;
     if (!userId) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
@@ -383,6 +406,87 @@ export async function me(req, res) {
   }
 }
 
+// --- Update Current User Profile ---
+export async function updateProfile(req, res) {
+  try {
+    const userId = req.user?.sub || req.user?.id || req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Unauthorized. User ID required.' });
+    }
+
+    const {
+      name,
+      phone,
+      bloodgroup,
+      gender,
+      pincode,
+      DOB,
+      emergencyContactName,
+      emergencyContactPhone,
+      emergencyContactRelation,
+      medicalConditions,
+      donationPrecautions,
+      password,
+    } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    if (name !== undefined) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    if (bloodgroup !== undefined) user.bloodgroup = bloodgroup;
+    if (gender !== undefined) user.gender = gender;
+    if (pincode !== undefined) user.pincode = pincode;
+    if (DOB !== undefined && DOB) user.DOB = new Date(DOB);
+    if (emergencyContactName !== undefined) user.emergencyContactName = emergencyContactName;
+    if (emergencyContactPhone !== undefined) user.emergencyContactPhone = emergencyContactPhone;
+    if (emergencyContactRelation !== undefined) user.emergencyContactRelation = emergencyContactRelation;
+    if (medicalConditions !== undefined) user.medicalConditions = medicalConditions;
+    if (donationPrecautions !== undefined) user.donationPrecautions = donationPrecautions;
+
+    if (password && password.trim().length >= 6) {
+      user.password = await bcrypt.hash(password.trim(), SALT_ROUNDS);
+    }
+
+    await user.save();
+
+    const staff = await Staff.findOne({ u_id: user._id });
+    const role = staff ? staff.role : (user.role || 'USER');
+
+    const updatedUser = {
+      id: user._id,
+      _id: user._id,
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      bloodgroup: user.bloodgroup,
+      gender: user.gender,
+      pincode: user.pincode,
+      DOB: user.DOB,
+      emergencyContactName: user.emergencyContactName,
+      emergencyContactPhone: user.emergencyContactPhone,
+      emergencyContactRelation: user.emergencyContactRelation,
+      medicalConditions: user.medicalConditions,
+      donationPrecautions: user.donationPrecautions,
+      role,
+      status: user.status,
+      createdAt: user.createdAt,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: updatedUser,
+      role,
+    });
+  } catch (err) {
+    return res.status(400).json({ success: false, error: err.message });
+  }
+}
+
 export class AuthController {
   static signup = signup;
   static verifyOTP = verifyOTP;
@@ -390,4 +494,5 @@ export class AuthController {
   static refresh = refresh;
   static logout = logout;
   static me = me;
+  static updateProfile = updateProfile;
 }

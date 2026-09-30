@@ -5,6 +5,7 @@ import { DonorsPage } from './DonorsPage';
 import { HistoryPage } from './HistoryPage';
 import { GiverPage } from './GiverPage';
 import { SeekerPage } from './SeekerPage';
+import { ProfilePage } from './ProfilePage';
 import {
   Boxes,
   Search,
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react';
 import { getInventoryItems, fulfillInventoryItem } from '../../services/inventoryService.js';
 
-export const BBMSWorkspace = ({ user, onLogout }) => {
+export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
   const [activeSection, setActiveSection] = useState('inventory');
 
   // Inventory Search & Filter State
@@ -329,6 +330,11 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
 
         {/* 6. SEEKER SECTION */}
         {activeSection === 'seeker' && <SeekerPage user={user} />}
+
+        {/* 7. PROFILE SECTION */}
+        {activeSection === 'profile' && (
+          <ProfilePage user={user} onUpdateUser={onUpdateUser} />
+        )}
       </main>
     </div>
   );

@@ -12,39 +12,40 @@ import { setupHistoryRoutes } from './routes/historyRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 
+import cookieParser from 'cookie-parser';
+
 const app = express();
 const config = getConfig();
 
-// Resilient cookie parser: use package if available, else simple fallback
-let cookieParserMiddleware;
-try {
-  const cp = (await import('cookie-parser')).default;
-  cookieParserMiddleware = cp();
-} catch (_err) {
-  cookieParserMiddleware = (req, _res, next) => {
-    req.cookies = req.cookies || {};
-    const header = req.headers?.cookie;
-    if (header) {
-      header.split(';').forEach((c) => {
-        const [k, ...v] = c.trim().split('=');
-        if (k) req.cookies[k] = decodeURIComponent(v.join('='));
-      });
-    }
-    next();
-  };
-}
-
-// Allow credentials (cookies) from any localhost/127.0.0.1 dev port
+// Allow credentials (cookies) from any localhost/127.0.0.1/LAN dev port or same-origin
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)) {
+      return cb(null, true);
+    }
+    if (process.env.NODE_ENV !== 'production') {
       return cb(null, true);
     }
     cb(null, false);
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-refresh-token'],
+  exposedHeaders: ['x-access-token'],
 }));
-app.use(cookieParserMiddleware);
+
+app.use(cookieParser());
+// Fallback cookie extractor in case of atypical header format
+app.use((req, _res, next) => {
+  req.cookies = req.cookies || {};
+  if (Object.keys(req.cookies).length === 0 && req.headers?.cookie) {
+    req.headers.cookie.split(';').forEach((c) => {
+      const [k, ...v] = c.trim().split('=');
+      if (k) req.cookies[k] = decodeURIComponent(v.join('='));
+    });
+  }
+  next();
+});
 app.use(express.json());
 
 const router = express.Router();
