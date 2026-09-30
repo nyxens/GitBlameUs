@@ -78,7 +78,7 @@ export function App() {
 
   // IF USER IS AUTHENTICATED: Launch isolated BBMS Application (Landing Page is completely hidden & inaccessible)
   if (user) {
-    return <BBMSWorkspace user={user} onLogout={handleLogout} />;
+    return <BBMSWorkspace user={user} onLogout={handleLogout} onUpdateUser={setUser} />;
   }
 
   // IF USER IS NOT AUTHENTICATED: Display Public Landing Page

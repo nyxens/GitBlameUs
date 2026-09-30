@@ -67,6 +67,31 @@ export const userSchema = new Schema(
       type: String,
       default: 'DONOR',
     },
+    emergencyContactName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    emergencyContactPhone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    emergencyContactRelation: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    medicalConditions: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    donationPrecautions: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   {
     timestamps: true,

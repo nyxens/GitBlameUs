@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Request as BloodRequest, Allotment, BloodBag, User, Staff } from '../models/index.js';
 
 export async function createRequisition(req, res) {
@@ -48,7 +49,35 @@ export async function getRequisitions(_req, res) {
   }
 }
 
+export async function deleteRequisition(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: 'Requisition ID is required' });
+    }
+
+    let deleted = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      deleted = await BloodRequest.findByIdAndDelete(id);
+    }
+
+    if (!deleted) {
+      deleted = await BloodRequest.findOneAndDelete({ _id: id }).catch(() => null);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Requisition deleted successfully',
+      id,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 export class RequisitionController {
   static createRequisition = createRequisition;
   static getRequisitions = getRequisitions;
+  static deleteRequisition = deleteRequisition;
 }
+

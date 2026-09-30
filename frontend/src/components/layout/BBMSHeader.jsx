@@ -27,6 +27,7 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
     { id: 'history', label: 'History', icon: History, iconColor: 'text-amber-400' },
     { id: 'giver', label: 'Giver', icon: HandHeart, iconColor: 'text-rose-400' },
     { id: 'seeker', label: 'Seeker', icon: UserSearch, iconColor: 'text-cyan-400' },
+    { id: 'profile', label: 'Profile', icon: User, iconColor: 'text-violet-400' },
   ];
 
   const getInitials = (name) => {
@@ -159,8 +160,14 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
           })}
 
           <div className="pt-4 border-t border-white/10 space-y-3">
-            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-white font-brand text-sm font-bold text-red-300 shrink-0">
+            <div
+              onClick={() => {
+                onSelectSection('profile');
+                setMobileMenuOpen(false);
+              }}
+              className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/40 transition-colors flex items-center gap-3 cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-white font-brand text-sm font-bold text-purple-300 shrink-0">
                 {getInitials(displayName)}
               </div>
               <div className="min-w-0 flex-1">
@@ -168,8 +175,8 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
                 <span className="font-brand font-bold text-white text-sm truncate block">
                   {displayName}
                 </span>
-                <span className="font-mono text-[10px] text-red-400 block mt-0.5">
-                  {displayRole} • Tier-1
+                <span className="font-mono text-[10px] text-purple-400 block mt-0.5">
+                  {displayRole} • View Profile →
                 </span>
               </div>
             </div>

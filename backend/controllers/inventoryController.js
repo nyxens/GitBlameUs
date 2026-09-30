@@ -111,8 +111,86 @@ export async function fulfillInventoryItem(req, res) {
   }
 }
 
+/**
+ * Get available inventories and blood stock filtered by pincode
+ * GET /api/v1/inventory/by-pincode?pincode=...
+ */
+export async function getInventoriesByPincode(req, res) {
+  try {
+    const rawPincode = req.query.pincode || req.params.pincode || '';
+    const pincode = String(rawPincode).trim();
+
+    let inventories = [];
+    let isFallbackNearby = false;
+
+    if (pincode) {
+      inventories = await Inventory.find({ pincode }).populate('hos_or_bank_id').lean();
+    }
+
+    // If no direct match or no pincode, retrieve all regional inventories
+    if (!inventories.length) {
+      inventories = await Inventory.find({}).populate('hos_or_bank_id').lean();
+      if (pincode) isFallbackNearby = true;
+    }
+
+    const inventoryIds = inventories.map((inv) => inv._id);
+    const availableBags = await BloodBag.find({
+      I_ID: { $in: inventoryIds },
+      status: 'AVAILABLE',
+      isdiscresed: false,
+    }).lean();
+
+    const results = inventories.map((inv) => {
+      const facility = inv.hos_or_bank_id;
+      const facilityName =
+        facility?.bank_name ||
+        facility?.hos_name ||
+        (inv.hos_or_bank_type === 'BloodBank' ? 'Regional Blood Bank Vault' : 'Hospital Trauma Center');
+
+      const bagsInInv = availableBags.filter(
+        (b) => b.I_ID && b.I_ID.toString() === inv._id.toString()
+      );
+
+      const countsByGroup = bagsInInv.reduce((acc, b) => {
+        acc[b.bloodgroup] = (acc[b.bloodgroup] || 0) + 1;
+        return acc;
+      }, {});
+
+      return {
+        id: inv._id.toString(),
+        inventoryId: inv._id.toString(),
+        cellno: inv.cellno,
+        shelfno: inv.shelfno,
+        pincode: inv.pincode,
+        facilityName,
+        facilityType: inv.hos_or_bank_type,
+        address: facility?.address || `Medical District Zone, Pincode ${inv.pincode}`,
+        phone: facility?.contact_no || facility?.phone || '+1 (555) 019-2831',
+        email: facility?.email || 'vault-telemetry@lifevault.org',
+        capacity: inv.capacity || 100,
+        currentCount: bagsInInv.length,
+        countsByGroup,
+        availableUnits: bagsInInv.length,
+        temp: inv.cellno?.includes('CRYOBANK') ? '-18.2°C' : '2.4°C',
+        isDirectMatch: !isFallbackNearby && inv.pincode === pincode,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      pincode: pincode || null,
+      isFallbackNearby,
+      count: results.length,
+      inventories: results,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 export class InventoryController {
   static getStock = getStock;
   static getInventoryItems = getInventoryItems;
   static fulfillInventoryItem = fulfillInventoryItem;
+  static getInventoriesByPincode = getInventoriesByPincode;
 }

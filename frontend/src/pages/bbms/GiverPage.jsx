@@ -23,6 +23,7 @@ import {
   Ban,
   ArrowUpDown,
   Syringe,
+  Navigation,
 } from 'lucide-react';
 import {
   getDonorProfile,
@@ -80,10 +81,10 @@ const STATUS_CONFIG = {
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const RADIUS_OPTIONS = [
   { label: 'Any Distance', value: '' },
-  { label: '≤ 5 km zone', value: '5' },
-  { label: '≤ 10 km zone', value: '10' },
-  { label: '≤ 25 km zone', value: '25' },
-  { label: '≤ 50 km zone', value: '50' },
+  { label: '≤ 5 km', value: '5' },
+  { label: '≤ 10 km', value: '10' },
+  { label: '≤ 25 km', value: '25' },
+  { label: '≤ 50 km', value: '50' },
 ];
 const TYPE_OPTIONS = [
   { label: 'All Types', value: 'ALL' },
@@ -209,7 +210,22 @@ function InstitutionCard({ inst, onRequest, disabled }) {
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-[10px] text-neutral-500 mb-0.5">Proximity</div>
+          <div className="text-[10px] text-neutral-500 mb-0.5">{inst.distance_km !== undefined ? 'Distance' : 'Proximity'}</div>
+          {inst.distance_km !== undefined ? (
+            <div className={`text-xs font-bold px-2 py-0.5 rounded-lg ${
+              inst.distance_km === null
+                ? 'bg-neutral-500/15 text-neutral-400'
+                : inst.distance_km < 5
+                ? 'bg-emerald-500/15 text-emerald-400'
+                : inst.distance_km < 15
+                ? 'bg-blue-500/15 text-blue-400'
+                : inst.distance_km < 40
+                ? 'bg-amber-500/15 text-amber-400'
+                : 'bg-neutral-500/15 text-neutral-400'
+            }`}>
+              {inst.distance_km === null ? 'Unknown' : `${inst.distance_km} km`}
+            </div>
+          ) : (
           <div className={`text-xs font-bold px-2 py-0.5 rounded-lg ${
             inst.distance_score === 0
               ? 'bg-emerald-500/15 text-emerald-400'
@@ -221,6 +237,7 @@ function InstitutionCard({ inst, onRequest, disabled }) {
           }`}>
             {inst.distance_score === 0 ? 'Same Area' : `Δ ${inst.distance_score}`}
           </div>
+          )}
         </div>
       </div>
       <div className="grid grid-cols-1 gap-1 text-xs text-neutral-400">
@@ -281,6 +298,44 @@ export const GiverPage = ({ user }) => {
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [radiusFilter, setRadiusFilter] = useState('');
   const [sortBy, setSortBy] = useState('proximity');
+  const [locationMode, setLocationMode] = useState('pincode'); // 'pincode' | 'location'
+  const [coords, setCoords] = useState(null); // { lat, lng }
+  const [locating, setLocating] = useState(false);
+
+  const detectLocation = () =>
+    new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser.'));
+        return;
+      }
+      setLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setCoords(c);
+          setLocating(false);
+          resolve(c);
+        },
+        (err) => {
+          setLocating(false);
+          const msgs = {
+            1: 'Location permission denied. Allow location access or switch to Pincode.',
+            2: 'Could not determine your location. Try again or use Pincode.',
+            3: 'Location request timed out. Try again or use Pincode.',
+          };
+          reject(new Error(msgs[err.code] || 'Failed to get your location.'));
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    });
+
+  const handleModeChange = async (mode) => {
+    setLocationMode(mode);
+    setError('');
+    if (mode === 'location' && !coords) {
+      try { await detectLocation(); } catch (e) { setError(e.message); }
+    }
+  };
 
   useEffect(() => {
     async function init() {
@@ -314,15 +369,24 @@ export const GiverPage = ({ user }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleSearch = async () => {
-    if (!formData.pincode.trim()) {
+    const useLocation = locationMode === 'location';
+    if (!useLocation && !formData.pincode.trim()) {
       setError('Please enter a pincode to search nearby institutions.');
       return;
     }
     setError(''); setSuccessMsg('');
+    let point = coords;
+    if (useLocation) {
+      try {
+        point = await detectLocation(); // refresh position on every search
+      } catch (e) {
+        if (!point) { setError(e.message); return; }
+      }
+    }
     setSearchLoading(true); setHasSearched(true);
     try {
       const res = await getNearbyInstitutions({
-        pincode: formData.pincode.trim(),
+        ...(useLocation ? { lat: point.lat, lng: point.lng } : { pincode: formData.pincode.trim() }),
         type: typeFilter,
         radius: radiusFilter,
       });
@@ -546,16 +610,64 @@ export const GiverPage = ({ user }) => {
             </div>
           </div>
 
-          {/* Pincode */}
+          {/* Search-by toggle: Pincode / Current Location */}
           <div>
             <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">
-              Your Pincode <span className="text-purple-400">*</span>
-              <span className="text-neutral-600 ml-1">(used for proximity search)</span>
+              Search By <span className="text-purple-400">*</span>
             </label>
-            <input type="text" value={formData.pincode} onChange={e => handleFormChange('pincode', e.target.value)}
-              placeholder="e.g. 110001"
-              className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 font-mono transition-all" />
+            <div className="relative grid grid-cols-2 p-1 rounded-xl bg-neutral-900/60 border border-white/10">
+              <motion.div
+                className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-lg bg-purple-600 shadow-[0_0_16px_rgba(168,85,247,0.35)]"
+                animate={{ x: locationMode === 'pincode' ? 0 : '100%' }}
+                transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+              />
+              {[
+                { value: 'pincode', label: 'Pincode', Icon: MapPin },
+                { value: 'location', label: 'Current Location', Icon: Navigation },
+              ].map(({ value, label, Icon }) => (
+                <button key={value} type="button" onClick={() => handleModeChange(value)}
+                  className={`relative z-10 py-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                    locationMode === value ? 'text-white' : 'text-neutral-400 hover:text-neutral-200'
+                  }`}>
+                  <Icon className="w-3.5 h-3.5" /> {label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          <AnimatePresence mode="wait" initial={false}>
+            {locationMode === 'pincode' ? (
+              <motion.div key="pincode" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.15 }}>
+                <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">
+                  Your Pincode <span className="text-purple-400">*</span>
+                  <span className="text-neutral-600 ml-1">(used for proximity search)</span>
+                </label>
+                <input type="text" value={formData.pincode} onChange={e => handleFormChange('pincode', e.target.value)}
+                  placeholder="e.g. 110001"
+                  className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 font-mono transition-all" />
+              </motion.div>
+            ) : (
+              <motion.div key="location" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.15 }}>
+                <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">
+                  Your Location <span className="text-neutral-600">(GPS, sorted by distance)</span>
+                </label>
+                <div className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10">
+                  <span className="text-xs font-mono text-neutral-300 truncate">
+                    {locating
+                      ? 'Detecting location...'
+                      : coords
+                      ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`
+                      : 'Location not detected'}
+                  </span>
+                  <button type="button" onClick={() => detectLocation().catch(e => setError(e.message))} disabled={locating}
+                    className="shrink-0 text-[11px] text-purple-400 hover:text-purple-300 disabled:text-neutral-600 flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed">
+                    {locating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
+                    {coords ? 'Refresh' : 'Detect'}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Preferred Date */}
           <div>
@@ -587,7 +699,7 @@ export const GiverPage = ({ user }) => {
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">Distance Zone</label>
+              <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">{locationMode === 'location' ? 'Max Distance' : 'Distance Zone'}</label>
               <div className="relative">
                 <select value={radiusFilter} onChange={e => setRadiusFilter(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500/40 appearance-none cursor-pointer">
@@ -601,7 +713,7 @@ export const GiverPage = ({ user }) => {
           {/* Search button */}
           <button
             onClick={handleSearch}
-            disabled={searchLoading || !formData.pincode.trim()}
+            disabled={searchLoading || locating || (locationMode === 'pincode' && !formData.pincode.trim())}
             className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:bg-neutral-800 disabled:text-neutral-600 border border-purple-500/50 disabled:border-white/5 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(168,85,247,0.2)]"
           >
             {searchLoading
@@ -619,7 +731,7 @@ export const GiverPage = ({ user }) => {
                 <MapPin className="w-8 h-8 text-purple-400/60" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-neutral-300">Enter your pincode and click "Find Nearby"</p>
+                <p className="text-sm font-semibold text-neutral-300">Choose pincode or current location, then click "Find Nearby"</p>
                 <p className="text-xs text-neutral-600 mt-1">Hospitals and blood banks will appear here, sorted by proximity.</p>
               </div>
             </div>
@@ -643,9 +755,11 @@ export const GiverPage = ({ user }) => {
                       ? `${sortedInstitutions.length} institution${sortedInstitutions.length !== 1 ? 's' : ''} found`
                       : 'No institutions found'}
                   </span>
-                  {formData.pincode && (
+                  {locationMode === 'location' && coords ? (
+                    <span className="text-xs text-neutral-500">from <span className="font-mono text-neutral-400">your location</span></span>
+                  ) : locationMode === 'pincode' && formData.pincode ? (
                     <span className="text-xs text-neutral-500">near <span className="font-mono text-neutral-400">{formData.pincode}</span></span>
-                  )}
+                  ) : null}
                 </div>
                 {sortedInstitutions.length > 1 && (
                   <div className="flex items-center gap-1.5">

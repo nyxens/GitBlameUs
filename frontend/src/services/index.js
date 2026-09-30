@@ -4,3 +4,5 @@ export * from './donorService.js';
 export * from './hospitalService.js';
 export * from './inventoryService.js';
 export * from './giverService.js';
+export * from './seekerService.js';
+export * from './historyService.js';

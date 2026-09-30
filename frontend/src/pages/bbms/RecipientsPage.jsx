@@ -13,6 +13,7 @@ import {
   HeartPulse,
   ChevronDown,
   X,
+  Trash2,
 } from 'lucide-react';
 
 export const RecipientsPage = () => {
@@ -377,33 +378,46 @@ export const RecipientsPage = () => {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      {item.status === 'PENDING' ? (
+                      <div className="flex items-center justify-end gap-2">
+                        {item.status === 'PENDING' ? (
+                          <button
+                            onClick={() => {
+                              setRecipients(
+                                recipients.map((r) =>
+                                  r.id === item.id ? { ...r, status: 'ALLOCATED' } : r
+                                )
+                              );
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold transition-colors cursor-pointer"
+                          >
+                            Allocate Unit
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setRecipients(
+                                recipients.map((r) =>
+                                  r.id === item.id ? { ...r, status: 'FULFILLED' } : r
+                                )
+                              );
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 text-[11px] transition-colors cursor-pointer"
+                          >
+                            Mark Delivered
+                          </button>
+                        )}
+
                         <button
+                          type="button"
                           onClick={() => {
-                            setRecipients(
-                              recipients.map((r) =>
-                                r.id === item.id ? { ...r, status: 'ALLOCATED' } : r
-                              )
-                            );
+                            setRecipients(recipients.filter((r) => r.id !== item.id));
                           }}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold transition-colors cursor-pointer"
+                          title={`Delete request ${item.id}`}
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-neutral-400 hover:text-red-400 transition-colors cursor-pointer"
                         >
-                          Allocate Unit
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setRecipients(
-                              recipients.map((r) =>
-                                r.id === item.id ? { ...r, status: 'FULFILLED' } : r
-                              )
-                            );
-                          }}
-                          className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 text-[11px] transition-colors cursor-pointer"
-                        >
-                          Mark Delivered
-                        </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))

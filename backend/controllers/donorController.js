@@ -1,4 +1,4 @@
-import { Donor, BloodBag, User, Staff } from '../models/index.js';
+import { Donor, BloodBag, User, Staff, Inventory } from '../models/index.js';
 import GiverRequest from '../models/GiverRequest.js';
 
 export async function scheduleDonation(req, res) {
@@ -24,6 +24,12 @@ export async function scheduleDonation(req, res) {
       const expiry = new Date();
       expiry.setDate(expiry.getDate() + 35); // 35 days expiry for whole blood
 
+      let inventoryId = req.body.I_ID;
+      if (!inventoryId) {
+        const defaultInv = await Inventory.findOne({});
+        inventoryId = defaultInv ? defaultInv._id : null;
+      }
+
       bloodBag = await BloodBag.create({
         bloodgroup: bloodgroup || 'O+',
         haemoglobin: haemoglobin || 13.5,
@@ -31,7 +37,7 @@ export async function scheduleDonation(req, res) {
         date_of_donation: new Date(),
         expired_date: expiry,
         S_Id: staffId,
-        I_ID: req.body.I_ID || (await import('../models/index.js')).then(m => m.Inventory.findOne({})).then(inv => inv?._id),
+        I_ID: inventoryId,
         status: 'AVAILABLE',
         weight: weight_donated || 450,
       });

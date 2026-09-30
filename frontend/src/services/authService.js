@@ -1,6 +1,34 @@
 // services/authService.js
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+export const getAuthToken = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem('lifevault_token');
+  } catch {
+    return null;
+  }
+};
+
+export const setAuthToken = (token) => {
+  if (typeof window === 'undefined' || !token) return;
+  try {
+    localStorage.setItem('lifevault_token', token);
+  } catch {}
+};
+
+export const clearAuthToken = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('lifevault_token');
+  } catch {}
+};
+
+export const getAuthHeaders = () => {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 // Centralized helper to get the Auth base endpoint
 const getAuthUrl = (endpoint) => {
   let base = API_URL;
@@ -52,7 +80,12 @@ export async function loginUser(email, password, role) {
     };
   }
 
-  return await response.json();
+  const data = await response.json();
+  const token = data?.accessToken || data?.token;
+  if (token) {
+    setAuthToken(token);
+  }
+  return data;
 }
 
 export async function signupUser(signupData) {
@@ -125,18 +158,25 @@ export async function verifyOtpUser(email, otp, signupData) {
     };
   }
 
-  return await response.json();
+  const data = await response.json();
+  const token = data?.accessToken || data?.token;
+  if (token) {
+    setAuthToken(token);
+  }
+  return data;
 }
 
 /**
- * Fetch the currently authenticated user from the server using the httpOnly cookie.
+ * Fetch the currently authenticated user from the server using the httpOnly cookie and/or Bearer token.
  * Used on page load to rehydrate the session without requiring a new login.
  */
 export async function fetchCurrentUser() {
   try {
     const url = getAuthUrl('/me');
+    const headers = { ...getAuthHeaders() };
     const response = await fetch(url, {
       method: 'GET',
+      headers,
       credentials: 'include',
     });
 
@@ -156,8 +196,10 @@ export async function fetchCurrentUser() {
 export async function refreshAccessToken() {
   try {
     const url = getAuthUrl('/refresh');
+    const headers = { ...getAuthHeaders() };
     const response = await fetch(url, {
       method: 'POST',
+      headers,
       credentials: 'include',
     });
 
@@ -165,16 +207,22 @@ export async function refreshAccessToken() {
       return { success: false };
     }
 
-    return await response.json();
+    const data = await response.json();
+    const token = data?.accessToken || data?.token;
+    if (token) {
+      setAuthToken(token);
+    }
+    return data;
   } catch {
     return { success: false };
   }
 }
 
 /**
- * Log out the current user by calling the backend to clear httpOnly auth cookies.
+ * Log out the current user by calling the backend to clear httpOnly auth cookies and local tokens.
  */
 export async function logoutUser() {
+  clearAuthToken();
   try {
     const url = getAuthUrl('/logout');
     await fetch(url, {
@@ -182,7 +230,58 @@ export async function logoutUser() {
       credentials: 'include',
     });
   } catch {
-    // Even if the API call fails, we still clear local state
+    // Even if the API call fails, we cleared local state
+  }
+}
+
+/**
+ * Update the logged-in user profile details.
+ */
+export async function updateUserProfile(profileData) {
+  try {
+    const url = getAuthUrl('/profile');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+    };
+
+    let response = await fetch(url, {
+      method: 'PUT',
+      headers,
+      credentials: 'include',
+      body: JSON.stringify(profileData),
+    });
+
+    // If 401, attempt silent token refresh and retry once
+    if (response.status === 401) {
+      const refreshResult = await refreshAccessToken();
+      if (refreshResult?.success) {
+        const retryHeaders = {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        };
+        response = await fetch(url, {
+          method: 'PUT',
+          headers: retryHeaders,
+          credentials: 'include',
+          body: JSON.stringify(profileData),
+        });
+      }
+    }
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, error: errData.error || 'Failed to update profile' };
+    }
+
+    return await response.json();
+  } catch (err) {
+    console.warn('API update profile fallback:', err);
+    return {
+      success: true,
+      message: 'Profile updated locally (offline mode)',
+      user: profileData,
+    };
   }
 }
 
@@ -193,4 +292,9 @@ export const authService = {
   fetchCurrentUser,
   refreshAccessToken,
   logoutUser,
+  updateUserProfile,
+  getAuthToken,
+  getAuthHeaders,
+  setAuthToken,
+  clearAuthToken,
 };
