@@ -8,6 +8,8 @@ import Inventory, { InventorySchema } from './Inventory.js';
 import BloodBag, { BloodBagSchema } from './BloodBag.js';
 import Request, { RequestSchema } from './Request.js';
 import Allotment, { AllotmentSchema } from './Allotment.js';
+import GiverRequest, { GiverRequestSchema } from './GiverRequest.js';
+import SeekerRequest, { SeekerRequestSchema } from './SeekerRequest.js';
 
 export {
   Admin,
@@ -30,6 +32,10 @@ export {
   RequestSchema,
   Allotment,
   AllotmentSchema,
+  GiverRequest,
+  GiverRequestSchema,
+  SeekerRequest,
+  SeekerRequestSchema,
 };
 
 export default {
@@ -43,4 +49,6 @@ export default {
   BloodBag,
   Request,
   Allotment,
+  GiverRequest,
+  SeekerRequest,
 };
