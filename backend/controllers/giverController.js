@@ -1,4 +1,5 @@
 import * as giverService from '../services/giverService.js';
+import { sendRequestEmail } from './emailController.js';
 
 /**
  * =======================================================================================
@@ -50,6 +51,8 @@ export async function applyDonationRequest(req, res) {
       donor_notes,
     });
 
+    sendRequestEmail('DONOR', 'SUBMITTED', request);
+
     return res.status(201).json({
       success: true,
       message: 'Blood donation request submitted successfully. Awaiting Admin verification.',
@@ -83,6 +86,7 @@ export async function verifyDonationRequest(req, res) {
     });
 
     const actionText = updatedRequest.status === 'VERIFIED' ? 'verified' : 'rejected';
+    sendRequestEmail('DONOR', updatedRequest.status === 'VERIFIED' ? 'VERIFIED' : 'REJECTED', updatedRequest);
 
     return res.status(200).json({
       success: true,
@@ -127,6 +131,8 @@ export async function acceptAndScheduleDonation(req, res) {
       scheduling_notes,
     });
 
+    sendRequestEmail('DONOR', 'ACCEPTED', scheduledRequest);
+
     return res.status(200).json({
       success: true,
       message: 'Donation request accepted and appointment scheduled successfully.',
@@ -167,6 +173,8 @@ export async function completeDonation(req, res) {
       inventory_id,
       expiry_days: expiry_days ? Number(expiry_days) : 35,
     });
+
+    sendRequestEmail('DONOR', 'COMPLETED', result.request);
 
     return res.status(200).json({
       success: true,
@@ -235,7 +243,7 @@ export async function getRequestDetails(req, res) {
  */
 export async function getMyRequests(req, res) {
   try {
-    const userId = req.user?.id || req.user?._id || req.query.u_id;
+    const userId = req.user?.id || req.user?._id || req.user?.sub || req.query.u_id;
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -498,6 +506,8 @@ export async function acceptDonationRequest(req, res) {
       scheduling_notes,
     });
 
+    sendRequestEmail('DONOR', 'ACCEPTED', result.request);
+
     return res.status(200).json({
       success: true,
       message: 'Donation request accepted! Blood bag entry created in inventory with status UNFULFILLED.',
@@ -527,6 +537,8 @@ export async function denyDonationRequest(req, res) {
       admin_id: adminId,
     });
 
+    sendRequestEmail('DONOR', 'DENIED', updatedRequest);
+
     return res.status(200).json({
       success: true,
       message: 'Donation request denied.',
@@ -555,6 +567,8 @@ export async function fulfillDonationReceipt(req, res) {
       pressure,
       weight,
     });
+
+    if (result.request?.status === 'COMPLETED') sendRequestEmail('DONOR', 'COMPLETED', result.request);
 
     return res.status(200).json({
       success: true,

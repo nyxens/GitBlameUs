@@ -6,3 +6,4 @@ export * from './inventoryService.js';
 export * from './giverService.js';
 export * from './seekerService.js';
 export * from './historyService.js';
+export * from './bloodBankService.js';

@@ -1,4 +1,5 @@
 import * as seekerService from '../services/seekerService.js';
+import { sendRequestEmail } from './emailController.js';
 
 /**
  * =======================================================================================
@@ -61,6 +62,8 @@ export async function applySeekerRequest(req, res) {
       pincode,
     });
 
+    sendRequestEmail('SEEKER', 'SUBMITTED', request);
+
     return res.status(201).json({
       success: true,
       message: 'Blood requisition submitted successfully. Awaiting Admin verification.',
@@ -93,6 +96,7 @@ export async function verifySeekerRequest(req, res) {
     });
 
     const actionText = updatedRequest.status === 'VERIFIED' ? 'verified' : 'rejected';
+    sendRequestEmail('SEEKER', updatedRequest.status === 'VERIFIED' ? 'VERIFIED' : 'REJECTED', updatedRequest);
 
     return res.status(200).json({
       success: true,
@@ -141,6 +145,8 @@ export async function acceptAndScheduleSeekerRequest(req, res) {
       allocated_bag_ids,
     });
 
+    sendRequestEmail('SEEKER', 'ACCEPTED', scheduledRequest);
+
     return res.status(200).json({
       success: true,
       message: 'Blood request accepted and scheduled successfully.',
@@ -171,6 +177,8 @@ export async function fulfillSeekerRequest(req, res) {
       notes,
       allocated_bag_ids: allocated_bag_ids || [],
     });
+
+    sendRequestEmail('SEEKER', 'COMPLETED', result);
 
     return res.status(200).json({
       success: true,

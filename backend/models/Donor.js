@@ -32,7 +32,7 @@ export const donorSchema = new Schema(
     S_Id: {
       type: Schema.Types.ObjectId,
       ref: 'Staff',
-      required: [true, 'Collecting Staff reference (S_Id) is required'],
+      default: null, // unknown when an admin (not a staff member) handles the unit
       index: true,
     },
     pincode: {

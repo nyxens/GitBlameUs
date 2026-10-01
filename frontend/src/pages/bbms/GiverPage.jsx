@@ -31,6 +31,7 @@ import {
   getNearbyInstitutions,
   applyDonationRequest,
   cancelDonationRequest,
+  getMyGiverRequests,
 } from '../../services/giverService.js';
 
 const STATUS_CONFIG = {
@@ -290,6 +291,7 @@ export const GiverPage = ({ user }) => {
   const [submitting, setSubmitting] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
   const [activeRequest, setActiveRequest] = useState(null);
+  const [myRequests, setMyRequests] = useState([]);
   const [institutions, setInstitutions] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState('');
@@ -344,6 +346,7 @@ export const GiverPage = ({ user }) => {
         const [profileRes, activeRes] = await Promise.all([
           getDonorProfile(),
           getActiveRequest(),
+          loadHistory(),
         ]);
         if (profileRes?.success && profileRes.data) {
           const p = profileRes.data;
@@ -364,6 +367,11 @@ export const GiverPage = ({ user }) => {
     }
     init();
   }, [user]);
+
+  const loadHistory = async () => {
+    const res = await getMyGiverRequests(user?.id || user?._id || user?.sub);
+    if (res?.success && res.data) setMyRequests(res.data);
+  };
 
   const handleFormChange = (field, value) =>
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -423,6 +431,7 @@ export const GiverPage = ({ user }) => {
         setConfirmTarget(null);
         const activeRes = await getActiveRequest();
         if (activeRes?.success) setActiveRequest(activeRes.data);
+        await loadHistory();
       } else {
         setError(res?.error || 'Failed to submit request.');
         setConfirmTarget(null);
@@ -443,6 +452,7 @@ export const GiverPage = ({ user }) => {
       if (res?.success) {
         setActiveRequest(null);
         setSuccessMsg('Request cancelled. You can now submit a new donation request.');
+        await loadHistory();
       } else {
         setError(res?.error || 'Failed to cancel request.');
       }
@@ -812,6 +822,95 @@ export const GiverPage = ({ user }) => {
               )}
             </>
           )}
+
+          {/* ═══ BOTTOM SECTION: Donation Request History ═══ */}
+          <div className="mt-8 pt-6 border-t border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs uppercase font-mono tracking-widest text-neutral-400 flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-purple-400" />
+                <span>My Donation Request History ({myRequests.length})</span>
+              </h4>
+              <button
+                type="button"
+                onClick={loadHistory}
+                className="text-xs font-mono text-neutral-500 hover:text-purple-400 flex items-center gap-1 cursor-pointer"
+              >
+                <RefreshCw className="w-3 h-3" /> Refresh History
+              </button>
+            </div>
+
+            {myRequests.length === 0 ? (
+              <div className="p-6 rounded-2xl bg-neutral-950/60 border border-white/10 text-center text-xs text-neutral-500 font-mono">
+                No past donation requests found. Search for nearby institutions above to submit one.
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {myRequests.map((req) => {
+                  const statusCfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.NOT_VERIFIED;
+                  const isCancelable = !TERMINAL_STATUSES.includes(req.status);
+                  const instName =
+                    req.hospital_id?.hos_name ||
+                    req.bloodbank_id?.bank_name ||
+                    (req.target_type === 'HOSPITAL' ? 'Hospital' : 'Blood Bank');
+
+                  return (
+                    <div
+                      key={req._id}
+                      className="p-4 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-white/20 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="px-2.5 py-1 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 font-mono font-bold text-sm">
+                          {req.bloodgroup || req.u_id?.bloodgroup || formData.bloodgroup || '—'}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-white">{instName}</span>
+                            <span className="text-[10px] font-mono text-neutral-500">
+                              ID: {String(req._id).slice(-6).toUpperCase()}
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-neutral-300 font-mono">
+                              {req.target_type === 'HOSPITAL' ? 'Hospital' : 'Blood Bank'}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                            {req.createdAt ? `Requested ${new Date(req.createdAt).toLocaleDateString()}` : ''}
+                            {req.preferred_date ? ` • Preferred ${new Date(req.preferred_date).toLocaleDateString()}` : ''}
+                            {req.appointment_date
+                              ? ` • Appt ${new Date(req.appointment_date).toLocaleDateString()}${req.appointment_time ? ` ${req.appointment_time}` : ''}`
+                              : ''}
+                          </div>
+                          {req.rejection_reason && (
+                            <div className="text-[11px] text-red-400 mt-0.5">Reason: {req.rejection_reason}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3 font-mono text-[11px]">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${statusCfg.className}`}>
+                          {statusCfg.label}
+                        </span>
+                        {isCancelable && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancelRequest(req._id)}
+                            disabled={cancellingId === req._id}
+                            className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/40 text-neutral-400 hover:text-red-400 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                          >
+                            {cancellingId === req._id ? (
+                              <Loader2 className="w-3 h-3 animate-spin text-red-400" />
+                            ) : (
+                              <X className="w-3 h-3" />
+                            )}
+                            <span className="text-[10px]">Cancel</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
