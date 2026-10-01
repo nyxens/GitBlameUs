@@ -92,6 +92,22 @@ export const userSchema = new Schema(
       trim: true,
       default: '',
     },
+    isAvailableForDonation: {
+      type: Boolean,
+      default: true,
+    },
+    privacyShowOnRegistry: {
+      type: Boolean,
+      default: true,
+    },
+    privacyAllowNearbyContact: {
+      type: Boolean,
+      default: true,
+    },
+    privacyMaskPhone: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
