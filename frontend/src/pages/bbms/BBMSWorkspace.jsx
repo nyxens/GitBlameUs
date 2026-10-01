@@ -6,6 +6,7 @@ import { HistoryPage } from './HistoryPage';
 import { GiverPage } from './GiverPage';
 import { SeekerPage } from './SeekerPage';
 import { ProfilePage } from './ProfilePage';
+import { HospitalsPanel } from './HospitalsPanel';
 import {
   Boxes,
   Search,
@@ -229,6 +230,9 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
                 <div className="text-[11px] text-neutral-400 mt-1">Expiration risk defense active</div>
               </div>
             </div>
+
+            {/* Hospitals (admin: all + add/delete; staff: own hospital) */}
+            <HospitalsPanel isAdmin={user?.role === 'ADMIN'} />
 
             {/* Search & Filter */}
             <div className="p-4 rounded-2xl bg-neutral-950/90 border border-white/10 flex flex-col md:flex-row items-center gap-3">

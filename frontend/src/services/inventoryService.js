@@ -39,6 +39,8 @@ export async function getInventoryItems(facilityId = null) {
       return items;
     }
   } catch (err) {
+    // Real API answers (401/403 etc.) must surface; only an unreachable server falls back to demo data.
+    if (!(err instanceof TypeError)) throw err;
     console.warn('API connection unavailable for getInventoryItems, falling back to default:', err);
   }
   const fallback = [
