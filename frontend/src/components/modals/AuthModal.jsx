@@ -67,7 +67,11 @@ export const AuthModal = ({
         const signinRole = selectedRole === 'CITIZEN' ? 'DONOR' : 'HOSPITAL';
         const result = await loginUser(formData.email, formData.password, signinRole);
         if (result.success) {
-          onLoginSuccess(result.user);
+          const authenticatedUser = {
+            ...result.user,
+            role: result.role || result.user?.role || signinRole,
+          };
+          onLoginSuccess(authenticatedUser);
           onClose();
         } else {
           setErrorMsg(result.error || 'Invalid credentials');
@@ -78,7 +82,11 @@ export const AuthModal = ({
           // Verify OTP phase
           const result = await verifyOtpUser(formData.email, otpCode, pendingSignupData);
           if (result.success) {
-            onLoginSuccess(result.user);
+            const verifiedUser = {
+              ...result.user,
+              role: result.role || result.user?.role || pendingSignupData?.role || 'DONOR',
+            };
+            onLoginSuccess(verifiedUser);
             onClose();
           } else {
             setErrorMsg(result.error || 'Invalid verification code');

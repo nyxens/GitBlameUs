@@ -228,7 +228,7 @@ export async function acceptAndScheduleRequest(requestId, {
 
 /**
  * PHASE 4: Complete blood dispatch / fulfillment (Hospital / Staff action)
- * Transitions status from 'ACCEPTED' to 'COMPLETED'
+ * Transitions status from 'ACCEPTED' or 'ALLOCATED' to 'COMPLETED'
  */
 export async function fulfillSeekerRequest(requestId, {
   staff_id = null,
@@ -240,8 +240,9 @@ export async function fulfillSeekerRequest(requestId, {
     throw new Error('Blood request not found');
   }
 
-  if (request.status !== 'ACCEPTED') {
-    throw new Error(`Cannot complete blood request with status '${request.status}'. Expected 'ACCEPTED'`);
+  const validPriorStatuses = ['ACCEPTED', 'ALLOCATED', 'VERIFIED', 'PENDING'];
+  if (!validPriorStatuses.includes(request.status)) {
+    throw new Error(`Cannot complete blood request with status '${request.status}'`);
   }
 
   let resolvedStaffId = staff_id || request.staff_id;
@@ -251,23 +252,41 @@ export async function fulfillSeekerRequest(requestId, {
   }
 
   // Update blood bag allocation if provided
-  const bagsToAllot = allocated_bag_ids.length > 0 ? allocated_bag_ids : request.allocated_bags;
+  const bagsToAllot = (Array.isArray(allocated_bag_ids) && allocated_bag_ids.length > 0)
+    ? allocated_bag_ids
+    : request.allocated_bags;
   let allotmentDoc = null;
 
   if (bagsToAllot && bagsToAllot.length > 0) {
-    const firstBagId = bagsToAllot[0];
-    await BloodBag.findByIdAndUpdate(firstBagId, {
-      status: 'ALLOTED',
-      isdiscresed: true,
-    });
+    for (const bagId of bagsToAllot) {
+      const bag = await BloodBag.findById(bagId);
+      if (bag) {
+        await BloodBag.findByIdAndUpdate(bagId, {
+          status: 'TRANSFUSED',
+          isdiscresed: true,
+        });
 
+        // Maintain inventory count
+        if (bag.I_ID && !bag.isdiscresed) {
+          await Inventory.findByIdAndUpdate(bag.I_ID, {
+            $inc: { current_count: -1 },
+            isfull: false,
+          });
+        }
+      }
+    }
+
+    const firstBagId = bagsToAllot[0];
     if (resolvedStaffId) {
-      allotmentDoc = await Allotment.create({
-        req_id: request._id,
-        bag_id: firstBagId,
-        s_id: resolvedStaffId,
-        date_of_allocation: new Date(),
-      }).catch(() => null);
+      allotmentDoc = await Allotment.findOne({ req_id: request._id, bag_id: firstBagId });
+      if (!allotmentDoc) {
+        allotmentDoc = await Allotment.create({
+          req_id: request._id,
+          bag_id: firstBagId,
+          s_id: resolvedStaffId,
+          date_of_allocation: new Date(),
+        }).catch(() => null);
+      }
     }
   }
 
@@ -275,6 +294,92 @@ export async function fulfillSeekerRequest(requestId, {
   request.completed_at = new Date();
   if (resolvedStaffId) request.staff_id = resolvedStaffId;
   if (allotmentDoc) request.allotment_id = allotmentDoc._id;
+  if (notes) request.scheduling_notes = (request.scheduling_notes ? `${request.scheduling_notes}\n` : '') + notes;
+
+  await request.save();
+  return SeekerRequest.findById(request._id).populate(POPULATE_SEEKER_REQUEST);
+}
+
+/**
+ * ALLOCATE: Allocate matching blood bags from cryogenic inventory to a requisition
+ * Fixes Problem 3: sets status to 'ALLOCATED' and decrements Inventory.current_count
+ */
+export async function allocateBloodToRequest(requestId, {
+  staff_id = null,
+  bag_ids = [],
+  notes = null,
+} = {}) {
+  const request = await SeekerRequest.findById(requestId).populate('u_id');
+  if (!request) {
+    throw new Error('Blood request not found');
+  }
+
+  let resolvedStaffId = staff_id || request.staff_id;
+  if (!resolvedStaffId) {
+    const defaultStaff = await Staff.findOne({});
+    resolvedStaffId = defaultStaff ? defaultStaff._id : null;
+  }
+
+  // Find candidate bags
+  let bagsToAllot = [];
+  if (Array.isArray(bag_ids) && bag_ids.length > 0) {
+    bagsToAllot = await BloodBag.find({
+      _id: { $in: bag_ids },
+      status: 'AVAILABLE',
+      isdiscresed: false,
+    });
+  }
+
+  if (bagsToAllot.length === 0) {
+    const neededUnits = request.units || 1;
+    bagsToAllot = await BloodBag.find({
+      bloodgroup: request.bloodgroup,
+      status: 'AVAILABLE',
+      isdiscresed: false,
+    })
+      .sort({ expired_date: 1 })
+      .limit(neededUnits);
+  }
+
+  if (bagsToAllot.length === 0) {
+    throw new Error(`No available ${request.bloodgroup} blood units in vault to allocate.`);
+  }
+
+  const allottedIds = [];
+  let lastAllotment = null;
+
+  for (const bag of bagsToAllot) {
+    allottedIds.push(bag._id);
+
+    // 1. Correct enum ALLOCATED and mark decreased
+    await BloodBag.findByIdAndUpdate(bag._id, {
+      status: 'ALLOCATED',
+      isdiscresed: true,
+    });
+
+    // 2. Decrement inventory locker count
+    if (bag.I_ID) {
+      await Inventory.findByIdAndUpdate(bag.I_ID, {
+        $inc: { current_count: -1 },
+        isfull: false,
+      });
+    }
+
+    // 3. Create Allotment record
+    if (resolvedStaffId) {
+      lastAllotment = await Allotment.create({
+        req_id: request._id,
+        bag_id: bag._id,
+        s_id: resolvedStaffId,
+        date_of_allocation: new Date(),
+      }).catch(() => null);
+    }
+  }
+
+  request.status = 'ALLOCATED';
+  request.allocated_bags = allottedIds;
+  if (lastAllotment) request.allotment_id = lastAllotment._id;
+  if (resolvedStaffId) request.staff_id = resolvedStaffId;
   if (notes) request.scheduling_notes = (request.scheduling_notes ? `${request.scheduling_notes}\n` : '') + notes;
 
   await request.save();
@@ -636,6 +741,7 @@ export default {
   createSeekerRequest,
   verifySeekerRequest,
   acceptAndScheduleRequest,
+  allocateBloodToRequest,
   fulfillSeekerRequest,
   cancelSeekerRequest,
   getSeekerRequestById,

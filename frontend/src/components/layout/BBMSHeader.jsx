@@ -16,19 +16,42 @@ import {
   Mail,
 } from 'lucide-react';
 
+export const isStaffOrAdmin = (role) => {
+  if (!role) return false;
+  const staffOrAdminRoles = [
+    'ADMIN',
+    'SUPER_ADMIN',
+    'DOCTOR',
+    'NURSE',
+    'LAB_TECHNICIAN',
+    'PHLEBOTOMIST',
+    'MANAGER',
+    'STAFF',
+  ];
+  return staffOrAdminRoles.includes(String(role).trim().toUpperCase());
+};
+
 export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserTooltip, setShowUserTooltip] = useState(false);
 
-  const menuItems = [
+  const isStaff = isStaffOrAdmin(user?.role);
+
+  const staffMenuItems = [
     { id: 'inventory', label: 'Inventory', icon: Boxes, iconColor: 'text-purple-400' },
     { id: 'donors', label: 'Donors', icon: Users, iconColor: 'text-red-400' },
     { id: 'recipients', label: 'Recipients', icon: UserCheck, iconColor: 'text-emerald-400' },
     { id: 'history', label: 'History', icon: History, iconColor: 'text-amber-400' },
-    { id: 'giver', label: 'Giver', icon: HandHeart, iconColor: 'text-rose-400' },
-    { id: 'seeker', label: 'Seeker', icon: UserSearch, iconColor: 'text-cyan-400' },
     { id: 'profile', label: 'Profile', icon: User, iconColor: 'text-violet-400' },
   ];
+
+  const citizenMenuItems = [
+    { id: 'seeker', label: 'Seeker', icon: UserSearch, iconColor: 'text-cyan-400' },
+    { id: 'giver', label: 'Giver', icon: HandHeart, iconColor: 'text-rose-400' },
+    { id: 'profile', label: 'Profile', icon: User, iconColor: 'text-violet-400' },
+  ];
+
+  const menuItems = isStaff ? staffMenuItems : citizenMenuItems;
 
   const getInitials = (name) => {
     if (!name) return 'OP';

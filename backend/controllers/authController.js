@@ -272,8 +272,8 @@ export async function login(req, res) {
     if (admin) {
       const isMatch = await admin.comparePassword(password);
       if (isMatch) {
-        const accessToken = jwt.sign({ sub: admin._id, email: admin.email, role: 'ADMIN' }, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES });
-        const refreshToken = jwt.sign({ sub: admin._id }, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES });
+        const accessToken = signAccessToken({ ...admin.toObject(), role: 'ADMIN' });
+        const refreshToken = signRefreshToken(admin);
         setAuthCookies(res, accessToken, refreshToken);
         return res.status(200).json({
           success: true,

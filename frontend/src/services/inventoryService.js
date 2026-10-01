@@ -29,14 +29,19 @@ export async function getColdChainTelemetry() {
   };
 }
 
-export async function getInventoryItems() {
+export async function getInventoryItems(facilityId = null) {
   try {
-    const res = await fetchApi('/inventory/items');
-    if (res && res.items) return res.items;
+    const query = facilityId && facilityId !== 'ALL' ? `?facilityId=${encodeURIComponent(facilityId)}` : '';
+    const res = await fetchApi(`/inventory/items${query}`);
+    if (res && res.items) {
+      const items = res.items;
+      items.facilities = res.facilities || [];
+      return items;
+    }
   } catch (err) {
     console.warn('API connection unavailable for getInventoryItems, falling back to default:', err);
   }
-  return [
+  const fallback = [
     { barcode: 'LV-UNIT-8091', type: 'O-', component: 'PRBC (Packed Red Cells)', units: 12, expiry: '4 Days (FEFO #1)', temp: '2.4°C', status: 'CRITICAL', bloodGroup: 'O-' },
     { barcode: 'LV-UNIT-8092', type: 'O+', component: 'Whole Blood', units: 180, expiry: '28 Days', temp: '2.5°C', status: 'OPTIMAL', bloodGroup: 'O+' },
     { barcode: 'LV-UNIT-8093', type: 'A+', component: 'FFP (Plasma)', units: 65, expiry: '120 Days', temp: '-18.2°C', status: 'OPTIMAL', bloodGroup: 'A+' },
@@ -46,6 +51,8 @@ export async function getInventoryItems() {
     { barcode: 'LV-UNIT-8097', type: 'AB+', component: 'Whole Blood', units: 92, expiry: '24 Days', temp: '2.3°C', status: 'OPTIMAL', bloodGroup: 'AB+' },
     { barcode: 'LV-UNIT-8098', type: 'AB-', component: 'FFP (Plasma)', units: 28, expiry: '7 Days', temp: '-18.0°C', status: 'CRITICAL', bloodGroup: 'AB-' },
   ];
+  fallback.facilities = [];
+  return fallback;
 }
 
 export async function fulfillInventoryItem(id, details = {}) {

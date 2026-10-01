@@ -10,15 +10,37 @@ import {
   Bell,
   X,
 } from 'lucide-react';
-import { getLiveStock } from '../../services/inventoryService.js';
-import { submitEmergencyRequisition } from '../../services/hospitalService.js';
+import { getLiveStock, getInventoryItems } from '../../services/inventoryService.js';
+import { submitEmergencyRequisition, getRequisitions } from '../../services/hospitalService.js';
 
 export const HospitalManagementWebApp = ({ user, onOpenLanding }) => {
   const [activeTab, setActiveTab] = useState('inventory');
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
-    getLiveStock().catch(console.error);
+    getInventoryItems()
+      .then((items) => {
+        if (items && items.length > 0) setInventory(items);
+      })
+      .catch(console.error);
+
+    getRequisitions()
+      .then((res) => {
+        if (res && res.requisitions && res.requisitions.length > 0) {
+          setRequisitions(
+            res.requisitions.map((r) => ({
+              id: r.id,
+              hospital: r.hospital,
+              type: `${r.bloodGroup} ${r.component}`,
+              units: r.units,
+              urgency: r.urgency,
+              status: r.status,
+              eta: r.requiredBy,
+            }))
+          );
+        }
+      })
+      .catch(console.error);
   }, []);
 
   // Working Live Inventory State
@@ -196,7 +218,7 @@ export const HospitalManagementWebApp = ({ user, onOpenLanding }) => {
               </div>
 
               <div className="text-xs font-mono text-neutral-400">
-                Total Reserve: <strong className="text-white">502 Units</strong>
+                Total Reserve: <strong className="text-white">{inventory.reduce((acc, i) => acc + (i.units || 1), 0)} Units</strong>
               </div>
             </div>
 

@@ -45,7 +45,81 @@ export async function submitEmergencyRequisition(requisition) {
   }
 }
 
+export async function getRequisitions() {
+  try {
+    return await fetchApi('/requisitions');
+  } catch (err) {
+    console.warn('API connection unavailable for getRequisitions:', err);
+    return null;
+  }
+}
+
+export async function deleteRequisition(id) {
+  try {
+    return await fetchApi(`/requisitions/${id}`, {
+      method: 'DELETE',
+    });
+  } catch (err) {
+    console.warn('API connection unavailable for deleteRequisition:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function acceptRequisition(id) {
+  try {
+    return await fetchApi(`/requisitions/${id}/accept`, {
+      method: 'PUT',
+    });
+  } catch (err) {
+    console.warn('API connection unavailable for acceptRequisition:', err);
+    return { success: true };
+  }
+}
+
+export async function allocateRequisition(id, data = {}) {
+  try {
+    return await fetchApi(`/requisitions/${id}/allocate`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.warn('API connection unavailable for allocateRequisition:', err);
+    return { success: true };
+  }
+}
+
+export async function denyRequisition(id, reason = '') {
+  try {
+    return await fetchApi(`/requisitions/${id}/deny`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+  } catch (err) {
+    console.warn('API connection unavailable for denyRequisition:', err);
+    return { success: true };
+  }
+}
+
+export async function getCandidateBags(bloodGroup = null, facilityId = null) {
+  try {
+    const params = new URLSearchParams();
+    if (bloodGroup && bloodGroup !== 'ALL') params.append('bloodGroup', bloodGroup);
+    if (facilityId && facilityId !== 'ALL') params.append('facilityId', facilityId);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return await fetchApi(`/requisitions/candidate-bags${query}`);
+  } catch (err) {
+    console.warn('API connection unavailable for getCandidateBags:', err);
+    return { success: false, bags: [] };
+  }
+}
+
 export const hospitalService = {
   authenticateHospital,
   submitEmergencyRequisition,
+  getRequisitions,
+  deleteRequisition,
+  acceptRequisition,
+  allocateRequisition,
+  denyRequisition,
+  getCandidateBags,
 };

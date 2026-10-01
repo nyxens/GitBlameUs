@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BBMSHeader } from '@layout/BBMSHeader';
+import { BBMSHeader, isStaffOrAdmin } from '@layout/BBMSHeader';
 import { RecipientsPage } from './RecipientsPage';
 import { DonorsPage } from './DonorsPage';
 import { HistoryPage } from './HistoryPage';
@@ -17,27 +17,45 @@ import {
   CheckCircle2,
   RefreshCw,
   X,
+  Building2,
 } from 'lucide-react';
 import { getInventoryItems, fulfillInventoryItem } from '../../services/inventoryService.js';
 
 export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
-  const [activeSection, setActiveSection] = useState('inventory');
+  const isStaff = isStaffOrAdmin(user?.role);
+  const allowedSections = isStaff
+    ? ['inventory', 'donors', 'recipients', 'history', 'profile']
+    : ['seeker', 'giver', 'profile'];
+
+  const [activeSection, setActiveSection] = useState(() => (isStaff ? 'inventory' : 'seeker'));
+
+  // Ensure activeSection conforms strictly to user role permissions
+  useEffect(() => {
+    if (!allowedSections.includes(activeSection)) {
+      setActiveSection(allowedSections[0]);
+    }
+  }, [user?.role, activeSection, allowedSections]);
 
   // Inventory Search & Filter State
   const [inventorySearch, setInventorySearch] = useState('');
   const [inventoryGroupFilter, setInventoryGroupFilter] = useState('ALL');
+  const [inventoryFacilityFilter, setInventoryFacilityFilter] = useState('ALL');
+  const [facilities, setFacilities] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [isRefreshingInv, setIsRefreshingInv] = useState(false);
   const [actionLoadingBarcode, setActionLoadingBarcode] = useState(null);
   const [invNotification, setInvNotification] = useState(null);
 
-  // Load Inventory Items (including unfulfilled inbound donations)
-  const loadInventory = async (showIndicator = false) => {
+  // Load Inventory Items (Staff only, optionally isolated by facility)
+  const loadInventory = async (showIndicator = false, facId = inventoryFacilityFilter) => {
     if (showIndicator) setIsRefreshingInv(true);
     try {
-      const items = await getInventoryItems();
+      const items = await getInventoryItems(facId);
       if (items && items.length > 0) {
         setInventory(items);
+        if (items.facilities && items.facilities.length > 0) {
+          setFacilities(items.facilities);
+        }
       }
     } catch (err) {
       console.warn('Failed to fetch inventory:', err);
@@ -47,8 +65,10 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
   };
 
   useEffect(() => {
-    loadInventory();
-  }, [activeSection]);
+    if (isStaff && activeSection === 'inventory') {
+      loadInventory();
+    }
+  }, [activeSection, isStaff]);
 
   // Handle fulfill inventory entry
   const handleFulfillItem = async (item) => {
@@ -87,12 +107,15 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
     const barcode = item.barcode || '';
     const component = item.component || '';
     const donorName = item.donorName || '';
+    const facilityName = item.facilityName || '';
     const matchesSearch =
       barcode.toLowerCase().includes(inventorySearch.toLowerCase()) ||
       component.toLowerCase().includes(inventorySearch.toLowerCase()) ||
-      donorName.toLowerCase().includes(inventorySearch.toLowerCase());
+      donorName.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+      facilityName.toLowerCase().includes(inventorySearch.toLowerCase());
     const matchesGroup = inventoryGroupFilter === 'ALL' || item.type === inventoryGroupFilter;
-    return matchesSearch && matchesGroup;
+    const matchesFacility = inventoryFacilityFilter === 'ALL' || item.facilityId === inventoryFacilityFilter;
+    return matchesSearch && matchesGroup && matchesFacility;
   });
 
   const unfulfilledCount = inventory.filter((i) => i.status === 'UNFULFILLED').length;
@@ -110,8 +133,8 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
 
       {/* Main Workspace Body */}
       <main className="flex-1 pt-24 px-6 md:px-16 pb-16">
-        {/* 1. INVENTORY SECTION */}
-        {activeSection === 'inventory' && (
+        {/* 1. INVENTORY SECTION (Staff / Admin Only) */}
+        {isStaff && activeSection === 'inventory' && (
           <section className="w-full space-y-8 animate-fadeIn">
             {/* Notification Banner */}
             {invNotification && (
@@ -230,6 +253,25 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
                   <option key={bg} value={bg} className="bg-neutral-900 text-white">{bg}</option>
                 ))}
               </select>
+
+              {/* Facility / Institution Isolation Filter (Problem 6) */}
+              {facilities.length > 0 && (
+                <select
+                  value={inventoryFacilityFilter}
+                  onChange={(e) => {
+                    setInventoryFacilityFilter(e.target.value);
+                    loadInventory(true, e.target.value);
+                  }}
+                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-neutral-300 focus:outline-none focus:border-purple-500/50 cursor-pointer w-full md:w-auto"
+                >
+                  <option value="ALL" className="bg-neutral-900 text-white">All Facilities & Blood Banks</option>
+                  {facilities.map((fac) => (
+                    <option key={fac.id || fac.name} value={fac.id} className="bg-neutral-900 text-white">
+                      {fac.name} ({fac.type})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Inventory Table */}
@@ -240,6 +282,7 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
                     <tr>
                       <th className="py-3.5 px-4 font-semibold">Barcode / Vault Tag</th>
                       <th className="py-3.5 px-4 font-semibold">Blood Group</th>
+                      <th className="py-3.5 px-4 font-semibold">Assigned Facility</th>
                       <th className="py-3.5 px-4 font-semibold">Component</th>
                       <th className="py-3.5 px-4 font-semibold">In Stock</th>
                       <th className="py-3.5 px-4 font-semibold">Expiration / FEFO</th>
@@ -266,6 +309,15 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
                             <span className="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold font-mono">
                               {item.type}
                             </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-semibold text-white truncate max-w-[170px] flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                              <span className="truncate">{item.facilityName || 'Central Vault'}</span>
+                            </div>
+                            <div className="text-[10px] text-neutral-500 font-mono mt-0.5">
+                              {item.cellno} • {item.shelfno}
+                            </div>
                           </td>
                           <td className="py-3.5 px-4 text-neutral-300">{item.component}</td>
                           <td className="py-3.5 px-4 font-bold text-white">
@@ -316,22 +368,22 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
           </section>
         )}
 
-        {/* 2. DONORS SECTION */}
-        {activeSection === 'donors' && <DonorsPage />}
+        {/* 2. DONORS SECTION (Staff / Admin Only) */}
+        {isStaff && activeSection === 'donors' && <DonorsPage />}
 
-        {/* 3. RECIPIENTS SECTION */}
-        {activeSection === 'recipients' && <RecipientsPage />}
+        {/* 3. RECIPIENTS SECTION (Staff / Admin Only) */}
+        {isStaff && activeSection === 'recipients' && <RecipientsPage />}
 
-        {/* 4. HISTORY SECTION */}
-        {activeSection === 'history' && <HistoryPage />}
+        {/* 4. HISTORY SECTION (Staff / Admin Only) */}
+        {isStaff && activeSection === 'history' && <HistoryPage />}
 
-        {/* 5. GIVER SECTION */}
-        {activeSection === 'giver' && <GiverPage user={user} />}
+        {/* 5. SEEKER SECTION (Citizen Only) */}
+        {!isStaff && activeSection === 'seeker' && <SeekerPage user={user} />}
 
-        {/* 6. SEEKER SECTION */}
-        {activeSection === 'seeker' && <SeekerPage user={user} />}
+        {/* 6. GIVER SECTION (Citizen Only) */}
+        {!isStaff && activeSection === 'giver' && <GiverPage user={user} />}
 
-        {/* 7. PROFILE SECTION */}
+        {/* 7. PROFILE SECTION (All Authenticated Users) */}
         {activeSection === 'profile' && (
           <ProfilePage user={user} onUpdateUser={onUpdateUser} />
         )}
