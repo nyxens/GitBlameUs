@@ -5,6 +5,7 @@ import { DonorsPage } from './DonorsPage';
 import { HistoryPage } from './HistoryPage';
 import { GiverPage } from './GiverPage';
 import { SeekerPage } from './SeekerPage';
+import { HospitalsPanel } from './HospitalsPanel';
 import {
   Boxes,
   Search,
@@ -206,6 +207,9 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
               </div>
             </div>
 
+            {/* Hospitals (admin: all + add/delete; staff: own hospital) */}
+            <HospitalsPanel isAdmin={user?.role === 'ADMIN'} />
+
             {/* Search & Filter */}
             <div className="p-4 rounded-2xl bg-neutral-950/90 border border-white/10 flex flex-col md:flex-row items-center gap-3">
               <div className="relative flex-1 w-full">
@@ -259,6 +263,9 @@ export const BBMSWorkspace = ({ user, onLogout }) => {
                               <div className="text-[10px] text-neutral-500 font-sans">
                                 {item.donorName}
                               </div>
+                            )}
+                            {user?.role === 'ADMIN' && item.facility && (
+                              <div className="text-[10px] text-purple-400 font-sans">{item.facility}</div>
                             )}
                           </td>
                           <td className="py-3.5 px-4">

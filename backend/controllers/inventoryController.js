@@ -1,10 +1,19 @@
+import mongoose from 'mongoose';
 import { BloodBag, Inventory } from '../models/index.js';
 import * as giverService from '../services/giverService.js';
 
-export async function getStock(_req, res) {
+/** Inventory filter for the requester: admins see all, staff only their own hospital / blood bank. */
+const inventoryFilter = (scope) =>
+  scope.all ? {} : { hos_or_bank_id: scope.id, hos_or_bank_type: scope.type };
+
+export async function getStock(req, res) {
   try {
-    const items = await BloodBag.find({ status: 'AVAILABLE', isdiscresed: false });
-    const inventories = await Inventory.find({});
+    const inventories = await Inventory.find(inventoryFilter(req.scope));
+    const items = await BloodBag.find({
+      status: 'AVAILABLE',
+      isdiscresed: false,
+      I_ID: { $in: inventories.map((i) => i._id) },
+    });
 
     const countsByGroup = items.reduce((acc, item) => {
       acc[item.bloodgroup] = (acc[item.bloodgroup] || 0) + 1;
@@ -36,12 +45,13 @@ export async function getStock(_req, res) {
  * Get individual inventory items (blood bags + inbound unfulfilled donations)
  * GET /api/v1/inventory/items
  */
-export async function getInventoryItems(_req, res) {
+export async function getInventoryItems(req, res) {
   try {
-    const bags = await BloodBag.find({ isdiscresed: false })
+    const inventoryIds = (await Inventory.find(inventoryFilter(req.scope)).select('_id').lean()).map((i) => i._id);
+    const bags = await BloodBag.find({ isdiscresed: false, I_ID: { $in: inventoryIds } })
       .populate('donor_user_id', 'name username email phone bloodgroup')
       .populate('donor_request_id')
-      .populate('I_ID')
+      .populate({ path: 'I_ID', populate: { path: 'hos_or_bank_id', select: 'hos_name bank_name' } })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -70,6 +80,7 @@ export async function getInventoryItems(_req, res) {
         donorName,
         donorRequestId: bag.donor_request_id?._id || bag.donor_request_id,
         dateOfDonation: bag.date_of_donation,
+        facility: bag.I_ID?.hos_or_bank_id?.hos_name || bag.I_ID?.hos_or_bank_id?.bank_name || null,
         cellno: bag.I_ID?.cellno || 'CELL-01',
         shelfno: bag.I_ID?.shelfno || 'SHELF-01',
       };
@@ -93,6 +104,14 @@ export async function fulfillInventoryItem(req, res) {
   try {
     const { id } = req.params;
     const { staff_id, haemoglobin, pressure, weight } = req.body || {};
+
+    if (!req.scope.all) {
+      const bag = await BloodBag.findOne(mongoose.isValidObjectId(id) ? { $or: [{ _id: id }, { barcode: id }] } : { barcode: id }).select('I_ID').lean();
+      const owned = bag && await Inventory.exists({ _id: bag.I_ID, ...inventoryFilter(req.scope) });
+      if (!owned) {
+        return res.status(403).json({ success: false, error: 'This unit belongs to another facility.' });
+      }
+    }
 
     const result = await giverService.fulfillDonationReceipt(id, {
       staff_id: req.user?.staffId || staff_id,
