@@ -324,6 +324,10 @@ export async function login(req, res) {
         emergencyContactRelation: user.emergencyContactRelation,
         medicalConditions: user.medicalConditions,
         donationPrecautions: user.donationPrecautions,
+        isAvailableForDonation: user.isAvailableForDonation !== undefined ? user.isAvailableForDonation : true,
+        privacyShowOnRegistry: user.privacyShowOnRegistry !== undefined ? user.privacyShowOnRegistry : true,
+        privacyAllowNearbyContact: user.privacyAllowNearbyContact !== undefined ? user.privacyAllowNearbyContact : true,
+        privacyMaskPhone: user.privacyMaskPhone !== undefined ? user.privacyMaskPhone : false,
         role,
         staffDetails: staff || null,
       },
@@ -426,6 +430,10 @@ export async function updateProfile(req, res) {
       emergencyContactRelation,
       medicalConditions,
       donationPrecautions,
+      isAvailableForDonation,
+      privacyShowOnRegistry,
+      privacyAllowNearbyContact,
+      privacyMaskPhone,
       password,
     } = req.body;
 
@@ -445,6 +453,10 @@ export async function updateProfile(req, res) {
     if (emergencyContactRelation !== undefined) user.emergencyContactRelation = emergencyContactRelation;
     if (medicalConditions !== undefined) user.medicalConditions = medicalConditions;
     if (donationPrecautions !== undefined) user.donationPrecautions = donationPrecautions;
+    if (isAvailableForDonation !== undefined) user.isAvailableForDonation = Boolean(isAvailableForDonation);
+    if (privacyShowOnRegistry !== undefined) user.privacyShowOnRegistry = Boolean(privacyShowOnRegistry);
+    if (privacyAllowNearbyContact !== undefined) user.privacyAllowNearbyContact = Boolean(privacyAllowNearbyContact);
+    if (privacyMaskPhone !== undefined) user.privacyMaskPhone = Boolean(privacyMaskPhone);
 
     if (password && password.trim().length >= 6) {
       user.password = await bcrypt.hash(password.trim(), SALT_ROUNDS);
@@ -471,6 +483,10 @@ export async function updateProfile(req, res) {
       emergencyContactRelation: user.emergencyContactRelation,
       medicalConditions: user.medicalConditions,
       donationPrecautions: user.donationPrecautions,
+      isAvailableForDonation: user.isAvailableForDonation,
+      privacyShowOnRegistry: user.privacyShowOnRegistry,
+      privacyAllowNearbyContact: user.privacyAllowNearbyContact,
+      privacyMaskPhone: user.privacyMaskPhone,
       role,
       status: user.status,
       createdAt: user.createdAt,
