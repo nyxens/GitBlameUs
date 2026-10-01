@@ -92,9 +92,8 @@ export const RecipientsPage = () => {
     hospitalName: '',
     bloodGroup: 'O-',
     unitsRequested: 1,
-    urgencyLevel: 'EMERGENCY TRAUMA',
-    pincode: '10001',
-    isEmergency: true,
+    pincode: '',
+    isEmergency: false,
   });
 
   const dropdownRef = useRef(null);
@@ -124,7 +123,7 @@ export const RecipientsPage = () => {
 
       // Compute dynamic metrics
       const emergencyCount = list.filter(
-        (r) => r.urgency?.includes('EMERGENCY') || r.bloodGroup === 'O-'
+        (r) => r.isEmergency || r.urgency === 'EMERGENCY'
       ).length;
       const totalUnits = list.reduce((sum, r) => sum + (Number(r.units) || 1), 0);
       const actionableCount = list.filter(
@@ -308,9 +307,8 @@ export const RecipientsPage = () => {
           hospitalName: '',
           bloodGroup: 'O-',
           unitsRequested: 1,
-          urgencyLevel: 'EMERGENCY TRAUMA',
-          pincode: '10001',
-          isEmergency: true,
+          pincode: '',
+          isEmergency: false,
         });
         await loadData(false);
       }
@@ -337,7 +335,7 @@ export const RecipientsPage = () => {
 
   if (activeCardFilter === 'EMERGENCY') {
     processed = processed.filter(
-      (r) => r.urgency?.includes('EMERGENCY') || r.bloodGroup === 'O-'
+      (r) => r.isEmergency || r.urgency === 'EMERGENCY'
     );
   } else if (activeCardFilter === 'TOTAL_UNITS') {
     processed.sort((a, b) => (Number(b.units) || 0) - (Number(a.units) || 0));
@@ -521,7 +519,7 @@ export const RecipientsPage = () => {
           <div>
             <div className="flex items-center justify-between text-neutral-400 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
-                Emergency Trauma
+                Emergency Priority
               </span>
               <div
                 className={`p-1.5 rounded-lg transition-colors ${
@@ -918,7 +916,7 @@ export const RecipientsPage = () => {
                             {req.bloodGroup}
                           </span>
                           <span className="text-[11px] text-neutral-400">
-                            {req.component}
+                            {req.component || 'Whole Blood'}
                           </span>
                         </div>
                       </td>
@@ -934,14 +932,12 @@ export const RecipientsPage = () => {
                           </div>
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider inline-block ${
-                              req.urgency?.includes('EMERGENCY')
+                              req.isEmergency || req.urgency === 'EMERGENCY'
                                 ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse'
-                                : req.urgency?.includes('SURGICAL')
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                                 : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                             }`}
                           >
-                            {req.urgency}
+                            {req.isEmergency || req.urgency === 'EMERGENCY' ? 'Emergency' : 'Routine'}
                           </span>
                         </div>
                       </td>
@@ -1121,7 +1117,7 @@ export const RecipientsPage = () => {
                     Urgency
                   </span>
                   <span className="font-semibold text-amber-400 block">
-                    {allocateModalReq.urgency}
+                    {allocateModalReq.isEmergency || allocateModalReq.urgency === 'EMERGENCY' ? 'Emergency' : 'Routine'}
                   </span>
                 </div>
               </div>
@@ -1186,12 +1182,14 @@ export const RecipientsPage = () => {
                           </div>
 
                           <div className="text-right">
-                            <span className="text-[11px] font-mono text-emerald-400 block font-semibold">
-                              Optimal ✓
+                            <span className="text-[11px] font-mono text-neutral-300 block">
+                              Expires: {formatDate(bag.expiredDate)}
                             </span>
-                            <span className="text-[10px] text-neutral-500">
-                              Donor: {bag.donorName}
-                            </span>
+                            {bag.donorName && bag.donorName !== '—' && (
+                              <span className="text-[10px] text-neutral-500">
+                                Donor: {bag.donorName}
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -1209,7 +1207,7 @@ export const RecipientsPage = () => {
                   type="text"
                   value={allocationNotes}
                   onChange={(e) => setAllocationNotes(e.target.value)}
-                  placeholder="e.g. Cleared for emergency surgical transfusion..."
+                  placeholder="Enter allocation notes..."
                   className="w-full p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/60"
                 />
               </div>
@@ -1395,7 +1393,7 @@ export const RecipientsPage = () => {
                     required
                     value={newOrder.hospitalName}
                     onChange={(e) => setNewOrder({ ...newOrder, hospitalName: e.target.value })}
-                    placeholder="e.g. St. Jude General Trauma Center"
+                    placeholder="Enter hospital or blood bank name"
                     className="w-full p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/60"
                   />
                 </div>
@@ -1409,7 +1407,7 @@ export const RecipientsPage = () => {
                       type="text"
                       value={newOrder.pincode}
                       onChange={(e) => setNewOrder({ ...newOrder, pincode: e.target.value })}
-                      placeholder="e.g. 10001"
+                      placeholder="Enter postal pincode"
                       className="w-full p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500/60"
                     />
                   </div>

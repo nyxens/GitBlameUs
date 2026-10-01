@@ -37,11 +37,15 @@ export async function createRequisition(req, res) {
       userId = defaultUser ? defaultUser._id : null;
     }
 
-    const resolvedBloodGroup = bloodgroup || bloodGroup || 'O+';
+    const resolvedBloodGroup = bloodgroup || bloodGroup;
+    if (!resolvedBloodGroup) {
+      return res.status(400).json({ success: false, error: 'Blood group is required' });
+    }
+
     const resolvedUnits = Number(units) || 1;
     const resolvedWeight = weight || (resolvedUnits * 450);
-    const resolvedPatient = patient_name || patientName || 'Emergency Patient';
-    const emergencyFlag = is_emergency ?? isEmergency ?? false;
+    const resolvedPatient = patient_name || patientName || null;
+    const emergencyFlag = Boolean(is_emergency ?? isEmergency ?? false);
 
     // Resolve target institution
     let resolvedHospitalId = hospital_id || hospitalId || null;
@@ -51,20 +55,23 @@ export async function createRequisition(req, res) {
       resolvedHospitalId = defaultHospital ? defaultHospital._id : null;
     }
 
+    const userDoc = userId ? await User.findById(userId).select('pincode').lean() : null;
+    const resolvedPincode = pincode || userDoc?.pincode || '—';
+
     const reqDoc = await Request.create({
       u_id: userId,
       patient_name: resolvedPatient,
       bloodgroup: resolvedBloodGroup,
       units: resolvedUnits,
       weight: resolvedWeight,
-      pincode: pincode || '10001',
+      pincode: resolvedPincode,
       is_emergency: emergencyFlag,
       hospital_id: resolvedHospitalId,
       bloodbank_id: resolvedBloodBankId,
       target_type: resolvedBloodBankId ? 'BLOOD_BANK' : 'HOSPITAL',
       date_of_request: new Date(),
-      required_date: required_date || date_of_requirement || new Date(Date.now() + 86400000),
-      date_of_requirement: required_date || date_of_requirement || new Date(Date.now() + 86400000),
+      required_date: required_date || date_of_requirement || null,
+      date_of_requirement: required_date || date_of_requirement || null,
       seeker_notes: seeker_notes || null,
       request_type: request_type || (req.user?.role === 'HOSPITAL' ? 'HOSPITAL' : 'CITIZEN'),
       status: emergencyFlag ? 'PENDING' : 'NOT_VERIFIED',
@@ -114,50 +121,52 @@ export async function getRequisitions(req, res) {
       .sort({ createdAt: -1, date_of_request: -1 })
       .lean();
 
-    const formatted = rawRequests.map((r, idx) => {
-      const patientName = r.patient_name || r.u_id?.name || r.u_id?.username || `Emergency Patient #${idx + 1}`;
+    const formatted = rawRequests.map((r) => {
+      const patientName = r.patient_name || r.u_id?.name || r.u_id?.username || '—';
       const units = r.units || Math.max(1, Math.round((r.weight || 450) / 450));
       const hospitalName =
         r.hospital_id?.hos_name ||
         r.bloodbank_id?.bank_name ||
-        'St. Jude General Trauma Center';
+        '—';
       const facilityIdVal = r.hospital_id?._id?.toString() || r.bloodbank_id?._id?.toString() || null;
 
       const staffName =
         r.allotment_id?.s_id?.u_id?.name ||
         r.allotment_id?.s_id?.u_id?.username ||
-        (r.status === 'COMPLETED' || r.status === 'FULFILLED' ? 'Dr. Marcus Vance' : 'On-Call Transfusionist');
+        r.staff_id?.u_id?.name ||
+        r.staff_id?.u_id?.username ||
+        'Unassigned';
 
-      const isEmergency = r.is_emergency || r.bloodgroup === 'O-';
-      const urgency = isEmergency ? 'EMERGENCY TRAUMA' : (r.units > 2 ? 'SURGICAL RESERVE' : 'ROUTINE TRANSFUSION');
+      const isEmergency = Boolean(r.is_emergency);
+      const urgency = isEmergency ? 'EMERGENCY' : 'ROUTINE';
 
       const reqDate = r.required_date || r.date_of_requirement || r.schedule_date;
       const requiredBy = reqDate
         ? new Date(reqDate).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
+            year: 'numeric',
           })
-        : (isEmergency ? 'Immediate (< 30 mins)' : 'Within 24 Hours');
+        : (isEmergency ? 'Immediate' : '—');
 
       return {
-        id: `RCP-${r._id.toString().slice(-4).toUpperCase()}`,
+        id: `REQ-${r._id.toString().slice(-6).toUpperCase()}`,
         dbId: r._id.toString(),
         patientName,
         hospital: hospitalName,
         facilityId: facilityIdVal,
         bloodGroup: r.bloodgroup,
-        component: isEmergency ? 'PRBC (Red Blood Cells)' : 'Whole Blood',
+        component: 'Whole Blood',
         units,
         urgency,
+        isEmergency,
         requiredBy,
         status: r.status === 'FULFILLED' ? 'COMPLETED' : r.status,
         authorizedStaff: staffName,
-        pincode: r.pincode || r.hospital_id?.pincode || '10001',
+        pincode: r.pincode || r.hospital_id?.pincode || r.u_id?.pincode || '—',
         date: r.date_of_request || r.createdAt
-          ? new Date(r.date_of_request || r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-          : 'Today',
+          ? new Date(r.date_of_request || r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '—',
         allocatedBags: r.allocated_bags || [],
         notes: r.seeker_notes || r.scheduling_notes || '',
         requestType: r.request_type || 'CITIZEN',
@@ -271,12 +280,12 @@ export async function getCandidateBags(req, res) {
 
     const candidateBags = bags.map((b) => ({
       id: b._id.toString(),
-      barcode: b.barcode || `LV-UNIT-${b._id.toString().slice(-4).toUpperCase()}`,
+      barcode: b.barcode || `LV-${b._id.toString().slice(-6).toUpperCase()}`,
       bloodGroup: b.bloodgroup,
-      cellno: b.I_ID?.cellno || 'CELL-01',
-      shelfno: b.I_ID?.shelfno || 'SHELF-01',
+      cellno: b.I_ID?.cellno || '—',
+      shelfno: b.I_ID?.shelfno || '—',
       expiredDate: b.expired_date,
-      donorName: b.donor_user_id?.name || 'Voluntary Donor',
+      donorName: b.donor_user_id?.name || b.donor_user_id?.username || '—',
     }));
 
     return res.status(200).json({
