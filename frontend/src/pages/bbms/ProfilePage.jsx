@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import {
   User,
   ShieldCheck,
@@ -121,36 +121,30 @@ const ABO_COMPATIBILITY = {
 const CARD_SKINS = {
   obsidian: {
     id: 'obsidian',
-    name: 'Obsidian Black',
-    frontGradient: 'from-[#0a0b10] via-[#12131a] to-[#20152e]',
-    border: 'border-white/15 hover:border-purple-500/40',
-    accentColor: 'text-purple-400',
-    badgeBg: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
-    circle1: 'bg-red-500/80',
-    circle2: 'bg-purple-600/80',
-    shimmer: 'rgba(168, 85, 247, 0.15)',
+    name: 'Obsidian Glass',
+    frontGradient: 'from-white/[0.07] via-[#0d0e14]/85 to-[#161222]/80',
+    border: 'border-white/15',
+    edgeHover: 'group-hover:border-purple-400/60 group-hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),0_0_25px_rgba(168,85,247,0.25),0_20px_45px_rgba(0,0,0,0.7)]',
+    accentColor: 'text-purple-300',
+    badgeBg: 'bg-white/[0.05] text-purple-200 border-white/15',
   },
   crimson: {
     id: 'crimson',
-    name: 'Crimson Titanium',
-    frontGradient: 'from-[#140507] via-[#24080e] to-[#180916]',
-    border: 'border-red-500/30 hover:border-red-500/60',
-    accentColor: 'text-red-400',
-    badgeBg: 'bg-red-500/15 text-red-300 border-red-500/30',
-    circle1: 'bg-red-600/90',
-    circle2: 'bg-rose-500/80',
-    shimmer: 'rgba(239, 68, 68, 0.2)',
+    name: 'Smoked Crimson',
+    frontGradient: 'from-white/[0.07] via-[#14080a]/85 to-[#1e0a12]/80',
+    border: 'border-white/15',
+    edgeHover: 'group-hover:border-red-400/60 group-hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),0_0_25px_rgba(239,68,68,0.25),0_20px_45px_rgba(0,0,0,0.7)]',
+    accentColor: 'text-red-300',
+    badgeBg: 'bg-white/[0.05] text-red-200 border-white/15',
   },
   cyber: {
     id: 'cyber',
-    name: 'Cyber Platinum',
-    frontGradient: 'from-[#071318] via-[#0b1f28] to-[#0e1726]',
-    border: 'border-cyan-500/30 hover:border-cyan-500/60',
-    accentColor: 'text-cyan-400',
-    badgeBg: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
-    circle1: 'bg-cyan-500/80',
-    circle2: 'bg-blue-600/80',
-    shimmer: 'rgba(6, 182, 212, 0.2)',
+    name: 'Frosted Cobalt',
+    frontGradient: 'from-white/[0.07] via-[#071318]/85 to-[#0b1722]/80',
+    border: 'border-white/15',
+    edgeHover: 'group-hover:border-cyan-400/60 group-hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),0_0_25px_rgba(6,182,212,0.25),0_20px_45px_rgba(0,0,0,0.7)]',
+    accentColor: 'text-cyan-300',
+    badgeBg: 'bg-white/[0.05] text-cyan-200 border-white/15',
   },
 };
 
@@ -182,6 +176,36 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
   // Credit Card Interactive State
   const [isFlipped, setIsFlipped] = useState(false);
   const [activeSkin, setActiveSkin] = useState('obsidian');
+
+  // Dynamic 3D Tilt Motion Values for interactive cursor depth (inward on cursor side, outward opposite)
+  const rawRotateX = useMotionValue(0);
+  const rawRotateY = useMotionValue(0);
+  const rotateX = useSpring(rawRotateX, { stiffness: 350, damping: 28 });
+  const rotateY = useSpring(rawRotateY, { stiffness: 260, damping: 25 });
+
+  useEffect(() => {
+    rawRotateY.set(isFlipped ? 180 : 0);
+    rawRotateX.set(0);
+  }, [isFlipped, rawRotateX, rawRotateY]);
+
+  const handleCardMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const dx = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 (left) to +0.5 (right)
+    const dy = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 (top) to +0.5 (bottom)
+    const maxTilt = 12; // Inward tilt angle in degrees
+
+    // Tilts inward on cursor side, opposite side outward
+    const tiltX = isFlipped ? dy * maxTilt : -dy * maxTilt;
+    const tiltY = dx * maxTilt;
+
+    rawRotateX.set(tiltX);
+    rawRotateY.set((isFlipped ? 180 : 0) + tiltY);
+  };
+
+  const handleCardMouseLeave = () => {
+    rawRotateX.set(0);
+    rawRotateY.set(isFlipped ? 180 : 0);
+  };
 
   // Interactive Blood Compatibility Explorer (selected group for preview)
   const [inspectedBloodGroup, setInspectedBloodGroup] = useState(formData.bloodgroup || 'O+');
@@ -568,7 +592,7 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
       {/* Top Header Row with Profile Completion & Verified Badge */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0 shadow-[0_0_24px_rgba(168,85,247,0.15)]">
+          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0 shadow-sm">
             <CreditCard className="w-6 h-6" />
           </div>
           <div>
@@ -581,23 +605,14 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
           </div>
         </div>
 
-        {/* Top Badges: Completion & Verification */}
+        {/* Top Badges: Completion */}
         <div className="flex items-center gap-2.5 flex-wrap">
           {/* Profile Completion Meter Pill */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-neutral-300">
-            <div className="w-4 h-4 rounded-full border border-purple-500/40 flex items-center justify-center text-[9px] font-bold text-purple-300">
-              {profileCompletion.score}%
-            </div>
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-neutral-300">
             <span>
               Profile {profileCompletion.score >= 100 ? 'Verified' : 'Ready'}:{' '}
               <strong className="text-purple-400 font-bold">{profileCompletion.score}%</strong>
             </span>
-          </div>
-
-          {/* Telemetry pill (NO blinking lights) */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-neutral-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>BIOMETRIC PASS • VERIFIED</span>
           </div>
         </div>
       </div>
@@ -655,28 +670,20 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
           {/* Card Skin Switcher & Interactive Flip Buttons */}
           <div className="flex items-center justify-between px-1 gap-2 flex-wrap">
             {/* Skin Selector */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] uppercase font-mono text-neutral-500 mr-1">Finish:</span>
+            <div className="flex items-center gap-1 p-0.5 rounded-xl bg-white/5 border border-white/10 font-mono text-xs">
               {Object.values(CARD_SKINS).map((s) => (
                 <button
                   key={s.id}
                   type="button"
                   onClick={() => setActiveSkin(s.id)}
-                  title={s.name}
-                  className={`w-5 h-5 rounded-full border transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] ${
                     activeSkin === s.id
-                      ? 'scale-110 border-white ring-2 ring-purple-500/40'
-                      : 'border-white/20 opacity-60 hover:opacity-100'
+                      ? 'bg-white/15 text-white font-bold border border-white/20 shadow-sm'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
-                  style={{
-                    background:
-                      s.id === 'obsidian'
-                        ? 'linear-gradient(135deg, #121318, #2a1b3d)'
-                        : s.id === 'crimson'
-                        ? 'linear-gradient(135deg, #380a12, #6b1426)'
-                        : 'linear-gradient(135deg, #0b222c, #14495b)',
-                  }}
-                />
+                >
+                  {s.name}
+                </button>
               ))}
             </div>
 
@@ -709,14 +716,14 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
 
           {/* 3D FLIPPABLE CREDIT CARD CONTAINER */}
           <div
-            className="w-full select-none cursor-pointer"
+            className="w-full select-none cursor-pointer group"
             style={{ perspective: 1200 }}
             onClick={() => setIsFlipped(!isFlipped)}
+            onMouseMove={handleCardMouseMove}
+            onMouseLeave={handleCardMouseLeave}
           >
             <motion.div
-              animate={{ rotateY: isFlipped ? 180 : 0 }}
-              transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 25 }}
-              style={{ transformStyle: 'preserve-3d' }}
+              style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
               className="relative w-full aspect-[1.586/1] max-w-[440px] mx-auto rounded-3xl"
             >
               {/* ================= CARD FRONT: DONOR PASSPORT ================= */}
@@ -725,14 +732,10 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                   backfaceVisibility: 'hidden',
                   WebkitBackfaceVisibility: 'hidden',
                 }}
-                className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${skin.frontGradient} border ${skin.border} p-5 md:p-6 shadow-2xl flex flex-col justify-between overflow-hidden transition-all duration-300`}
+                className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${skin.frontGradient} border ${skin.border} ${skin.edgeHover} backdrop-blur-xl p-5 md:p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_20px_45px_rgba(0,0,0,0.7)] flex flex-col justify-between overflow-hidden antialiased transition-[border-color,box-shadow] duration-300`}
               >
-                {/* Metallic diagonal gloss reflection overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.03] via-white/[0.08] to-transparent pointer-events-none" />
-                <div
-                  className="absolute -right-20 -top-20 w-52 h-52 rounded-full blur-3xl pointer-events-none"
-                  style={{ background: skin.shimmer }}
-                />
+                {/* Diagonal glassy sheen overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.02] to-white/[0.07] pointer-events-none" />
 
                 {/* 1. Card Top Row: Brand & Holographic Blood Group Seal */}
                 <div className="flex items-start justify-between relative z-10">
@@ -741,20 +744,20 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                       <span className="text-base md:text-lg font-black tracking-wider text-white font-mono uppercase">
                         LIFE<span className={skin.accentColor}>VAULT</span>
                       </span>
-                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-mono font-bold tracking-wider border uppercase ${skin.badgeBg}`}>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-md font-mono font-bold tracking-wider border uppercase ${skin.badgeBg}`}>
                         {tierProgress.tier}
                       </span>
                     </div>
-                    <span className="text-[9px] font-mono tracking-widest text-neutral-500 uppercase block mt-0.5">
+                    <span className="text-[9px] font-mono tracking-widest text-neutral-400 uppercase block mt-0.5">
                       OFFICIAL BLOOD DONOR PASS
                     </span>
                   </div>
 
                   {/* Top-Right Holographic Blood Group Seal */}
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white/[0.08] border border-white/20 backdrop-blur-md shadow-lg shadow-black/50">
-                    <Droplet className="w-4 h-4 fill-red-400 text-red-400" />
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white/[0.05] border border-white/15 backdrop-blur-md shadow-sm">
+                    <Droplet className="w-4 h-4 fill-red-400/90 text-red-400/90" />
                     <div>
-                      <span className="text-xl md:text-2xl font-black font-mono tracking-tight text-white block leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                      <span className="text-xl md:text-2xl font-black font-mono tracking-tight text-white block leading-none">
                         {formData.bloodgroup}
                       </span>
                       <span className="text-[8px] font-mono text-neutral-400 tracking-wider uppercase block mt-0.5">
@@ -764,65 +767,35 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                   </div>
                 </div>
 
-                {/* 2. Metallic EMV Biometric Chip & Donation Impact Pill */}
-                <div className="flex items-center justify-between relative z-10 my-auto pt-2">
-                  <div className="flex items-center gap-3">
-                    {/* Authentic EMV Metallic Contact Chip */}
-                    <div className="relative w-12 h-9 rounded-lg bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 p-[1.5px] shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden">
-                      <div className="w-full h-full rounded-[6px] bg-gradient-to-tr from-yellow-500 via-amber-300 to-yellow-600 relative border border-amber-700/40">
-                        <div className="absolute inset-0 bg-yellow-400/15" />
-                        <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-amber-800/50 -translate-y-1/2" />
-                        <div className="absolute top-0 bottom-0 left-[35%] w-[1px] bg-amber-800/50" />
-                        <div className="absolute top-0 bottom-0 right-[35%] w-[1px] bg-amber-800/50" />
-                        <div className="absolute top-[28%] bottom-[28%] left-[25%] right-[25%] rounded-[3px] border border-amber-800/50 bg-amber-200/40" />
-                      </div>
-                    </div>
-
-                    {/* Contactless Health Pass Sensor */}
-                    <div className="text-neutral-400/80 -rotate-90">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                        <path d="M5 12.55a11 11 0 0 1 14.08 0" />
-                        <path d="M1.42 9a16 16 0 0 1 21.16 0" />
-                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-                        <circle cx="12" cy="19.5" r="1" fill="currentColor" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Relatable Donation Metrics Highlight */}
-                  <div className="px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-right backdrop-blur-sm">
-                    <span className="text-[9px] font-mono text-neutral-400 uppercase block">
-                      Total Donated: <strong className="text-white">{donationStats.volumeMl} ml</strong>
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400 flex items-center justify-end gap-1 mt-0.5">
-                      <Heart className="w-2.5 h-2.5 fill-emerald-400" />
-                      <span>≈ {donationStats.livesSaved} Lives Impacted</span>
-                    </span>
+                {/* 2. Biometric QR Code */}
+                <div className="flex items-center relative z-10 my-auto pt-1">
+                  <div className="p-2.5 rounded-2xl bg-white/[0.05] border border-white/15 backdrop-blur-md shadow-sm flex items-center justify-center text-white">
+                    <QrCode className="w-9 h-9 text-neutral-200 stroke-[1.6]" />
                   </div>
                 </div>
 
                 {/* 3. Embossed Donor Registration Code */}
                 <div className="relative z-10 pt-1 pb-1">
-                  <span className="text-[8px] font-mono tracking-widest text-neutral-500 uppercase block">
+                  <span className="text-[8px] font-mono tracking-widest text-neutral-400 uppercase block">
                     DONOR REGISTRATION CODE
                   </span>
-                  <div className="font-mono text-sm sm:text-base md:text-[17px] font-bold tracking-[0.16em] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  <div className="font-mono text-sm sm:text-base md:text-[17px] font-bold tracking-[0.16em] text-white">
                     {donorCode}
                   </div>
                 </div>
 
-                {/* 4. Card Bottom: Donor Name, Intake Count, Area Pincode, and Brand Emblem */}
+                {/* 4. Card Bottom: Donor Name, Intake Count, and Area Pincode (removed masterclass logo) */}
                 <div className="flex items-end justify-between relative z-10 pt-1">
                   <div className="min-w-0 pr-2">
                     <span className="text-[8px] font-mono tracking-widest text-neutral-400 uppercase block">
                       CERTIFIED DONOR
                     </span>
-                    <span className="text-xs md:text-sm font-mono font-bold tracking-wider text-white truncate block drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                    <span className="text-xs md:text-sm font-mono font-bold tracking-wider text-white truncate block">
                       {userDisplayName}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-4 shrink-0">
                     <div>
                       <span className="text-[8px] font-mono tracking-widest text-neutral-400 uppercase block">
                         COMPLETED
@@ -840,12 +813,6 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                         {formData.pincode || '10001'}
                       </span>
                     </div>
-
-                    {/* LifeVault Brand Emblem */}
-                    <div className="flex items-center -space-x-2.5 shrink-0 pl-1">
-                      <div className={`w-7 h-7 rounded-full ${skin.circle1} shadow-md backdrop-blur-sm`} />
-                      <div className={`w-7 h-7 rounded-full ${skin.circle2} shadow-md backdrop-blur-sm mix-blend-screen`} />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -857,10 +824,13 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                   WebkitBackfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)',
                 }}
-                className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${skin.frontGradient} border ${skin.border} shadow-2xl flex flex-col justify-between overflow-hidden p-4 sm:p-5 select-none`}
+                className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${skin.frontGradient} border ${skin.border} ${skin.edgeHover} backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_20px_45px_rgba(0,0,0,0.7)] flex flex-col justify-between overflow-hidden p-4 sm:p-5 select-none antialiased transition-[border-color,box-shadow] duration-300`}
               >
+                {/* Diagonal glassy sheen overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.02] to-white/[0.06] pointer-events-none" />
+
                 {/* 1. Card Back Header */}
-                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <div className="flex items-center justify-between border-b border-white/10 pb-2 relative z-10">
                   <div className="flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 text-red-400 shrink-0" />
                     <div>
@@ -872,16 +842,16 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/15 text-[9px] font-mono font-bold text-red-300">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/15 text-[9px] font-mono font-bold text-red-300">
                     <Droplet className="w-3 h-3 fill-red-400 text-red-400" />
                     <span>{formData.bloodgroup || 'O+'}</span>
                   </div>
                 </div>
 
                 {/* 2. Emergency Contact Box */}
-                <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between gap-2 shadow-inner">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between gap-2 backdrop-blur-sm relative z-10">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center shrink-0 text-red-400">
+                    <div className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/25 flex items-center justify-center shrink-0 text-red-400">
                       <PhoneCall className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0">
@@ -894,7 +864,7 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-[7.5px] font-mono text-neutral-500 uppercase block">PHONE</span>
+                    <span className="text-[7.5px] font-mono text-neutral-400 uppercase block">PHONE</span>
                     <span className="text-[11px] sm:text-xs font-mono font-bold text-red-400 tracking-wider block mt-0.5">
                       {formData.emergencyContactPhone || 'Not Specified'}
                     </span>
@@ -902,9 +872,9 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                 </div>
 
                 {/* 3. Diseases & Donation Precautions Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-auto relative z-10">
                   {/* Diseases / Medical Conditions */}
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-black/40 border border-white/10 flex flex-col justify-between min-h-[58px]">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-sm flex flex-col justify-between min-h-[58px]">
                     <div className="flex items-center gap-1.5 mb-1">
                       <Stethoscope className="w-3 h-3 text-amber-400 shrink-0" />
                       <span className="text-[8px] font-mono font-bold tracking-wider text-amber-300 uppercase truncate">
@@ -919,7 +889,7 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                   </div>
 
                   {/* Donation Precautions */}
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-black/40 border border-white/10 flex flex-col justify-between min-h-[58px]">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-sm flex flex-col justify-between min-h-[58px]">
                     <div className="flex items-center gap-1.5 mb-1">
                       <HeartPulse className="w-3 h-3 text-cyan-400 shrink-0" />
                       <span className="text-[8px] font-mono font-bold tracking-wider text-cyan-300 uppercase truncate">
@@ -934,12 +904,12 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                   </div>
                 </div>
 
-                {/* 4. Card Back Static Footer (NO blinking lights) */}
-                <div className="border-t border-white/10 pt-1.5 flex items-center justify-between text-[8px] font-mono text-neutral-500">
+                {/* 4. Card Back Footer */}
+                <div className="border-t border-white/10 pt-1.5 flex items-center justify-between text-[8px] font-mono text-neutral-400 relative z-10">
                   <span className="uppercase tracking-wider">
                     LIFEVAULT PROTOCOL • INTAKE SAFETY DIRECTIVE
                   </span>
-                  <span className="text-neutral-400 font-bold tracking-widest">
+                  <span className="text-neutral-300 font-bold tracking-widest">
                     REG: {shortId}
                   </span>
                 </div>
@@ -948,7 +918,7 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
           </div>
 
           <p className="text-center text-[11px] text-neutral-500 font-mono flex items-center justify-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+            <RotateCcw className="w-3 h-3 text-neutral-400" />
             <span>Click card to flip between Front Pass and Safety Directive Back</span>
           </p>
 
@@ -1046,7 +1016,7 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                     onClick={() => setInspectedBloodGroup(bg)}
                     className={`py-1.5 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer border ${
                       inspectedBloodGroup === bg
-                        ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_12px_rgba(168,85,247,0.4)] scale-105'
+                        ? 'bg-purple-600 border-purple-400 text-white shadow-sm scale-105'
                         : bg === formData.bloodgroup
                         ? 'bg-white/10 border-purple-500/40 text-purple-300 hover:bg-white/15'
                         : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white hover:bg-white/10'
@@ -1310,7 +1280,7 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
           {/* ================= TAB 1: PROFILE DETAILS FORM ================= */}
           {activeTab === 'details' && (
             <div className="relative rounded-3xl bg-neutral-950/90 border border-white/10 backdrop-blur-xl p-6 md:p-8 shadow-2xl overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-400" />
+              <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
 
               <div className="flex items-center justify-between pb-5 mb-6 border-b border-white/10">
                 <div className="flex items-center gap-3">
@@ -1595,7 +1565,7 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg shadow-purple-950/50 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-xs hover:shadow-[0_0_20px_rgba(168,85,247,0.35)]"
+                    className="px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-xs hover:shadow-lg"
                   >
                     {isSaving ? (
                       <>
@@ -1645,14 +1615,10 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
                         className={`absolute -left-6 sm:-left-8 top-1.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                           isUpcoming
                             ? 'bg-emerald-500 border-white text-black'
-                            : 'bg-neutral-950 border-purple-500 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]'
+                            : 'bg-neutral-950 border-purple-500/60 text-purple-400'
                         }`}
                       >
-                        {isUpcoming ? (
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        ) : (
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                        )}
+                        <Check className="w-3 h-3 stroke-[2.5]" />
                       </div>
 
                       {/* Timeline Card */}
