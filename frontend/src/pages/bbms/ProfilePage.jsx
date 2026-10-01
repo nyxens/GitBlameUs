@@ -188,52 +188,15 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
 
   // Donation Stats State
   const [donationStats, setDonationStats] = useState({
-    totalCompleted: 3,
-    volumeMl: 1350,
-    livesSaved: 9,
-    lastDonationDate: 'Aug 14, 2026',
+    totalCompleted: 0,
+    volumeMl: 0,
+    livesSaved: 0,
+    lastDonationDate: 'No donations yet',
     isEligibleNow: true,
   });
 
   // Donation History Timeline Items
-  const [timelineEvents, setTimelineEvents] = useState([
-    {
-      id: 'EVT-01',
-      title: 'Whole Blood Intake #1',
-      date: 'Jan 10, 2026',
-      facility: 'LifeVault Central Cryo-Bank',
-      volume: '450 ml',
-      status: 'COMPLETED',
-      livesImpact: 3,
-    },
-    {
-      id: 'EVT-02',
-      title: 'Whole Blood Intake #2',
-      date: 'Apr 22, 2026',
-      facility: 'Metropolitan General Hospital',
-      volume: '450 ml',
-      status: 'COMPLETED',
-      livesImpact: 3,
-    },
-    {
-      id: 'EVT-03',
-      title: 'Whole Blood Intake #3',
-      date: 'Aug 14, 2026',
-      facility: 'St. Jude Emergency Blood Station',
-      volume: '450 ml',
-      status: 'COMPLETED',
-      livesImpact: 3,
-    },
-    {
-      id: 'EVT-04',
-      title: 'Next Scheduled Intake',
-      date: 'Active Window',
-      facility: 'Any Certified LifeVault Hub',
-      volume: '450 ml',
-      status: 'ELIGIBLE_NOW',
-      livesImpact: 3,
-    },
-  ]);
+  const [timelineEvents, setTimelineEvents] = useState([]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -269,14 +232,14 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
         try {
           const userId = user.id || user._id || user.sub;
           const res = await getMyGiverRequests(userId);
-          if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+          if (res?.success && Array.isArray(res.data)) {
             const completed = res.data.filter((r) => r.status === 'COMPLETED');
-            const total = completed.length > 0 ? completed.length : 3;
+            const total = completed.length;
             const volume = total * 450;
             const lives = total * 3;
             const lastDate = completed[0]?.completed_at
               ? new Date(completed[0].completed_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-              : 'Eligible for Intake';
+              : 'No donations yet';
 
             setDonationStats({
               totalCompleted: total,
@@ -293,22 +256,11 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
               date: r.completed_at
                 ? new Date(r.completed_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
                 : 'Verified Date',
-              facility: r.hospital_name || 'Certified Health Center',
+              facility: r.hospital_id?.hos_name || r.bloodbank_id?.bank_name || r.hospital_name || 'LifeVault Certified Center',
               volume: `${(r.units || 1) * 450} ml`,
               status: 'COMPLETED',
               livesImpact: (r.units || 1) * 3,
             }));
-
-            // Add the next upcoming/eligible node
-            mappedEvents.push({
-              id: 'NEXT-INTAKE',
-              title: 'Next Eligible Whole Blood Intake',
-              date: 'Ready for Scheduling',
-              facility: 'All LifeVault BBMS Facilities',
-              volume: '450 ml',
-              status: 'ELIGIBLE_NOW',
-              livesImpact: 3,
-            });
 
             setTimelineEvents(mappedEvents);
           }
@@ -1635,72 +1587,82 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
               </div>
 
               {/* Vertical Stepper Timeline */}
-              <div className="relative pl-6 sm:pl-8 space-y-8 before:absolute before:left-2.5 sm:before:left-3.5 before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-purple-500 before:via-purple-500/40 before:to-emerald-500">
-                {timelineEvents.map((evt, idx) => {
-                  const isUpcoming = evt.status === 'ELIGIBLE_NOW';
-                  return (
-                    <div key={evt.id} className="relative group">
-                      {/* Node Bullet */}
-                      <div
-                        className={`absolute -left-6 sm:-left-8 top-1.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          isUpcoming
-                            ? 'bg-emerald-500 border-white text-black'
-                            : 'bg-neutral-950 border-purple-500 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]'
-                        }`}
-                      >
-                        {isUpcoming ? (
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        ) : (
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                        )}
-                      </div>
+              {timelineEvents.length === 0 ? (
+                <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/10 text-center">
+                  <Milestone className="w-8 h-8 text-neutral-500 mx-auto mb-2 opacity-60" />
+                  <h4 className="text-sm font-bold text-white mb-1">No Donation History Yet</h4>
+                  <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+                    When you apply to donate blood and complete an intake at any verified hospital or blood bank, your clinical milestones will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="relative pl-6 sm:pl-8 space-y-8 before:absolute before:left-2.5 sm:before:left-3.5 before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-purple-500 before:via-purple-500/40 before:to-emerald-500">
+                  {timelineEvents.map((evt, idx) => {
+                    const isUpcoming = evt.status === 'ELIGIBLE_NOW';
+                    return (
+                      <div key={evt.id} className="relative group">
+                        {/* Node Bullet */}
+                        <div
+                          className={`absolute -left-6 sm:-left-8 top-1.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                            isUpcoming
+                              ? 'bg-emerald-500 border-white text-black'
+                              : 'bg-neutral-950 border-purple-500 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]'
+                          }`}
+                        >
+                          {isUpcoming ? (
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          ) : (
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                          )}
+                        </div>
 
-                      {/* Timeline Card */}
-                      <div
-                        className={`p-4 rounded-2xl border transition-all ${
-                          isUpcoming
-                            ? 'bg-emerald-500/[0.04] border-emerald-500/30 shadow-lg shadow-emerald-950/20'
-                            : 'bg-white/[0.02] border-white/10 hover:border-purple-500/30'
-                        }`}
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-                          <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                            <span>{evt.title}</span>
-                            <span
-                              className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${
-                                isUpcoming
-                                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-bold'
-                                  : 'bg-purple-500/10 border-purple-500/20 text-purple-300 font-mono'
-                              }`}
-                            >
-                              {isUpcoming ? 'Ready For Intake' : 'Verified Intake'}
+                        {/* Timeline Card */}
+                        <div
+                          className={`p-4 rounded-2xl border transition-all ${
+                            isUpcoming
+                              ? 'bg-emerald-500/[0.04] border-emerald-500/30 shadow-lg shadow-emerald-950/20'
+                              : 'bg-white/[0.02] border-white/10 hover:border-purple-500/30'
+                          }`}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                              <span>{evt.title}</span>
+                              <span
+                                className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${
+                                  isUpcoming
+                                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-bold'
+                                    : 'bg-purple-500/10 border-purple-500/20 text-purple-300 font-mono'
+                                }`}
+                              >
+                                {isUpcoming ? 'Ready For Intake' : 'Verified Intake'}
+                              </span>
+                            </h4>
+                            <span className="text-[11px] font-mono text-neutral-400 flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              <span>{evt.date}</span>
                             </span>
-                          </h4>
-                          <span className="text-[11px] font-mono text-neutral-400 flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{evt.date}</span>
-                          </span>
-                        </div>
+                          </div>
 
-                        <p className="text-xs text-neutral-400 flex items-center gap-1.5 mt-1 font-mono">
-                          <MapPin className="w-3 h-3 text-purple-400" />
-                          <span>{evt.facility}</span>
-                        </p>
+                          <p className="text-xs text-neutral-400 flex items-center gap-1.5 mt-1 font-mono">
+                            <MapPin className="w-3 h-3 text-purple-400" />
+                            <span>{evt.facility}</span>
+                          </p>
 
-                        <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs font-mono">
-                          <span className="text-neutral-400">
-                            Volume: <strong className="text-white">{evt.volume}</strong>
-                          </span>
-                          <span className="text-emerald-400 font-bold flex items-center gap-1">
-                            <Heart className="w-3 h-3 fill-emerald-400" />
-                            <span>≈ {evt.livesImpact} Lives Impacted</span>
-                          </span>
+                          <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs font-mono">
+                            <span className="text-neutral-400">
+                              Volume: <strong className="text-white">{evt.volume}</strong>
+                            </span>
+                            <span className="text-emerald-400 font-bold flex items-center gap-1">
+                              <Heart className="w-3 h-3 fill-emerald-400" />
+                              <span>≈ {evt.livesImpact} Lives Impacted</span>
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

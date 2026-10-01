@@ -120,6 +120,10 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
 
   const unfulfilledCount = inventory.filter((i) => i.status === 'UNFULFILLED').length;
   const totalUnits = inventory.reduce((sum, i) => sum + (i.units || 1), 0);
+  const expiringSoonCount = inventory.filter(
+    (i) => i.status === 'CRITICAL' || i.expiry?.includes('Expired') || (parseInt(i.expiry, 10) <= 7)
+  ).length;
+  const uniqueFacilitiesCount = facilities.length || (inventory.length > 0 ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-black text-white font-sans flex flex-col relative selection:bg-purple-500 selection:text-white">
@@ -211,22 +215,28 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-cyan-500/40 transition-colors">
+              <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-amber-500/40 transition-colors">
                 <div className="flex items-center justify-between text-neutral-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider">Vault Core Temp</span>
-                  <Thermometer className="w-4 h-4 text-cyan-400" />
+                  <span className="text-xs font-semibold uppercase tracking-wider">Expiring Soon</span>
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
                 </div>
-                <div className="text-3xl font-extrabold text-white tracking-tight">2.4°C</div>
-                <div className="text-[11px] text-neutral-400 mt-1">Cryo Unit: -18.2°C (Optimal)</div>
+                <div className="text-3xl font-extrabold text-amber-400 tracking-tight">
+                  {expiringSoonCount} Units
+                </div>
+                <div className="text-[11px] text-neutral-400 mt-1">
+                  {expiringSoonCount > 0 ? 'FEFO priority rotation required' : 'No near-term expiration risk'}
+                </div>
               </div>
 
               <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-emerald-500/40 transition-colors">
                 <div className="flex items-center justify-between text-neutral-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider">FEFO Prioritized</span>
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-semibold uppercase tracking-wider">Active Facilities</span>
+                  <Building2 className="w-4 h-4 text-emerald-400" />
                 </div>
-                <div className="text-3xl font-extrabold text-white tracking-tight">100%</div>
-                <div className="text-[11px] text-neutral-400 mt-1">Expiration risk defense active</div>
+                <div className="text-3xl font-extrabold text-white tracking-tight">
+                  {uniqueFacilitiesCount} Centers
+                </div>
+                <div className="text-[11px] text-neutral-400 mt-1">Storage vault institutions in DB</div>
               </div>
             </div>
 

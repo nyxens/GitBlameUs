@@ -534,7 +534,7 @@ export const DonorsPage = () => {
             </div>
           </div>
           <div className="flex items-center justify-between h-5">
-            <span className="text-[11px] text-neutral-400 truncate">Sort by top contributors</span>
+            <span className="text-[11px] text-neutral-400 truncate">Actual DB units donated</span>
             <span
               className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
                 activeCardFilter === 'TOTAL_DONATED' ? 'opacity-100' : 'opacity-0 pointer-events-none'

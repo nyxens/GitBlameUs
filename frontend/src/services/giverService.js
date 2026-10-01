@@ -214,8 +214,6 @@ export async function getHospitalGiverRequests(hospitalId, status) {
 
 // ── Query: Get all requests with filters ──
 export async function getAllGiverRequests({ status, target_type, limit, skip } = {}) {
-  const MOCK_DATA = getMockGiverRequests();
-
   try {
     const params = new URLSearchParams();
     if (status) params.set('status', status);
@@ -225,97 +223,13 @@ export async function getAllGiverRequests({ status, target_type, limit, skip } =
     const queryString = params.toString();
     const result = await fetchApi(`/giver/requests${queryString ? `?${queryString}` : ''}`);
 
-    // If API returned real data, use it; otherwise fall back to mock demo data
-    const hasRealData = (result?.requests?.length > 0) || (result?.data?.length > 0);
-    if (hasRealData) return result;
-
-    console.info('[GiverService] DB is empty — using demo data for UI preview.');
-    return MOCK_DATA;
+    return result || { success: true, count: 0, requests: [] };
   } catch (err) {
-    console.warn('API unavailable for getAllGiverRequests, mock fallback:', err);
-    return MOCK_DATA;
+    console.warn('API unavailable for getAllGiverRequests:', err);
+    return { success: false, count: 0, requests: [] };
   }
 }
 
-/**
- * Demo / preview mock data — used when the database is empty or backend is unreachable.
- * Automatically replaced by real data once giver requests exist in MongoDB.
- */
-function getMockGiverRequests() {
-  return {
-    success: true,
-    total: 6,
-    count: 6,
-    requests: [
-      {
-        _id: 'GR-MOCK-001',
-        u_id: { _id: 'U-001', name: 'Alexander Wright', username: 'awright', email: 'awright@example.com', bloodgroup: 'O-', phone: '+1 (555) 234-5678', gender: 'Male' },
-        target_type: 'HOSPITAL',
-        hospital_id: { _id: 'H-001', hos_name: 'Metro General Hospital' },
-        status: 'NOT_VERIFIED',
-        donor_notes: 'First time donor, nervous but excited to help.',
-        preferred_date: '2026-09-15T00:00:00.000Z',
-        createdAt: '2026-09-08T10:30:00.000Z',
-      },
-      {
-        _id: 'GR-MOCK-002',
-        u_id: { _id: 'U-002', name: 'Maya Patel', username: 'mpatel', email: 'maya@example.com', bloodgroup: 'A+', phone: '+1 (555) 876-5432', gender: 'Female' },
-        target_type: 'HOSPITAL',
-        hospital_id: { _id: 'H-001', hos_name: 'Metro General Hospital' },
-        status: 'VERIFIED',
-        admin_id: { _id: 'A-001', username: 'admin_sarah' },
-        verified_at: '2026-09-08T14:00:00.000Z',
-        verification_notes: 'All credentials verified. Eligible donor.',
-        preferred_date: '2026-09-14T00:00:00.000Z',
-        createdAt: '2026-09-07T09:15:00.000Z',
-      },
-      {
-        _id: 'GR-MOCK-003',
-        u_id: { _id: 'U-003', name: 'Liam O\'Connor', username: 'liam_oc', email: 'liam@example.com', bloodgroup: 'B-', phone: '+1 (555) 345-6789', gender: 'Male' },
-        target_type: 'BLOOD_BANK',
-        bloodbank_id: { _id: 'BB-001', bank_name: 'City Central Blood Bank' },
-        status: 'ACCEPTED',
-        appointment_date: '2026-09-12T00:00:00.000Z',
-        appointment_time: '10:30 AM',
-        appointment_venue: 'Room 204, Donation Wing',
-        scheduling_notes: 'Please bring valid ID.',
-        preferred_date: '2026-09-12T00:00:00.000Z',
-        createdAt: '2026-09-05T11:45:00.000Z',
-      },
-      {
-        _id: 'GR-MOCK-004',
-        u_id: { _id: 'U-004', name: 'Zainab Al-Mansoor', username: 'zainab_am', email: 'zainab@example.com', bloodgroup: 'O+', phone: '+1 (555) 987-6543', gender: 'Female' },
-        target_type: 'HOSPITAL',
-        hospital_id: { _id: 'H-002', hos_name: 'St. Jude Emergency Center' },
-        status: 'COMPLETED',
-        completed_at: '2026-09-06T16:00:00.000Z',
-        bag_id: { _id: 'BAG-001', bloodgroup: 'O+', haemoglobin: 14.2 },
-        preferred_date: '2026-09-06T00:00:00.000Z',
-        createdAt: '2026-09-03T08:00:00.000Z',
-      },
-      {
-        _id: 'GR-MOCK-005',
-        u_id: { _id: 'U-005', name: 'Carlos Gomez', username: 'cgomez', email: 'carlos@example.com', bloodgroup: 'AB-', phone: '+1 (555) 456-7890', gender: 'Male' },
-        target_type: 'HOSPITAL',
-        hospital_id: { _id: 'H-001', hos_name: 'Metro General Hospital' },
-        status: 'REJECTED',
-        rejection_reason: 'Donor did not meet minimum weight requirement.',
-        preferred_date: '2026-09-10T00:00:00.000Z',
-        createdAt: '2026-09-04T13:20:00.000Z',
-      },
-      {
-        _id: 'GR-MOCK-006',
-        u_id: { _id: 'U-006', name: 'Emily Zhang', username: 'ezhang', email: 'emily@example.com', bloodgroup: 'A-', phone: '+1 (555) 678-9012', gender: 'Female' },
-        target_type: 'BLOOD_BANK',
-        bloodbank_id: { _id: 'BB-002', bank_name: 'Regional Blood Reserve' },
-        status: 'CANCELLED',
-        rejection_reason: 'Personal emergency, will reschedule.',
-        preferred_date: '2026-09-11T00:00:00.000Z',
-        createdAt: '2026-09-06T07:30:00.000Z',
-      },
-    ],
-  };
-}
 
 export const giverService = {
   applyDonationRequest,

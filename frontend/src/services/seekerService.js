@@ -205,8 +205,6 @@ export async function getBloodBankSeekerRequests(bloodbankId, status) {
 
 // ── Query: Get all requests with filters ──
 export async function getAllSeekerRequests({ status, target_type, bloodgroup, is_emergency, limit, skip } = {}) {
-  const MOCK_DATA = getMockSeekerRequests();
-
   try {
     const params = new URLSearchParams();
     if (status) params.set('status', status);
@@ -218,14 +216,10 @@ export async function getAllSeekerRequests({ status, target_type, bloodgroup, is
     const queryString = params.toString();
     const result = await fetchApi(`/seeker/requests${queryString ? `?${queryString}` : ''}`);
 
-    const hasRealData = (result?.requests?.length > 0) || (result?.data?.length > 0);
-    if (hasRealData) return result;
-
-    console.info('[SeekerService] DB is empty — using demo data for UI preview.');
-    return MOCK_DATA;
+    return result || { success: true, count: 0, requests: [] };
   } catch (err) {
-    console.warn('API unavailable for getAllSeekerRequests, mock fallback:', err);
-    return MOCK_DATA;
+    console.warn('API unavailable for getAllSeekerRequests:', err);
+    return { success: false, count: 0, requests: [] };
   }
 }
 
@@ -266,51 +260,6 @@ export async function getNearbyInstitutions({ pincode, lat, lng, type = 'ALL', r
     console.warn('getNearbyInstitutions failed:', err.message);
     return { success: false, error: err.message, data: [] };
   }
-}
-
-/**
- * Demo / preview mock data — used when the database is empty or backend is unreachable.
- */
-function getMockSeekerRequests() {
-  return {
-    success: true,
-    total: 4,
-    count: 4,
-    requests: [
-      {
-        _id: 'SR-MOCK-001',
-        u_id: { _id: 'U-101', name: 'David Miller', username: 'dmiller', email: 'dmiller@example.com', bloodgroup: 'O-', phone: '+1 (555) 234-8899', gender: 'Male' },
-        patient_name: 'David Miller',
-        bloodgroup: 'O-',
-        units: 2,
-        weight: 900,
-        is_emergency: true,
-        target_type: 'HOSPITAL',
-        hospital_id: { _id: 'H-001', hos_name: 'Metro General Hospital', pincode: '10001' },
-        status: 'ACCEPTED',
-        schedule_date: '2026-10-01T00:00:00.000Z',
-        schedule_time: '10:15 AM',
-        pickup_venue: 'Emergency Trauma Desk A',
-        scheduling_notes: 'Priority emergency dispatch confirmed.',
-        createdAt: '2026-09-28T10:15:00.000Z',
-      },
-      {
-        _id: 'SR-MOCK-002',
-        u_id: { _id: 'U-102', name: 'Sophia Lin', username: 'slin', email: 'sophia@example.com', bloodgroup: 'A+', phone: '+1 (555) 443-1289', gender: 'Female' },
-        patient_name: 'Sophia Lin',
-        bloodgroup: 'A+',
-        units: 1,
-        weight: 450,
-        is_emergency: false,
-        target_type: 'BLOOD_BANK',
-        bloodbank_id: { _id: 'BB-001', bank_name: 'City Central Blood Bank', pincode: '10014' },
-        status: 'VERIFIED',
-        verification_notes: 'Cardiology surgery requirement verified.',
-        required_date: '2026-10-05T00:00:00.000Z',
-        createdAt: '2026-09-27T09:30:00.000Z',
-      },
-    ],
-  };
 }
 
 export const seekerService = {

@@ -115,22 +115,21 @@ export async function getDonors(_req, res) {
         const city = pinToCity[u.pincode] || (u.pincode ? `Metro Zone ${u.pincode}` : 'New York, NY');
 
         return {
-          id: `DNR-${701 + index}`,
+          id: `DNR-${u._id.toString().slice(-4).toUpperCase()}`,
           dbId: uId,
           name: u.name || u.username,
           bloodGroup,
-          totalDonations: totalDonations || (index % 3 === 0 ? 3 : index % 2 === 0 ? 2 : 1),
+          totalDonations,
           lastDonation: formattedLastDonation,
           eligibility,
-          phone: u.phone || `+1 (555) ${234 + index}-${1000 + index}`,
+          phone: u.phone || '—',
           city,
-          pincode: u.pincode || '10001',
-          isDriveParticipant: index % 2 === 0,
+          pincode: u.pincode || '—',
         };
       });
 
     const eligibleNow = donorsList.filter((d) => d.eligibility.startsWith('ELIGIBLE')).length;
-    const totalDonatedUnits = donorsList.reduce((acc, d) => acc + d.totalDonations, 0);
+    const totalDonatedUnits = donations.length;
     const incomingRequestsCount = await GiverRequest.countDocuments({
       status: { $in: ['NOT_VERIFIED', 'PENDING', 'VERIFIED', 'ACCEPTED'] },
     });
