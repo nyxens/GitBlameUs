@@ -67,7 +67,7 @@ app.use('/api/v1', router);
 app.use('/api', router);
 app.use('/', router);
 
-app.get('/health', (_req, res) => {
+app.get(['/health', '/api/health'], (_req, res) => {
   res.json({ status: 'OK', server: 'LifeVault BBMS Express Backend Server', timestamp: new Date() });
 });
 
