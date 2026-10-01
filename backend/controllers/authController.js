@@ -1,8 +1,8 @@
 // controllers/authController.js
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
 import { User, Admin, Staff, Hospital, Donor } from '../models/index.js';
+import { sendVerificationOtpEmail } from './emailController.js';
 
 const SALT_ROUNDS = 12;
 const getAccessTokenSecret = () =>
@@ -19,21 +19,6 @@ const baseCookieOptions = {
   sameSite: isProd ? 'none' : 'lax',
   path: '/',
 };
-
-function getTransporter() {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    return null;
-  }
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: process.env.SMTP_PORT === '465',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-}
 
 const otpStorage = new Map();
 
@@ -94,51 +79,8 @@ export async function signup(req, res) {
       expiresAt: Date.now() + 5 * 60 * 1000,
     });
 
-    // Send OTP via email or fallback to development console
-    const transporter = getTransporter();
-    if (transporter) {
-      try {
-        const emailHtml = `
-          <div style="background-color: #0a0a0a; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; text-align: center; border-radius: 16px; max-width: 500px; margin: 0 auto; border: 1px solid rgba(239, 68, 68, 0.2);">
-            <div style="margin-bottom: 24px;">
-              <span style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">
-                Life<span style="font-style: italic; color: #a855f7;">Vault</span>
-              </span>
-            </div>
-            <div style="background-color: #121212; border: 1px solid #262626; border-radius: 20px; padding: 32px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-              <h2 style="font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 12px; color: #ffffff;">Verify Your Email Address</h2>
-              <p style="font-size: 14px; color: #a3a3a3; line-height: 1.5; margin-bottom: 32px;">Thank you for registering with LifeVault. Use the verification code below to complete your sign-up process. This code is valid for 5 minutes.</p>
-              <div style="background-color: #171717; border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 16px 24px; display: inline-block; margin-bottom: 32px;">
-                <span style="font-size: 36px; font-weight: 800; font-family: monospace; letter-spacing: 6px; color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);">${otp}</span>
-              </div>
-              <p style="font-size: 12px; color: #737373; margin-bottom: 0; line-height: 1.5;">If you did not request this code, you can safely ignore this email.</p>
-            </div>
-            <div style="font-size: 11px; color: #525252;">
-              &copy; 2026 LifeVault Emergency Response Network. All rights reserved.
-            </div>
-          </div>
-        `;
-
-        await transporter.sendMail({
-          from: `"LifeVault BBMS" <${process.env.SMTP_USER || 'no-reply@lifevault.org'}>`,
-          to: email,
-          subject: 'LifeVault Email Verification Code',
-          text: `Your LifeVault verification code is: ${otp}. It will expire in 5 minutes.`,
-          html: emailHtml,
-        });
-        console.log(`[SMTP] Verification email sent successfully to ${email}`);
-      } catch (mailErr) {
-        console.warn('[SMTP Warning] Failed to send email via SMTP:', mailErr.message);
-        console.log(`\n--------------------------------------------------`);
-        console.log(`🔑  [DEVELOPMENT MODE] Verification OTP for ${email}: ${otp}`);
-        console.log(`--------------------------------------------------\n`);
-      }
-    } else {
-      console.log(`\n--------------------------------------------------`);
-      console.log(`🔑  [DEVELOPMENT MODE] (SMTP credentials not configured in backend/.env)`);
-      console.log(`🔑  Verification OTP for ${email}: ${otp}`);
-      console.log(`--------------------------------------------------\n`);
-    }
+    // Send OTP via email (falls back to the development console when SMTP is unavailable)
+    await sendVerificationOtpEmail(email, otp);
 
     return res.status(200).json({
       success: true,

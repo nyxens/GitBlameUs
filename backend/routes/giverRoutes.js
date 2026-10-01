@@ -81,7 +81,7 @@ export function setupGiverRoutes(router) {
 
   // All requests by logged-in donor
   router.get('/giver/my-requests',
-    // authMiddleware,
+    optionalAuthMiddleware,
     getMyRequests
   );
 

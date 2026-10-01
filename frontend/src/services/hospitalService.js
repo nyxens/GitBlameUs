@@ -66,38 +66,23 @@ export async function deleteRequisition(id) {
 }
 
 export async function acceptRequisition(id) {
-  try {
-    return await fetchApi(`/requisitions/${id}/accept`, {
-      method: 'PUT',
-    });
-  } catch (err) {
-    console.warn('API connection unavailable for acceptRequisition:', err);
-    return { success: true };
-  }
+  return fetchApi(`/requisitions/${id}/accept`, {
+    method: 'PUT',
+  });
 }
 
 export async function allocateRequisition(id, data = {}) {
-  try {
-    return await fetchApi(`/requisitions/${id}/allocate`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  } catch (err) {
-    console.warn('API connection unavailable for allocateRequisition:', err);
-    return { success: true };
-  }
+  return fetchApi(`/requisitions/${id}/allocate`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
 }
 
 export async function denyRequisition(id, reason = '') {
-  try {
-    return await fetchApi(`/requisitions/${id}/deny`, {
-      method: 'PUT',
-      body: JSON.stringify({ reason }),
-    });
-  } catch (err) {
-    console.warn('API connection unavailable for denyRequisition:', err);
-    return { success: true };
-  }
+  return fetchApi(`/requisitions/${id}/deny`, {
+    method: 'PUT',
+    body: JSON.stringify({ reason }),
+  });
 }
 
 export async function getCandidateBags(bloodGroup = null, facilityId = null) {

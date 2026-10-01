@@ -29,48 +29,28 @@ export async function getColdChainTelemetry() {
   };
 }
 
+// ── Scoped (admin: all; staff: own facility) inventory queries ──
+const facilityQuery = (facilityId) =>
+  facilityId && facilityId !== 'ALL' ? `?facilityId=${encodeURIComponent(facilityId)}` : '';
+
 export async function getInventoryItems(facilityId = null) {
-  try {
-    const query = facilityId && facilityId !== 'ALL' ? `?facilityId=${encodeURIComponent(facilityId)}` : '';
-    const res = await fetchApi(`/inventory/items${query}`);
-    if (res && res.items) {
-      const items = res.items;
-      items.facilities = res.facilities || [];
-      return items;
-    }
-  } catch (err) {
-    // Real API answers (401/403 etc.) must surface; only an unreachable server falls back to demo data.
-    if (!(err instanceof TypeError)) throw err;
-    console.warn('API connection unavailable for getInventoryItems, falling back to default:', err);
-  }
-  const fallback = [
-    { barcode: 'LV-UNIT-8091', type: 'O-', component: 'PRBC (Packed Red Cells)', units: 12, expiry: '4 Days (FEFO #1)', temp: '2.4°C', status: 'CRITICAL', bloodGroup: 'O-' },
-    { barcode: 'LV-UNIT-8092', type: 'O+', component: 'Whole Blood', units: 180, expiry: '28 Days', temp: '2.5°C', status: 'OPTIMAL', bloodGroup: 'O+' },
-    { barcode: 'LV-UNIT-8093', type: 'A+', component: 'FFP (Plasma)', units: 65, expiry: '120 Days', temp: '-18.2°C', status: 'OPTIMAL', bloodGroup: 'A+' },
-    { barcode: 'LV-UNIT-8094', type: 'A-', component: 'Whole Blood', units: 48, expiry: '14 Days', temp: '2.4°C', status: 'LOW', bloodGroup: 'A-' },
-    { barcode: 'LV-UNIT-8095', type: 'B+', component: 'Platelets', units: 140, expiry: '3 Days (FEFO #2)', temp: '22.1°C', status: 'OPTIMAL', bloodGroup: 'B+' },
-    { barcode: 'LV-UNIT-8096', type: 'B-', component: 'PRBC', units: 8, expiry: '2 Days (FEFO #1)', temp: '2.4°C', status: 'CRITICAL', bloodGroup: 'B-' },
-    { barcode: 'LV-UNIT-8097', type: 'AB+', component: 'Whole Blood', units: 92, expiry: '24 Days', temp: '2.3°C', status: 'OPTIMAL', bloodGroup: 'AB+' },
-    { barcode: 'LV-UNIT-8098', type: 'AB-', component: 'FFP (Plasma)', units: 28, expiry: '7 Days', temp: '-18.0°C', status: 'CRITICAL', bloodGroup: 'AB-' },
-  ];
-  fallback.facilities = [];
-  return fallback;
+  const res = await fetchApi(`/inventory/items${facilityQuery(facilityId)}`);
+  return res.items || [];
 }
 
-export async function fulfillInventoryItem(id, details = {}) {
-  try {
-    return await fetchApi(`/inventory/fulfill/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(details),
-    });
-  } catch (err) {
-    console.warn('API connection unavailable for fulfillInventoryItem:', err);
-    return {
-      success: true,
-      message: 'Blood received and inventory fulfilled (mock fallback).',
-    };
-  }
+export const getInventoryStock = (facilityId = null) => fetchApi(`/inventory/stock${facilityQuery(facilityId)}`);
+
+export async function getInventoryFacilities() {
+  const res = await fetchApi('/inventory/facilities');
+  return res.facilities || [];
 }
+
+export const addBloodBag = (bag) => fetchApi('/inventory/bags', { method: 'POST', body: JSON.stringify(bag) });
+
+export const discardBloodBag = (id) => fetchApi(`/inventory/bags/${id}/discard`, { method: 'PUT' });
+
+export const fulfillInventoryItem = (id, details = {}) =>
+  fetchApi(`/inventory/fulfill/${id}`, { method: 'PUT', body: JSON.stringify(details) });
 
 export async function getInventoriesByPincode(pincode = '') {
   const cleanPin = String(pincode || '').trim();

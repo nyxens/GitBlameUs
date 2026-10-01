@@ -51,7 +51,7 @@ export const bloodBagSchema = new Schema(
     S_Id: {
       type: Schema.Types.ObjectId,
       ref: 'Staff',
-      required: [true, 'Staff reference (S_Id) is required'],
+      default: null, // unknown when an admin (not a staff member) handles the unit
       index: true,
     },
     I_ID: {

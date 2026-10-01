@@ -8,7 +8,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "seed": "node seed.js",
-    "load-hospitals": "node loadHospitals.js",
+    "load-facilities": "node loadFacilities.js",
     "create-admin": "node createMasterAdmin.js"
   },
   "dependencies": {
