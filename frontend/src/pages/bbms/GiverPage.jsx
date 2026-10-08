@@ -487,18 +487,13 @@ export const GiverPage = ({ user }) => {
   return (
     <section className="w-full space-y-6 animate-fadeIn">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+      <div className="flex items-center gap-3.5">
+        <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/25 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(239,68,68,0.2)]">
           <HandHeart className="w-6 h-6 text-red-400" />
         </div>
-        <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            Donate <span className="font-serif italic font-normal text-red-400">Blood</span>
-          </h1>
-          <p className="text-xs text-neutral-400 mt-1">
-            Find hospitals and blood banks near you and submit your donation request.
-          </p>
-        </div>
+        <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+          Donate <span className="text-red-400">Blood</span>
+        </h1>
       </div>
 
       {/* Success */}

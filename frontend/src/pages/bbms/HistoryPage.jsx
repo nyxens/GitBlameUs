@@ -96,30 +96,25 @@ export const HistoryPage = () => {
   };
 
   return (
-    <div className="w-full space-y-8 animate-fadeIn">
+    <div className="w-full space-y-6 animate-fadeIn">
       {/* Top Header Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(245,158,11,0.2)]">
             <History className="w-6 h-6 text-amber-400" />
           </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-              Audit & Allocation <span className="font-serif italic font-normal text-amber-400">History</span>
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">
-              Cryptographically verified chain-of-custody, allocation logs, and real-time cold-chain compliance ledger.
-            </p>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            Audit & Allocation <span className="text-amber-400">History</span>
+          </h1>
         </div>
 
         {/* Export CSV Button */}
         <button
           onClick={handleExportCSV}
           disabled={filteredHistory.length === 0}
-          className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-500/40 text-neutral-200 hover:text-white font-semibold text-xs transition-all duration-200 flex items-center gap-2 self-start md:self-auto cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-500/40 text-neutral-200 hover:text-white font-semibold text-xs transition-all flex items-center gap-2 self-start md:self-auto cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group"
         >
-          <Download className="w-4 h-4 text-amber-400" />
+          <Download className="w-4 h-4 text-amber-400 group-hover:translate-y-0.5 transition-transform" />
           <span>Export Audit Ledger (CSV)</span>
         </button>
       </div>
@@ -131,33 +126,40 @@ export const HistoryPage = () => {
           {
             label: 'Expiry Compliance', Icon: ShieldCheck, color: 'emerald',
             value: summary ? (summary.allotments ? `${Math.round(((summary.allotments - summary.expiredAllotted) / summary.allotments) * 100)}%` : '—') : undefined,
-            note: summary ? `${summary.expiredAllotted} expired unit(s) allotted` : '',
+            note: summary ? `${summary.expiredAllotted} expired unit(s) allotted` : '0 expired units',
           },
           { label: 'Allotted Units', Icon: Boxes, color: 'purple', value: summary?.allotments, note: 'Units allocated to requisitions' },
           { label: 'Available Units', Icon: Droplets, color: 'cyan', value: summary?.availableUnits, note: `Of ${summary?.intakes ?? 0} units taken in` },
         ].map(({ label, Icon, color, value, note }) => (
-          <div key={label} className={`p-5 rounded-2xl bg-neutral-950/80 border border-white/10 ${CARD_COLORS[color][0]} transition-colors`}>
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
-              <Icon className={`w-4 h-4 ${CARD_COLORS[color][1]}`} />
+          <div
+            key={label}
+            className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 ${CARD_COLORS[color][0]} hover:bg-[#141418] transition-colors duration-200 select-none group`}
+          >
+            <div>
+              <div className="flex items-center justify-between text-neutral-400 mb-2">
+                <span className={`text-xs font-semibold uppercase tracking-wider group-hover:${CARD_COLORS[color][1]} transition-colors`}>{label}</span>
+                <div className={`p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:${CARD_COLORS[color][1]} transition-colors`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-3xl font-extrabold text-white tracking-tight">{value ?? '—'}</div>
             </div>
-            <div className="text-3xl font-extrabold text-white tracking-tight">{value ?? '—'}</div>
-            <div className="text-[11px] text-neutral-400 mt-1">{note}</div>
+            <div className="text-[11px] text-neutral-400 truncate">{note}</div>
           </div>
         ))}
       </div>
 
       {/* Search & Filter Controls */}
-      <div className="p-4 rounded-2xl bg-neutral-950/90 border border-white/10 flex flex-col md:flex-row items-center gap-3">
+      <div className="p-4 rounded-2xl bg-[#0e0e11] border border-white/10 flex flex-col md:flex-row items-center gap-3 relative z-10 shadow-xl">
         {/* Search Input */}
-        <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <div className="relative flex-1 w-full group">
+          <Search className="w-4 h-4 text-neutral-500 group-focus-within:text-amber-400 transition-colors absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by event ID, unit barcode, staff, or facility name..."
-            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500/50"
+            className="w-full pl-10 pr-4 py-2.5 bg-[#141417] text-white placeholder-neutral-500 rounded-xl border border-white/10 focus:outline-none focus:border-amber-500/80 transition-colors text-xs"
           />
         </div>
 
@@ -167,7 +169,7 @@ export const HistoryPage = () => {
           <select
             value={eventTypeFilter}
             onChange={(e) => setEventTypeFilter(e.target.value)}
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-neutral-300 focus:outline-none focus:border-amber-500/50 cursor-pointer"
+            className="px-3 py-2 bg-[#141417] border border-white/10 rounded-xl text-xs text-neutral-300 focus:outline-none focus:border-amber-500/50 cursor-pointer"
           >
             <option value="ALL" className="bg-neutral-900 text-white">All Event Types</option>
             <option value="BLOOD_ALLOTMENT" className="bg-neutral-900 text-purple-400">Allotment</option>
@@ -178,7 +180,7 @@ export const HistoryPage = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-neutral-300 focus:outline-none focus:border-amber-500/50 cursor-pointer"
+            className="px-3 py-2 bg-[#141417] border border-white/10 rounded-xl text-xs text-neutral-300 focus:outline-none focus:border-amber-500/50 cursor-pointer"
           >
             <option value="ALL" className="bg-neutral-900 text-white">All Statuses</option>
             {statusOptions.map((st) => (

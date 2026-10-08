@@ -387,14 +387,9 @@ export const DonorsPage = () => {
           <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/25 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(239,68,68,0.2)]">
             <Users className="w-6 h-6 text-red-400" />
           </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-none">
-              Registered <span className="font-serif italic font-normal text-red-400">Donors</span>
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">
-              Donor registry, eligibility verification, and inbound donation request management.
-            </p>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            Registered <span className="text-red-400">Donors</span>
+          </h1>
         </div>
 
         {/* Right Header Actions: Refresh Button */}

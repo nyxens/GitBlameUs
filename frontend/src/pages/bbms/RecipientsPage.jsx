@@ -448,14 +448,9 @@ export const RecipientsPage = () => {
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(16,185,129,0.2)]">
             <UserCheck className="w-6 h-6 text-emerald-400" />
           </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-none">
-              Blood <span className="font-serif italic font-normal text-emerald-400">Recipients</span> & Requisitions
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">
-              Active transfusion orders, emergency triage queue, and cryogenic blood bag allocation.
-            </p>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            Blood <span className="text-emerald-400">Recipients</span>
+          </h1>
         </div>
 
         {/* Right Header Actions */}

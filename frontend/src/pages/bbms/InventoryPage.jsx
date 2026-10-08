@@ -192,25 +192,22 @@ export const InventoryPage = () => {
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(168,85,247,0.2)]">
             <Boxes className="w-6 h-6 text-purple-400" />
           </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-              Blood Vault <span className="font-serif italic font-normal text-purple-400">Inventory</span>
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">Live blood reserves, expiry-first (FEFO) ordering, intake and discard management.</p>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            Blood Vault <span className="text-purple-400">Inventory</span>
+          </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 self-start md:self-auto">
           <button onClick={() => load(facilityId, true)} disabled={refreshing}
             className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/40 text-neutral-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 text-xs font-semibold group disabled:opacity-50">
             <RefreshCw className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-180 transition-transform duration-500 ${refreshing ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
           <button onClick={openAdd} disabled={facilities.length === 0}
-            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed">
+            className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed shadow-[0_0_16px_rgba(168,85,247,0.35)] transition-all">
             <Plus className="w-4 h-4" /> Add Blood Bag
           </button>
         </div>
@@ -222,38 +219,59 @@ export const InventoryPage = () => {
         <>
           {/* Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-purple-500/40 transition-colors">
-              <div className="flex items-center justify-between text-neutral-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">Available Stock</span>
-                <Droplet className="w-4 h-4 text-purple-400" />
+            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-purple-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
+              <div>
+                <div className="flex items-center justify-between text-neutral-400 mb-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-purple-400 transition-colors">Available Stock</span>
+                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-purple-400 transition-colors">
+                    <Droplet className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-extrabold text-white tracking-tight">{stock?.totalUnits ?? 0} <span className="text-lg font-normal text-purple-400">Units</span></div>
               </div>
-              <div className="text-3xl font-extrabold text-white tracking-tight">{stock?.totalUnits ?? 0} Units</div>
-              <div className="text-[11px] text-neutral-400 mt-1">{groupsInStock} of 8 blood groups in stock</div>
+              <div className="text-[11px] text-neutral-400 truncate">{groupsInStock} of 8 blood groups in stock</div>
             </div>
-            <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-orange-500/40 transition-colors">
-              <div className="flex items-center justify-between text-neutral-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">Awaiting Receipt</span>
-                <PackageCheck className="w-4 h-4 text-orange-400" />
+
+            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-orange-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
+              <div>
+                <div className="flex items-center justify-between text-neutral-400 mb-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-orange-400 transition-colors">Awaiting Receipt</span>
+                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-orange-400 transition-colors">
+                    <PackageCheck className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-extrabold text-orange-400 tracking-tight">{summary?.unfulfilled ?? 0} <span className="text-lg font-normal text-orange-400">Entries</span></div>
               </div>
-              <div className="text-3xl font-extrabold text-orange-400 tracking-tight">{summary?.unfulfilled ?? 0} Entries</div>
-              <div className="text-[11px] text-neutral-400 mt-1">{summary?.unfulfilled ? 'Accepted donations not yet received' : 'All donations received'}</div>
+              <div className="text-[11px] text-neutral-400 truncate">{summary?.unfulfilled ? 'Accepted donations pending receipt' : 'All donations received'}</div>
             </div>
-            <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-red-500/40 transition-colors">
-              <div className="flex items-center justify-between text-neutral-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">Expiring ≤ 7 Days</span>
-                <Hourglass className="w-4 h-4 text-red-400" />
+
+            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-red-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
+              <div>
+                <div className="flex items-center justify-between text-neutral-400 mb-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">Expiring ≤ 7 Days</span>
+                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-red-400 transition-colors">
+                    <Hourglass className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-extrabold text-white tracking-tight">{summary?.expiringSoon ?? 0} <span className="text-lg font-normal text-red-400">Units</span></div>
               </div>
-              <div className="text-3xl font-extrabold text-white tracking-tight">{summary?.expiringSoon ?? 0} Units</div>
-              <div className="text-[11px] text-neutral-400 mt-1">{summary?.expired ? `${summary.expired} already expired — discard them` : 'No expired units'}</div>
+              <div className="text-[11px] text-neutral-400 truncate">{summary?.expired ? `${summary.expired} expired units` : 'No expired units'}</div>
             </div>
-            <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-cyan-500/40 transition-colors">
-              <div className="flex items-center justify-between text-neutral-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">Capacity Used</span>
-                <Gauge className="w-4 h-4 text-cyan-400" />
+
+            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-cyan-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
+              <div>
+                <div className="flex items-center justify-between text-neutral-400 mb-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-cyan-400 transition-colors">Capacity Used</span>
+                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-cyan-400 transition-colors">
+                    <Gauge className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-extrabold text-white tracking-tight">{usedPct}%</div>
               </div>
-              <div className="text-3xl font-extrabold text-white tracking-tight">{usedPct}%</div>
-              <div className="h-1.5 rounded-full bg-white/10 mt-2 overflow-hidden"><div className="h-full bg-cyan-400" style={{ width: `${usedPct}%` }} /></div>
-              <div className="text-[11px] text-neutral-400 mt-1">{summary?.used ?? 0} of {summary?.capacity ?? 0} bag slots</div>
+              <div className="flex items-center justify-between text-[11px] text-neutral-400 truncate">
+                <span>{summary?.used ?? 0} / {summary?.capacity ?? 0} slots</span>
+                <span className="font-mono text-[10px] text-cyan-400 font-semibold">{usedPct}%</span>
+              </div>
             </div>
           </div>
 

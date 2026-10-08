@@ -49,8 +49,8 @@ const STATUS_CONFIG = {
   VERIFIED: {
     label: 'Verified — Awaiting Institution',
     icon: ShieldCheck,
-    className: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30',
-    bannerClass: 'border-cyan-500/40 bg-cyan-950/30',
+    className: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+    bannerClass: 'border-emerald-500/40 bg-emerald-950/30',
   },
   PENDING: {
     label: 'Pending Hospital Review',
@@ -125,7 +125,7 @@ function ConfirmRequestModal({ institution, formData, onConfirm, onClose, submit
         exit={{ opacity: 0, scale: 0.95 }}
         className="relative w-full max-w-md rounded-3xl bg-neutral-950 border border-white/10 p-6 shadow-2xl"
       >
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent rounded-t-3xl" />
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent rounded-t-3xl" />
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-neutral-500 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
@@ -134,8 +134,8 @@ function ConfirmRequestModal({ institution, formData, onConfirm, onClose, submit
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
-            <Send className="w-4 h-4 text-cyan-400" />
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
+            <Send className="w-4 h-4 text-emerald-400" />
           </div>
           <div>
             <h3 className="text-base font-bold text-white">Confirm Blood Request</h3>
@@ -179,7 +179,7 @@ function ConfirmRequestModal({ institution, formData, onConfirm, onClose, submit
             <span className="text-neutral-500">Patient Name</span>
             <span className="text-white font-medium">{formData.patient_name || '—'}</span>
             <span className="text-neutral-500">Blood Group</span>
-            <span className="text-cyan-400 font-bold">{formData.bloodgroup || '—'}</span>
+            <span className="text-emerald-400 font-bold">{formData.bloodgroup || '—'}</span>
             <span className="text-neutral-500">Units Needed</span>
             <span className="font-mono text-white">{unitsCount} Units (≈ {unitsCount * 450} ml)</span>
             <span className="text-neutral-500">Area Pincode</span>
@@ -209,7 +209,7 @@ function ConfirmRequestModal({ institution, formData, onConfirm, onClose, submit
           <button
             onClick={onConfirm}
             disabled={submitting}
-            className="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 border border-cyan-400/50 text-black text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60 shadow-[0_0_16px_rgba(6,182,212,0.35)]"
+            className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 border border-emerald-400/50 text-black text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60 shadow-[0_0_16px_rgba(16,185,129,0.35)]"
           >
             {submitting ? (
               <>
@@ -241,7 +241,7 @@ function InstitutionCard({ inst, bloodgroup, onRequest, disabled }) {
       className={`rounded-2xl border p-4 flex flex-col gap-3 transition-all ${
         disabled
           ? 'border-white/5 bg-neutral-950/40 opacity-60'
-          : 'border-white/10 bg-neutral-950/70 hover:border-cyan-500/30 hover:shadow-[0_0_20px_rgba(6,182,212,0.1)]'
+          : 'border-white/10 bg-neutral-950/70 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -284,7 +284,7 @@ function InstitutionCard({ inst, bloodgroup, onRequest, disabled }) {
                   : inst.distance_km < 5
                   ? 'bg-emerald-500/15 text-emerald-400'
                   : inst.distance_km < 15
-                  ? 'bg-cyan-500/15 text-cyan-400'
+                  ? 'bg-emerald-500/15 text-emerald-400'
                   : inst.distance_km < 40
                   ? 'bg-amber-500/15 text-amber-400'
                   : 'bg-neutral-500/15 text-neutral-400'
@@ -298,7 +298,7 @@ function InstitutionCard({ inst, bloodgroup, onRequest, disabled }) {
                 inst.distance_score === 0
                   ? 'bg-emerald-500/15 text-emerald-400'
                   : inst.distance_score < 500
-                  ? 'bg-cyan-500/15 text-cyan-400'
+                  ? 'bg-emerald-500/15 text-emerald-400'
                   : inst.distance_score < 2000
                   ? 'bg-amber-500/15 text-amber-400'
                   : 'bg-neutral-500/15 text-neutral-400'
@@ -313,7 +313,7 @@ function InstitutionCard({ inst, bloodgroup, onRequest, disabled }) {
       {/* Available Stock Indicator */}
       <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between text-xs">
         <div className="flex items-center gap-1.5 font-mono">
-          <Boxes className="w-3.5 h-3.5 text-cyan-400" />
+          <Boxes className="w-3.5 h-3.5 text-emerald-400" />
           <span className="text-neutral-400">Target Group ({bloodgroup}):</span>
           <span
             className={`font-bold ${
@@ -361,7 +361,7 @@ function InstitutionCard({ inst, bloodgroup, onRequest, disabled }) {
         className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
           disabled
             ? 'bg-neutral-800 text-neutral-600 cursor-not-allowed border border-white/5'
-            : 'bg-cyan-500 hover:bg-cyan-400 text-black border border-cyan-400/50 cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+            : 'bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/50 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]'
         }`}
       >
         <Send className="w-3.5 h-3.5" />
@@ -620,7 +620,7 @@ export const SeekerPage = ({ user }) => {
     return (
       <div className="flex items-center justify-center min-h-64">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
           <p className="text-sm text-neutral-400">Loading your profile & telemetry...</p>
         </div>
       </div>
@@ -628,26 +628,21 @@ export const SeekerPage = ({ user }) => {
   }
 
   return (
-    <section className="w-full space-y-6 animate-fadeIn font-sans selection:bg-cyan-500 selection:text-black">
+    <section className="w-full space-y-6 animate-fadeIn font-sans selection:bg-emerald-500 selection:text-black">
       {/* Header Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0 shadow-[0_0_24px_rgba(6,182,212,0.15)]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_24px_rgba(16,185,129,0.2)]">
             <UserSearch className="w-6 h-6" />
           </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-              Request <span className="font-serif italic font-normal text-cyan-400">Blood</span>
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">
-              Find certified hospitals and blood banks with matching inventory and dispatch your requisition.
-            </p>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            Request <span className="text-emerald-400">Blood</span>
+          </h1>
         </div>
 
         {/* Live telemetry badge */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-neutral-300 self-start md:self-auto">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>INVENTORY DISPATCH TELEMETRY ACTIVE</span>
         </div>
       </div>
@@ -696,7 +691,7 @@ export const SeekerPage = ({ user }) => {
                     <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${activeStatusCfg.className}`}>
                       {activeStatusCfg.label}
                     </span>
-                    <span className="px-2 py-0.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-bold">
+                    <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
                       {activeRequest.bloodgroup} • {activeRequest.units || 1} {activeRequest.units === 1 ? 'Unit' : 'Units'}
                     </span>
                     {activeRequest.is_emergency && (
@@ -718,7 +713,7 @@ export const SeekerPage = ({ user }) => {
 
                   {activeRequest.schedule_date && (
                     <p className="text-xs text-neutral-400 mt-1.5 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                      <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                       <span>
                         Pickup: <strong>{new Date(activeRequest.schedule_date).toLocaleDateString()}</strong>
                         {activeRequest.schedule_time ? ` at ${activeRequest.schedule_time}` : ''}
@@ -727,7 +722,7 @@ export const SeekerPage = ({ user }) => {
                   )}
                   {activeRequest.pickup_venue && (
                     <p className="text-xs text-neutral-400 flex items-center gap-1.5 mt-0.5">
-                      <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                      <MapPin className="w-3.5 h-3.5 text-emerald-400" />
                       <span>{activeRequest.pickup_venue}</span>
                     </p>
                   )}
@@ -780,7 +775,7 @@ export const SeekerPage = ({ user }) => {
         {/* ═══ LEFT COLUMN: Seeker Request Details Form ═══ */}
         <div className="rounded-3xl bg-neutral-950/80 border border-white/10 p-5 space-y-4 sticky top-24 shadow-2xl">
           <div className="flex items-center gap-2 mb-1">
-            <UserSearch className="w-4 h-4 text-cyan-400" />
+            <UserSearch className="w-4 h-4 text-emerald-400" />
             <h2 className="text-sm font-bold text-white">Your Blood Requisition</h2>
           </div>
           <p className="text-xs text-neutral-500">
@@ -795,7 +790,7 @@ export const SeekerPage = ({ user }) => {
               value={formData.patient_name}
               onChange={(e) => handleFormChange('patient_name', e.target.value)}
               placeholder="e.g. Eleanor Vance"
-              className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+              className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20 transition-all"
             />
           </div>
 
@@ -807,7 +802,7 @@ export const SeekerPage = ({ user }) => {
               value={formData.phone}
               onChange={(e) => handleFormChange('phone', e.target.value)}
               placeholder="+1-555-0199"
-              className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+              className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20 transition-all"
             />
           </div>
 
@@ -817,7 +812,7 @@ export const SeekerPage = ({ user }) => {
               <label className="block text-[11px] font-medium text-neutral-400">Required Blood Group</label>
               <span className="text-[10px] text-neutral-500 font-mono">
                 Accepts:{' '}
-                <strong className="text-cyan-400">
+                <strong className="text-emerald-400">
                   {COMPATIBLE_DONORS[formData.bloodgroup]?.join(', ') || 'Any'}
                 </strong>
               </span>
@@ -826,7 +821,7 @@ export const SeekerPage = ({ user }) => {
               <select
                 value={formData.bloodgroup}
                 onChange={(e) => handleFormChange('bloodgroup', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500/40 appearance-none cursor-pointer font-bold"
+                className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-500/40 appearance-none cursor-pointer font-bold"
               >
                 {BLOOD_GROUPS.map((bg) => (
                   <option key={bg} value={bg} className="bg-neutral-900 font-normal">
@@ -855,7 +850,7 @@ export const SeekerPage = ({ user }) => {
                 onChange={(e) =>
                   handleFormChange('units', Math.max(1, parseInt(e.target.value, 10) || 1))
                 }
-                className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20 transition-all"
               />
               <div className="flex items-center gap-1 shrink-0">
                 {[1, 2, 4].map((u) => (
@@ -865,7 +860,7 @@ export const SeekerPage = ({ user }) => {
                     onClick={() => handleFormChange('units', u)}
                     className={`px-2 py-1.5 rounded-lg text-[10px] font-mono border transition-all cursor-pointer ${
                       formData.units === u
-                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold'
+                        ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-bold'
                         : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
                     }`}
                   >
@@ -906,11 +901,11 @@ export const SeekerPage = ({ user }) => {
           {/* Search-by toggle: Pincode / Current Location (GPS) */}
           <div>
             <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">
-              Search Location By <span className="text-cyan-400">*</span>
+              Search Location By <span className="text-emerald-400">*</span>
             </label>
             <div className="relative grid grid-cols-2 p-1 rounded-xl bg-neutral-900/60 border border-white/10">
               <motion.div
-                className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-lg bg-cyan-600 shadow-[0_0_16px_rgba(6,182,212,0.35)]"
+                className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-lg bg-emerald-600 shadow-[0_0_16px_rgba(16,185,129,0.35)]"
                 animate={{ x: locationMode === 'pincode' ? 0 : '100%' }}
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               />
@@ -944,7 +939,7 @@ export const SeekerPage = ({ user }) => {
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-[11px] font-medium text-neutral-400">
-                    Area Pincode <span className="text-cyan-400">*</span>
+                    Area Pincode <span className="text-emerald-400">*</span>
                   </label>
                   <div className="flex items-center gap-1 text-[10px] font-mono">
                     {['10001', '10002', '10014'].map((p) => (
@@ -952,7 +947,7 @@ export const SeekerPage = ({ user }) => {
                         key={p}
                         type="button"
                         onClick={() => handleFormChange('pincode', p)}
-                        className="text-neutral-500 hover:text-cyan-400 cursor-pointer"
+                        className="text-neutral-500 hover:text-emerald-400 cursor-pointer"
                       >
                         {p}
                       </button>
@@ -964,7 +959,7 @@ export const SeekerPage = ({ user }) => {
                   value={formData.pincode}
                   onChange={(e) => handleFormChange('pincode', e.target.value)}
                   placeholder="e.g. 10001"
-                  className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 font-mono transition-all"
+                  className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20 font-mono transition-all"
                 />
               </motion.div>
             ) : (
@@ -990,7 +985,7 @@ export const SeekerPage = ({ user }) => {
                     type="button"
                     onClick={() => detectLocation().catch((e) => setError(e.message))}
                     disabled={locating}
-                    className="shrink-0 text-[11px] text-cyan-400 hover:text-cyan-300 disabled:text-neutral-600 flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+                    className="shrink-0 text-[11px] text-emerald-400 hover:text-emerald-300 disabled:text-neutral-600 flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
                   >
                     {locating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
                     {coords ? 'Refresh' : 'Detect'}
@@ -1017,7 +1012,7 @@ export const SeekerPage = ({ user }) => {
                   value={formData.required_date}
                   min={new Date().toISOString().split('T')[0]}
                   onChange={(e) => handleFormChange('required_date', e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition-all [color-scheme:dark]"
+                  className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20 transition-all [color-scheme:dark]"
                 />
               </motion.div>
             )}
@@ -1033,7 +1028,7 @@ export const SeekerPage = ({ user }) => {
               onChange={(e) => handleFormChange('seeker_notes', e.target.value)}
               placeholder="Surgery details, trauma code, or hemoglobin levels..."
               rows={2}
-              className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 resize-none transition-all"
+              className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/20 resize-none transition-all"
             />
           </div>
 
@@ -1045,7 +1040,7 @@ export const SeekerPage = ({ user }) => {
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500/40 appearance-none cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-500/40 appearance-none cursor-pointer"
                 >
                   {TYPE_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value} className="bg-neutral-900">
@@ -1064,7 +1059,7 @@ export const SeekerPage = ({ user }) => {
                 <select
                   value={radiusFilter}
                   onChange={(e) => setRadiusFilter(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500/40 appearance-none cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-500/40 appearance-none cursor-pointer"
                 >
                   {RADIUS_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value} className="bg-neutral-900">
@@ -1081,7 +1076,7 @@ export const SeekerPage = ({ user }) => {
           <button
             onClick={handleSearch}
             disabled={searchLoading || locating || (locationMode === 'pincode' && !formData.pincode.trim())}
-            className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:bg-neutral-800 disabled:text-neutral-600 border border-cyan-400/50 disabled:border-white/5 text-black text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.25)]"
+            className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-neutral-800 disabled:text-neutral-600 border border-emerald-400/50 disabled:border-white/5 text-black text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(16,185,129,0.25)]"
           >
             {searchLoading ? (
               <>
@@ -1101,8 +1096,8 @@ export const SeekerPage = ({ user }) => {
         <div className="space-y-4">
           {!hasSearched && !searchLoading && (
             <div className="rounded-3xl border border-white/5 bg-neutral-950/40 p-12 flex flex-col items-center justify-center text-center gap-4">
-              <div className="w-16 h-16 rounded-3xl bg-cyan-500/10 border border-cyan-500/15 flex items-center justify-center">
-                <MapPin className="w-8 h-8 text-cyan-400/60" />
+              <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-emerald-400/60" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-neutral-300">
@@ -1117,7 +1112,7 @@ export const SeekerPage = ({ user }) => {
 
           {searchLoading && (
             <div className="rounded-3xl border border-white/5 bg-neutral-950/40 p-12 flex flex-col items-center gap-4">
-              <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+              <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
               <p className="text-sm text-neutral-400 font-mono">Querying Cold Vault Telemetry & Matching Inventory...</p>
             </div>
           )}
@@ -1153,7 +1148,7 @@ export const SeekerPage = ({ user }) => {
                       onClick={() => setSortBy('proximity')}
                       className={`text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                         sortBy === 'proximity'
-                          ? 'bg-cyan-500 text-black font-bold'
+                          ? 'bg-emerald-500 text-black font-bold'
                           : 'text-neutral-400 hover:text-white bg-white/5'
                       }`}
                     >
@@ -1163,7 +1158,7 @@ export const SeekerPage = ({ user }) => {
                       onClick={() => setSortBy('name')}
                       className={`text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                         sortBy === 'name'
-                          ? 'bg-cyan-500 text-black font-bold'
+                          ? 'bg-emerald-500 text-black font-bold'
                           : 'text-neutral-400 hover:text-white bg-white/5'
                       }`}
                     >
@@ -1196,7 +1191,7 @@ export const SeekerPage = ({ user }) => {
                       setRadiusFilter('');
                       setTypeFilter('ALL');
                     }}
-                    className="mt-2 text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer"
+                    className="mt-2 text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
                   >
                     <RefreshCw className="w-3 h-3" /> Reset Filters
                   </button>
@@ -1224,7 +1219,7 @@ export const SeekerPage = ({ user }) => {
           <div className="mt-8 pt-6 border-t border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs uppercase font-mono tracking-widest text-neutral-400 flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                <Clock className="w-3.5 h-3.5 text-emerald-400" />
                 <span>My Blood Request History ({myRequests.length})</span>
               </h4>
               <button
@@ -1234,7 +1229,7 @@ export const SeekerPage = ({ user }) => {
                   const res = await getMySeekerRequests(userId);
                   if (res?.success && res.data) setMyRequests(res.data);
                 }}
-                className="text-xs font-mono text-neutral-500 hover:text-cyan-400 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-mono text-neutral-500 hover:text-emerald-400 flex items-center gap-1 cursor-pointer"
               >
                 <RefreshCw className="w-3 h-3" /> Refresh History
               </button>
@@ -1260,7 +1255,7 @@ export const SeekerPage = ({ user }) => {
                       className="p-4 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-white/20 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 font-mono font-bold text-sm">
+                        <div className="px-2.5 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-sm">
                           {req.bloodgroup}
                         </div>
                         <div>

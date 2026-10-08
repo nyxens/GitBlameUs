@@ -50,8 +50,8 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
   ];
 
   const citizenMenuItems = [
-    { id: 'seeker', label: 'Seeker', icon: UserSearch, iconColor: 'text-cyan-400' },
-    { id: 'giver', label: 'Giver', icon: HandHeart, iconColor: 'text-rose-400' },
+    { id: 'seeker', label: 'Seeker', icon: UserSearch, iconColor: 'text-emerald-400' },
+    { id: 'giver', label: 'Giver', icon: HandHeart, iconColor: 'text-red-400' },
     { id: 'profile', label: 'Profile', icon: User, iconColor: 'text-violet-400' },
   ];
 
