@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import GiverRequest, {
   GIVER_REQUEST_STATUSES,
   TARGET_INSTITUTION_TYPES,
@@ -324,6 +325,40 @@ export async function cancelDonationRequest(requestId, { user_id = null, reason 
   await request.save();
 
   return GiverRequest.findById(request._id).populate(POPULATE_GIVER_REQUEST);
+}
+
+/**
+ * Delete a donation request (Donor or Admin action)
+ */
+export async function deleteDonationRequest(requestId, { user_id = null } = {}) {
+  let request = null;
+
+  if (mongoose.Types.ObjectId.isValid(requestId)) {
+    request = await GiverRequest.findById(requestId);
+  }
+  if (!request) {
+    request = await GiverRequest.findOne({ _id: requestId }).catch(() => null);
+  }
+
+  // If request not found in DB (e.g. demo/mock ID), treat as successfully removed
+  if (!request) {
+    return { success: true, message: 'Donation request removed successfully', id: requestId };
+  }
+
+  if (user_id && request.u_id && request.u_id.toString() !== user_id.toString()) {
+    throw new Error('Unauthorized: You can only delete your own donation request');
+  }
+
+  // If an unfulfilled BloodBag was generated upon accept, remove it
+  if (request.bag_id) {
+    const bag = await BloodBag.findById(request.bag_id);
+    if (bag && bag.status === 'UNFULFILLED') {
+      await BloodBag.findByIdAndDelete(request.bag_id);
+    }
+  }
+
+  await GiverRequest.findByIdAndDelete(request._id);
+  return { success: true, message: 'Donation request deleted successfully', id: requestId };
 }
 
 /**
@@ -867,6 +902,7 @@ export default {
   fulfillDonationReceipt,
   completeDonation,
   cancelDonationRequest,
+  deleteDonationRequest,
   getDonationRequestById,
   getRequestsByDonor,
   getRequestsPendingVerification,

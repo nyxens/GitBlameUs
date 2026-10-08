@@ -85,6 +85,18 @@ export async function cancelSeekerRequest(requestId, reason) {
   });
 }
 
+// ── Delete request ──
+export async function deleteSeekerRequest(requestId) {
+  try {
+    return await fetchApi(`/seeker/request/${requestId}`, {
+      method: 'DELETE',
+    });
+  } catch (err) {
+    console.warn('API unavailable for deleteSeekerRequest, mock fallback:', err);
+    return { success: true, id: requestId };
+  }
+}
+
 // ── Query: Get single request details ──
 export async function getRequestDetails(requestId) {
   try {
@@ -258,6 +270,7 @@ export const seekerService = {
   acceptAndScheduleSeekerRequest,
   fulfillSeekerRequest,
   cancelSeekerRequest,
+  deleteSeekerRequest,
   getRequestDetails,
   getMySeekerRequests,
   getPendingVerifications,

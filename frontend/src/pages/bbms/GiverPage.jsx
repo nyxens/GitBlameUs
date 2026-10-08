@@ -25,6 +25,7 @@ import {
   Syringe,
   Navigation,
   Heart,
+  Trash2,
 } from 'lucide-react';
 import {
   getDonorProfile,
@@ -32,6 +33,7 @@ import {
   getNearbyInstitutions,
   applyDonationRequest,
   cancelDonationRequest,
+  deleteDonationRequest,
   getMyGiverRequests,
 } from '../../services/giverService.js';
 
@@ -291,6 +293,8 @@ export const GiverPage = ({ user }) => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [activeRequest, setActiveRequest] = useState(null);
   const [myRequests, setMyRequests] = useState([]);
   const [institutions, setInstitutions] = useState([]);
@@ -463,6 +467,31 @@ export const GiverPage = ({ user }) => {
       setError(e.message || 'Failed to cancel request.');
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const handleDeleteHistory = async (requestId) => {
+    if (!requestId) return;
+    setDeletingId(requestId);
+    setError('');
+
+    try {
+      const res = await deleteDonationRequest(requestId);
+      if (res?.success) {
+        setMyRequests((prev) => prev.filter((r) => (r._id || r.id) !== requestId));
+        if (activeRequest && (activeRequest._id === requestId || activeRequest.id === requestId)) {
+          setActiveRequest(null);
+        }
+        setSuccessMsg('Donation request history entry deleted.');
+        setConfirmDeleteId(null);
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
+      } else {
+        setError(res?.error || 'Failed to delete donation request history.');
+      }
+    } catch (e) {
+      setError(e.message || 'Failed to delete donation request history.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -970,6 +999,41 @@ export const GiverPage = ({ user }) => {
                               <X className="w-3 h-3" />
                             )}
                             <span className="text-[10px]">Cancel</span>
+                          </button>
+                        )}
+
+                        {/* Delete history button */}
+                        {confirmDeleteId === (req._id || req.id) ? (
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteHistory(req._id || req.id)}
+                              disabled={deletingId === (req._id || req.id)}
+                              className="px-2 py-1 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[10px] font-semibold transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-sm"
+                            >
+                              {deletingId === (req._id || req.id) ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <span>Delete</span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                              title="Cancel"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(req._id || req.id)}
+                            title="Delete this history entry"
+                            className="p-1.5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/40 text-neutral-400 hover:text-red-400 transition-all cursor-pointer shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>

@@ -4,6 +4,7 @@ import {
   acceptAndScheduleSeekerRequest,
   fulfillSeekerRequest,
   cancelSeekerRequest,
+  deleteSeekerRequest,
   getRequestDetails,
   getMyRequests,
   getPendingAdminVerifications,
@@ -63,6 +64,13 @@ export function setupSeekerRoutes(router) {
     '/seeker/request/:id/cancel',
     optionalAuthMiddleware,
     cancelSeekerRequest
+  );
+
+  // ── Delete a seeker blood request ────────────────────────────────────────────
+  router.delete(
+    '/seeker/request/:id',
+    optionalAuthMiddleware,
+    deleteSeekerRequest
   );
 
   // ── Queries ──────────────────────────────────────────────────────────────────
