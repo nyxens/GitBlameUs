@@ -2,7 +2,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { User, Admin, Staff, Hospital, Donor } from '../models/index.js';
-import { sendVerificationOtpEmail } from './emailController.js';
+import { sendVerificationOtpEmail, sendPasswordResetOtpEmail } from './emailController.js';
 
 const SALT_ROUNDS = 12;
 const getAccessTokenSecret = () =>
@@ -21,6 +21,7 @@ const baseCookieOptions = {
 };
 
 const otpStorage = new Map();
+const passwordResetOtpStorage = new Map();
 
 function signAccessToken(user) {
   return jwt.sign(
@@ -445,6 +446,197 @@ export async function updateProfile(req, res) {
   }
 }
 
+// --- Forgot Password (Send OTP to verify user identity) ---
+export async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ success: false, error: 'Email address is required' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if user or admin exists
+    const user = await User.findOne({ email: normalizedEmail });
+    const admin = !user ? await Admin.findOne({ email: normalizedEmail }) : null;
+
+    if (!user && !admin) {
+      return res.status(404).json({
+        success: false,
+        error: 'No account found with this email address. Please check your email or register.',
+      });
+    }
+
+    if (user && user.status === 'SUSPENDED') {
+      return res.status(403).json({
+        success: false,
+        error: 'This account is suspended. Please contact support.',
+      });
+    }
+
+    // Generate a 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store in-memory with a 10-minute expiration
+    passwordResetOtpStorage.set(normalizedEmail, {
+      otp,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      attempts: 0,
+      verified: false,
+    });
+
+    // Send OTP via email (falls back to the development console when SMTP is unavailable)
+    await sendPasswordResetOtpEmail(normalizedEmail, otp);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset verification code sent to your email',
+      email: normalizedEmail,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// --- Verify Password Reset OTP ---
+export async function verifyResetOTP(req, res) {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, error: 'Email and verification OTP are required' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const entry = passwordResetOtpStorage.get(normalizedEmail);
+
+    if (!entry) {
+      return res.status(400).json({
+        success: false,
+        error: 'No password reset request found for this email. Please request a new code.',
+      });
+    }
+
+    if (entry.expiresAt < Date.now()) {
+      passwordResetOtpStorage.delete(normalizedEmail);
+      return res.status(400).json({
+        success: false,
+        error: 'Verification code has expired. Please request a new one.',
+      });
+    }
+
+    if (entry.otp !== String(otp).trim()) {
+      entry.attempts = (entry.attempts || 0) + 1;
+      if (entry.attempts >= 5) {
+        passwordResetOtpStorage.delete(normalizedEmail);
+        return res.status(400).json({
+          success: false,
+          error: 'Too many incorrect attempts. Please request a new verification code.',
+        });
+      }
+      return res.status(400).json({ success: false, error: 'Invalid verification code' });
+    }
+
+    // Mark as verified and issue a short-lived reset token (15 mins)
+    const resetToken = jwt.sign(
+      { email: normalizedEmail, purpose: 'PASSWORD_RESET' },
+      getAccessTokenSecret(),
+      { expiresIn: '15m' }
+    );
+
+    entry.verified = true;
+    entry.resetToken = resetToken;
+
+    return res.status(200).json({
+      success: true,
+      message: 'Identity verified successfully',
+      resetToken,
+      email: normalizedEmail,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// --- Reset Password ---
+export async function resetPassword(req, res) {
+  try {
+    const { email, resetToken, otp, newPassword, password } = req.body;
+    const pwd = newPassword || password;
+
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'Email address is required' });
+    }
+
+    if (!pwd || typeof pwd !== 'string' || pwd.trim().length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    let isAuthorized = false;
+
+    // Verify authorization via resetToken or via valid OTP entry
+    if (resetToken) {
+      try {
+        const decoded = jwt.verify(resetToken, getAccessTokenSecret());
+        if (decoded.email === normalizedEmail && decoded.purpose === 'PASSWORD_RESET') {
+          isAuthorized = true;
+        }
+      } catch (_tokenErr) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid or expired password reset session. Please verify your OTP again.',
+        });
+      }
+    } else if (otp) {
+      const entry = passwordResetOtpStorage.get(normalizedEmail);
+      if (entry && entry.otp === String(otp).trim() && entry.expiresAt >= Date.now()) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(401).json({
+        success: false,
+        error: 'Verification required before resetting password. Please verify the OTP sent to your email.',
+      });
+    }
+
+    // Hash the new password
+    const passwordHash = await bcrypt.hash(pwd.trim(), SALT_ROUNDS);
+    let updated = false;
+
+    const user = await User.findOne({ email: normalizedEmail });
+    if (user) {
+      user.password = passwordHash;
+      await user.save();
+      updated = true;
+    } else {
+      const admin = await Admin.findOne({ email: normalizedEmail });
+      if (admin) {
+        admin.password = passwordHash;
+        await admin.save();
+        updated = true;
+      }
+    }
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'User account not found' });
+    }
+
+    // Clean up reset storage
+    passwordResetOtpStorage.delete(normalizedEmail);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset successfully. You can now log in with your new password.',
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
 export class AuthController {
   static signup = signup;
   static verifyOTP = verifyOTP;
@@ -453,4 +645,7 @@ export class AuthController {
   static logout = logout;
   static me = me;
   static updateProfile = updateProfile;
+  static forgotPassword = forgotPassword;
+  static verifyResetOTP = verifyResetOTP;
+  static resetPassword = resetPassword;
 }

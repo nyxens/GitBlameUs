@@ -87,9 +87,33 @@ export async function sendVerificationOtpEmail(email, otp) {
     ),
   });
 
-  if (!sent) {
+  if (process.env.NODE_ENV !== 'production' || !sent) {
     console.log(`\n--------------------------------------------------`);
     console.log(`🔑  [DEVELOPMENT MODE] Verification OTP for ${email}: ${otp}`);
+    console.log(`--------------------------------------------------\n`);
+  }
+  return sent;
+}
+
+/** Password reset verification code. In development (no SMTP / send failure) the OTP is printed to the console. */
+export async function sendPasswordResetOtpEmail(email, otp) {
+  const sent = await sendEmail({
+    to: email,
+    subject: 'LifeVault Password Reset Verification Code',
+    text: `Your LifeVault password reset verification code is: ${otp}. It will expire in 10 minutes. If you did not request this, please ignore this email.`,
+    html: layout(
+      'Reset Your Password',
+      `${paragraph('We received a request to reset your password. Use the 6-digit verification code below to verify your identity. This code is valid for 10 minutes.')}
+       <div style="background-color: #171717; border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 16px 24px; display: inline-block; margin-bottom: 32px;">
+         <span style="font-size: 36px; font-weight: 800; font-family: monospace; letter-spacing: 6px; color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);">${escapeHtml(otp)}</span>
+       </div>
+       <p style="font-size: 12px; color: #737373; margin: 0; line-height: 1.5;">If you did not request a password reset, you can safely ignore this email. Your account remains secure.</p>`
+    ),
+  });
+
+  if (process.env.NODE_ENV !== 'production' || !sent) {
+    console.log(`\n--------------------------------------------------`);
+    console.log(`🔑  [DEVELOPMENT MODE] Password Reset OTP for ${email}: ${otp}`);
     console.log(`--------------------------------------------------\n`);
   }
   return sent;

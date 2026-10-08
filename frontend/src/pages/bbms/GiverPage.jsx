@@ -24,6 +24,7 @@ import {
   ArrowUpDown,
   Syringe,
   Navigation,
+  Heart,
 } from 'lucide-react';
 import {
   getDonorProfile,
@@ -721,10 +722,17 @@ export const GiverPage = ({ user }) => {
             disabled={searchLoading || locating || (locationMode === 'pincode' && !formData.pincode.trim())}
             className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:bg-neutral-800 disabled:text-neutral-600 border border-purple-500/50 disabled:border-white/5 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed shadow-[0_0_20px_rgba(168,85,247,0.2)]"
           >
-            {searchLoading
-              ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Searching...</>
-              : <><Search className="w-3.5 h-3.5" /> Find Nearby Institutions</>
-            }
+            {searchLoading ? (
+              <>
+                <Heart className="w-3.5 h-3.5 fill-white text-white animate-pulse" />
+                <span>Finding Nearby Institutions...</span>
+              </>
+            ) : (
+              <>
+                <Search className="w-3.5 h-3.5" />
+                <span>Find Nearby Institutions</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -743,9 +751,67 @@ export const GiverPage = ({ user }) => {
           )}
 
           {searchLoading && (
-            <div className="rounded-3xl border border-white/5 bg-neutral-950/40 p-12 flex flex-col items-center gap-4">
-              <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-              <p className="text-sm text-neutral-400">Searching nearby institutions...</p>
+            <div className="rounded-3xl border border-red-500/20 bg-neutral-950/60 p-12 flex flex-col items-center justify-center text-center gap-4 shadow-[0_0_30px_rgba(239,68,68,0.08)]">
+              {/* Heart & Heartbeat Line Container from Landing Page */}
+              <div className="relative w-28 h-24 flex items-center justify-center mb-1">
+                <div className="absolute w-16 h-16 bg-red-600/30 rounded-full blur-xl animate-pulse" />
+                <motion.div
+                  animate={{ scale: [1, 1.15, 1, 1.12, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.3, ease: 'easeInOut' }}
+                >
+                  <Heart className="w-14 h-14 text-red-500 fill-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]" />
+                </motion.div>
+
+                {/* ECG Heartbeat Line crossing over the heart */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 overflow-visible">
+                  <svg viewBox="0 0 160 50" className="w-48 h-14 overflow-visible">
+                    <defs>
+                      <linearGradient id="giver-heartbeat-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#ef4444" stopOpacity="0" />
+                        <stop offset="25%" stopColor="#ef4444" stopOpacity="0.8" />
+                        <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+                        <stop offset="75%" stopColor="#ef4444" stopOpacity="0.8" />
+                        <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+                      </linearGradient>
+                      <filter id="giver-heartbeat-glow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="2.5" result="blur" />
+                        <feMerge>
+                          <feMergeNode in="blur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
+
+                    {/* Static baseline trace */}
+                    <path
+                      d="M 0 25 H 52 Q 58 17, 64 25 L 68 28 L 76 5 L 82 43 L 86 25 Q 93 15, 100 25 H 160"
+                      fill="none"
+                      stroke="rgba(239, 68, 68, 0.3)"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="opacity-70"
+                    />
+
+                    {/* Animated ECG Pulse line */}
+                    <path
+                      d="M 0 25 H 52 Q 58 17, 64 25 L 68 28 L 76 5 L 82 43 L 86 25 Q 93 15, 100 25 H 160"
+                      fill="none"
+                      stroke="url(#giver-heartbeat-grad)"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      filter="url(#giver-heartbeat-glow)"
+                      className="heartbeat-pulse-line-active"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-white">Finding Nearby Institutions...</p>
+                <p className="text-xs text-neutral-400 font-mono mt-1">Locating certified hospitals & blood banks near you...</p>
+              </div>
             </div>
           )}
 

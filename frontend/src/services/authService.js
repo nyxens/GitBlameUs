@@ -285,10 +285,118 @@ export async function updateUserProfile(profileData) {
   }
 }
 
+/**
+ * Request password reset OTP for a registered email.
+ */
+export async function forgotPassword(email) {
+  let response;
+  try {
+    const url = getAuthUrl('/forgot-password');
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ email }),
+    });
+  } catch (err) {
+    console.warn('API connection unavailable, falling back to mock forgot password:', err);
+    return {
+      success: true,
+      message: 'Password reset OTP sent to your email',
+      email,
+    };
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: errorData.error || `API Error: ${response.statusText} (${response.status})`,
+    };
+  }
+
+  return await response.json();
+}
+
+/**
+ * Verify OTP code entered by user before allowing password reset.
+ */
+export async function verifyResetOtp(email, otp) {
+  let response;
+  try {
+    const url = getAuthUrl('/verify-reset-otp');
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ email, otp }),
+    });
+  } catch (err) {
+    console.warn('API connection unavailable, falling back to mock verify reset OTP:', err);
+    return {
+      success: true,
+      message: 'OTP verified successfully (mock mode)',
+      resetToken: 'mock-reset-token-' + Date.now(),
+      email,
+    };
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: errorData.error || `API Error: ${response.statusText} (${response.status})`,
+    };
+  }
+
+  return await response.json();
+}
+
+/**
+ * Submit new password with the verified reset token.
+ */
+export async function resetPassword(email, resetToken, newPassword) {
+  let response;
+  try {
+    const url = getAuthUrl('/reset-password');
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ email, resetToken, newPassword }),
+    });
+  } catch (err) {
+    console.warn('API connection unavailable, falling back to mock reset password:', err);
+    return {
+      success: true,
+      message: 'Password has been reset successfully (mock mode)',
+    };
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      error: errorData.error || `API Error: ${response.statusText} (${response.status})`,
+    };
+  }
+
+  return await response.json();
+}
+
 export const authService = {
   loginUser,
   signupUser,
   verifyOtpUser,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword,
   fetchCurrentUser,
   refreshAccessToken,
   logoutUser,

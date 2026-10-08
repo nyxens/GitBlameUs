@@ -29,6 +29,7 @@ import {
   Calendar,
   User,
   HeartHandshake,
+  Heart,
 } from 'lucide-react';
 import {
   getSeekerProfile,
@@ -640,11 +641,6 @@ export const SeekerPage = ({ user }) => {
           </h1>
         </div>
 
-        {/* Live telemetry badge */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-neutral-300 self-start md:self-auto">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>INVENTORY DISPATCH TELEMETRY ACTIVE</span>
-        </div>
       </div>
 
       {/* Success Banner */}
@@ -1080,8 +1076,8 @@ export const SeekerPage = ({ user }) => {
           >
             {searchLoading ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
-                <span>Searching Facilities & Stock...</span>
+                <Heart className="w-3.5 h-3.5 fill-black text-black animate-pulse" />
+                <span>Finding Nearby Institutions...</span>
               </>
             ) : (
               <>
@@ -1111,9 +1107,67 @@ export const SeekerPage = ({ user }) => {
           )}
 
           {searchLoading && (
-            <div className="rounded-3xl border border-white/5 bg-neutral-950/40 p-12 flex flex-col items-center gap-4">
-              <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
-              <p className="text-sm text-neutral-400 font-mono">Querying Cold Vault Telemetry & Matching Inventory...</p>
+            <div className="rounded-3xl border border-red-500/20 bg-neutral-950/60 p-12 flex flex-col items-center justify-center text-center gap-4 shadow-[0_0_30px_rgba(239,68,68,0.08)]">
+              {/* Heart & Heartbeat Line Container from Landing Page */}
+              <div className="relative w-28 h-24 flex items-center justify-center mb-1">
+                <div className="absolute w-16 h-16 bg-red-600/30 rounded-full blur-xl animate-pulse" />
+                <motion.div
+                  animate={{ scale: [1, 1.15, 1, 1.12, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.3, ease: 'easeInOut' }}
+                >
+                  <Heart className="w-14 h-14 text-red-500 fill-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]" />
+                </motion.div>
+
+                {/* ECG Heartbeat Line crossing over the heart */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 overflow-visible">
+                  <svg viewBox="0 0 160 50" className="w-48 h-14 overflow-visible">
+                    <defs>
+                      <linearGradient id="seeker-heartbeat-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#ef4444" stopOpacity="0" />
+                        <stop offset="25%" stopColor="#ef4444" stopOpacity="0.8" />
+                        <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+                        <stop offset="75%" stopColor="#ef4444" stopOpacity="0.8" />
+                        <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+                      </linearGradient>
+                      <filter id="seeker-heartbeat-glow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="2.5" result="blur" />
+                        <feMerge>
+                          <feMergeNode in="blur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
+
+                    {/* Static baseline trace */}
+                    <path
+                      d="M 0 25 H 52 Q 58 17, 64 25 L 68 28 L 76 5 L 82 43 L 86 25 Q 93 15, 100 25 H 160"
+                      fill="none"
+                      stroke="rgba(239, 68, 68, 0.3)"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="opacity-70"
+                    />
+
+                    {/* Animated ECG Pulse line */}
+                    <path
+                      d="M 0 25 H 52 Q 58 17, 64 25 L 68 28 L 76 5 L 82 43 L 86 25 Q 93 15, 100 25 H 160"
+                      fill="none"
+                      stroke="url(#seeker-heartbeat-grad)"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      filter="url(#seeker-heartbeat-glow)"
+                      className="heartbeat-pulse-line-active"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-white">Finding Nearby Institutions...</p>
+                <p className="text-xs text-neutral-400 font-mono mt-1">Querying Cold Vault Telemetry & Matching Inventory...</p>
+              </div>
             </div>
           )}
 
