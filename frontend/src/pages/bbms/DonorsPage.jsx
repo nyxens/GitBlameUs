@@ -185,6 +185,7 @@ export const DonorsPage = () => {
               : r
           )
         );
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
       }
     } catch (err) {
       setNotification({

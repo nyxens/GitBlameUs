@@ -571,6 +571,7 @@ export const SeekerPage = ({ user }) => {
         ]);
         if (activeRes?.success) setActiveRequest(activeRes.data);
         if (myReqsRes?.success && myReqsRes.data) setMyRequests(myReqsRes.data);
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
       } else {
         setError(res?.error || 'Failed to submit blood request.');
         setConfirmTarget(null);
@@ -597,6 +598,7 @@ export const SeekerPage = ({ user }) => {
         const userId = user?.id || user?._id || user?.sub;
         const myReqsRes = await getMySeekerRequests(userId);
         if (myReqsRes?.success && myReqsRes.data) setMyRequests(myReqsRes.data);
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
       } else {
         setError(res?.error || 'Failed to cancel blood request.');
       }

@@ -433,6 +433,7 @@ export const GiverPage = ({ user }) => {
         const activeRes = await getActiveRequest();
         if (activeRes?.success) setActiveRequest(activeRes.data);
         await loadHistory();
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
       } else {
         setError(res?.error || 'Failed to submit request.');
         setConfirmTarget(null);
@@ -454,6 +455,7 @@ export const GiverPage = ({ user }) => {
         setActiveRequest(null);
         setSuccessMsg('Request cancelled. You can now submit a new donation request.');
         await loadHistory();
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
       } else {
         setError(res?.error || 'Failed to cancel request.');
       }

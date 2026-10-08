@@ -182,6 +182,7 @@ export const RecipientsPage = () => {
         setRequisitions((prev) =>
           prev.map((r) => (r.dbId === req.dbId ? { ...r, status: 'ACCEPTED' } : r))
         );
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
         loadData(false);
       }
     } catch (err) {
