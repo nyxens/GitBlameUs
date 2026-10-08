@@ -464,33 +464,33 @@ export const DonorsPage = () => {
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('ELIGIBLE')}
           className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none focus:outline-none focus:ring-0 ${
             activeCardFilter === 'ELIGIBLE'
-              ? 'bg-emerald-950/30 border-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.25)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-emerald-500/40 hover:bg-[#141418]'
+              ? 'bg-red-950/30 border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.25)]'
+              : 'bg-[#0b0b0e] border-white/10 hover:border-red-500/40 hover:bg-[#141418]'
           }`}
         >
           <div>
             <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-emerald-400 transition-colors">
+              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
                 Eligible Now
               </span>
               <div
                 className={`p-1.5 rounded-lg transition-colors ${
                   activeCardFilter === 'ELIGIBLE'
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-emerald-400'
+                    ? 'bg-red-500/20 text-red-400'
+                    : 'bg-white/5 text-neutral-400 group-hover:text-red-400'
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-emerald-400 tracking-tight">
+            <div className="text-3xl font-extrabold text-red-400 tracking-tight">
               {metrics.eligibleNow.toLocaleString()}
             </div>
           </div>
           <div className="flex items-center justify-between h-5">
             <span className="text-[11px] text-neutral-400 truncate">Cooldown period passed</span>
             <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
+              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
                 activeCardFilter === 'ELIGIBLE' ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
@@ -507,20 +507,20 @@ export const DonorsPage = () => {
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('TOTAL_DONATED')}
           className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none focus:outline-none focus:ring-0 ${
             activeCardFilter === 'TOTAL_DONATED'
-              ? 'bg-purple-950/30 border-purple-500 shadow-[0_0_24px_rgba(168,85,247,0.25)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-purple-500/40 hover:bg-[#141418]'
+              ? 'bg-red-950/30 border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.25)]'
+              : 'bg-[#0b0b0e] border-white/10 hover:border-red-500/40 hover:bg-[#141418]'
           }`}
         >
           <div>
             <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-purple-400 transition-colors">
+              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
                 Total Donated
               </span>
               <div
                 className={`p-1.5 rounded-lg transition-colors ${
                   activeCardFilter === 'TOTAL_DONATED'
-                    ? 'bg-purple-500/20 text-purple-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-purple-400'
+                    ? 'bg-red-500/20 text-red-400'
+                    : 'bg-white/5 text-neutral-400 group-hover:text-red-400'
                 }`}
               >
                 <Heart className="w-4 h-4" />
@@ -528,13 +528,13 @@ export const DonorsPage = () => {
             </div>
             <div className="text-3xl font-extrabold text-white tracking-tight">
               {metrics.totalDonatedUnits.toLocaleString()}{' '}
-              <span className="text-lg font-normal text-purple-400">Units</span>
+              <span className="text-lg font-normal text-red-400">Units</span>
             </div>
           </div>
           <div className="flex items-center justify-between h-5">
             <span className="text-[11px] text-neutral-400 truncate">Actual DB units donated</span>
             <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
+              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
                 activeCardFilter === 'TOTAL_DONATED' ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
@@ -543,7 +543,7 @@ export const DonorsPage = () => {
           </div>
         </div>
 
-        {/* Card 4: INCOMING DONATION REQUESTS (Replaces Active Drives) */}
+        {/* Card 4: INCOMING DONATION REQUESTS */}
         <div
           onClick={() => handleCardClick('INCOMING_REQUESTS')}
           role="button"
@@ -551,26 +551,26 @@ export const DonorsPage = () => {
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('INCOMING_REQUESTS')}
           className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none focus:outline-none focus:ring-0 ${
             activeCardFilter === 'INCOMING_REQUESTS'
-              ? 'bg-amber-950/40 border-amber-500 shadow-[0_0_24px_rgba(245,158,11,0.3)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-amber-500/40 hover:bg-[#141418]'
+              ? 'bg-red-950/40 border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.3)]'
+              : 'bg-[#0b0b0e] border-white/10 hover:border-red-500/40 hover:bg-[#141418]'
           }`}
         >
           <div>
             <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-amber-400 transition-colors">
+              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
                 Incoming Requests
               </span>
               <div
                 className={`p-1.5 rounded-lg transition-colors ${
                   activeCardFilter === 'INCOMING_REQUESTS'
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-amber-400'
+                    ? 'bg-red-500/20 text-red-400'
+                    : 'bg-white/5 text-neutral-400 group-hover:text-red-400'
                 }`}
               >
                 <Inbox className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-amber-400 tracking-tight flex items-baseline gap-2">
+            <div className="text-3xl font-extrabold text-red-400 tracking-tight flex items-baseline gap-2">
               {giverRequests.length}{' '}
               <span className="text-xs font-normal text-neutral-400 font-sans">
                 from Giver Model
@@ -582,7 +582,7 @@ export const DonorsPage = () => {
               Click to view, accept or deny
             </span>
             <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
+              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
                 activeCardFilter === 'INCOMING_REQUESTS'
                   ? 'opacity-100'
                   : 'opacity-0 pointer-events-none'
@@ -613,7 +613,7 @@ export const DonorsPage = () => {
               placeholder={
                 isIncomingView
                   ? 'Search by donor name, phone, hospital, or notes...'
-                  : 'Search by donor name, ID, phone, or location...'
+                  : 'Search by donor name, ID, phone, or pincode...'
               }
               className="w-full pl-10 pr-10 py-2.5 bg-[#141417] text-white placeholder-neutral-500 rounded-xl border border-white/10 focus:outline-none focus:border-red-500/80 focus:bg-[#141417] transition-colors duration-150 text-xs caret-red-400 ring-0 focus:ring-0"
             />
@@ -752,30 +752,22 @@ export const DonorsPage = () => {
                 </div>
 
                 {activeCardFilter !== 'ALL' && (
-                  <span
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border shadow-sm ${
-                      activeCardFilter === 'ELIGIBLE'
-                        ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-                        : activeCardFilter === 'TOTAL_DONATED'
-                        ? 'bg-purple-950/40 border-purple-500/40 text-purple-300'
-                        : 'bg-amber-950/40 border-amber-500/40 text-amber-300'
-                    }`}
-                  >
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border shadow-sm bg-red-950/40 border-red-500/40 text-red-300">
                     {activeCardFilter === 'ELIGIBLE' && (
                       <>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-red-400 shrink-0" />
                         <span>Eligible Donors Only</span>
                       </>
                     )}
                     {activeCardFilter === 'TOTAL_DONATED' && (
                       <>
-                        <Heart className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                        <Heart className="w-3.5 h-3.5 text-red-400 shrink-0" />
                         <span>Sorted by Total Donations</span>
                       </>
                     )}
                     {activeCardFilter === 'INCOMING_REQUESTS' && (
                       <>
-                        <Inbox className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <Inbox className="w-3.5 h-3.5 text-red-400 shrink-0" />
                         <span>Incoming Donation Requests (Giver Model)</span>
                       </>
                     )}
@@ -783,7 +775,7 @@ export const DonorsPage = () => {
                       type="button"
                       onClick={() => setActiveCardFilter('ALL')}
                       aria-label="Remove filter"
-                      className="p-0.5 rounded-md hover:bg-white/10 transition-colors ml-1 cursor-pointer opacity-70 hover:opacity-100"
+                      className="p-0.5 rounded-md hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-colors ml-1 cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -847,94 +839,58 @@ export const DonorsPage = () => {
       </div>
 
       {/* 4. MAIN DATA TABLE (Replaced when Incoming Requests card is selected) */}
-      <div className="w-full min-h-[420px] rounded-2xl bg-[#09090b] border border-white/10 overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto bg-[#09090b]">
+      <div className="rounded-2xl border border-white/10 bg-[#0e0e11] overflow-hidden shadow-2xl">
+        <div className="overflow-x-auto">
           {isIncomingView ? (
             /* =========================================================================
                INCOMING DONATION REQUESTS TABLE (FROM GIVERREQUEST MODEL)
                ========================================================================= */
-            <table className="w-full table-fixed border-separate border-spacing-0 text-left text-xs min-w-[980px] bg-[#09090b]">
-              <colgroup>
-                <col className="w-[20%]" />
-                <col className="w-[10%]" />
-                <col className="w-[18%]" />
-                <col className="w-[13%]" />
-                <col className="w-[14%]" />
-                <col className="w-[13%]" />
-                <col className="w-[12%]" />
-              </colgroup>
-
-              <thead className="bg-[#121215] text-neutral-400 uppercase font-mono tracking-wider text-[11px] select-none">
-                <tr>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
-                    Donor / Request ID
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-white/10 bg-[#141418] text-neutral-400 font-mono text-[11px] select-none">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-left">
+                    Donor
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
                     Blood Group
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-left">
                     Target Institution
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
                     Preferred Date
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
                     Donor Contact
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
-                    Status / Inventory
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                    Status
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215] text-center">
-                    Action
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                    Actions
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="text-neutral-300 font-sans bg-[#09090b]">
+              <tbody className="divide-y divide-white/5 font-sans">
                 {isLoading ? (
-                  [...Array(4)].map((_, i) => (
-                    <tr key={i} className="bg-[#09090b] animate-pulse">
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-32 bg-white/10 rounded mb-1.5" />
-                        <div className="h-3 w-20 bg-white/5 rounded" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-6 w-12 bg-white/10 rounded-lg" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-32 bg-white/10 rounded" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-24 bg-white/10 rounded" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-28 bg-white/10 rounded" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-6 w-24 bg-white/10 rounded-full" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-8 w-20 bg-white/10 rounded-xl mx-auto" />
-                      </td>
-                    </tr>
-                  ))
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-neutral-400">
+                      <div className="flex flex-col items-center gap-2">
+                        <RefreshCw className="w-5 h-5 animate-spin text-neutral-400" />
+                        <span>Loading donation requests from database...</span>
+                      </div>
+                    </td>
+                  </tr>
                 ) : processedRequests.length === 0 ? (
-                  <tr className="bg-[#09090b]">
-                    <td colSpan={7} className="py-16 px-4 text-center bg-[#09090b] border-b border-white/5">
-                      <div className="max-w-sm mx-auto flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-400 mb-3">
-                          <Inbox className="w-6 h-6 text-neutral-500" />
-                        </div>
-                        <h4 className="text-sm font-bold text-white mb-1">No Donation Requests Found</h4>
-                        <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
-                          No giver donation requests match the specified criteria.
-                        </p>
-                        <button
-                          onClick={clearAllFilters}
-                          className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-white font-semibold transition-colors cursor-pointer"
-                        >
-                          Reset Filters
-                        </button>
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-neutral-400">
+                      <div className="flex flex-col items-center gap-2">
+                        <Inbox className="w-8 h-8 text-neutral-600" />
+                        <span className="font-semibold text-neutral-300">No donation requests found</span>
+                        <span className="text-neutral-500 text-[11px]">
+                          Try adjusting your filters or search terms
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -954,167 +910,103 @@ export const DonorsPage = () => {
                     const isRejected = req.status === 'REJECTED';
                     const isActionLoading = actionLoadingId === req._id;
 
-                    const bagBarcode =
-                      req.bag_id?.barcode ||
-                      (typeof req.bag_id === 'object' && req.bag_id?._id
-                        ? `LV-BAG-${req.bag_id._id.slice(-4).toUpperCase()}`
-                        : null);
-
                     return (
                       <tr
                         key={req._id}
-                        className="bg-[#09090b] hover:bg-[#131317] group transition-colors"
+                        className="hover:bg-white/[0.03] transition-colors group"
                       >
-                        {/* Donor Info & Notes */}
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <div className="font-semibold text-white truncate max-w-full group-hover:text-red-300 transition-colors">
+                        {/* 1. Donor */}
+                        <td className="py-3.5 px-4 text-left">
+                          <span className="font-semibold text-white text-xs">
                             {donorName}
-                          </div>
-                          <div className="font-mono text-[10px] text-neutral-400 truncate">
-                            ID: {req._id?.slice(-8).toUpperCase()}
-                          </div>
-                          {req.donor_notes && (
-                            <div className="text-[10px] text-neutral-400 truncate italic mt-0.5">
-                              "{req.donor_notes}"
-                            </div>
-                          )}
+                          </span>
                         </td>
 
-                        {/* Blood Group */}
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <span className="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold font-mono text-xs inline-flex items-center gap-1 shadow-sm">
-                            <Droplet className="w-3 h-3 text-red-400 fill-red-400/30 shrink-0" />
+                        {/* 2. Blood Group */}
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="font-mono font-semibold text-white text-xs">
                             {bloodGroup}
                           </span>
                         </td>
 
-                        {/* Target Institution */}
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <div className="text-white font-medium truncate flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                            <span className="truncate">{targetFacility}</span>
-                          </div>
-                          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block mt-0.5">
-                            {req.target_type || 'HOSPITAL'}
+                        {/* 3. Target Institution */}
+                        <td className="py-3.5 px-4 text-left">
+                          <span className="text-neutral-200 font-medium text-xs truncate block max-w-[200px]" title={targetFacility}>
+                            {targetFacility}
                           </span>
                         </td>
 
-                        {/* Preferred Date */}
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <div className="text-neutral-200 truncate">
-                            {formatDate(req.preferred_date || req.createdAt)}
-                          </div>
-                          {req.appointment_time && (
-                            <span className="text-[10px] text-neutral-400 block font-mono">
-                              {req.appointment_time}
-                            </span>
-                          )}
+                        {/* 4. Preferred Date */}
+                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                          {formatDate(req.preferred_date || req.createdAt)}
                         </td>
 
-                        {/* Donor Contact */}
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <div className="text-neutral-300 font-mono text-xs truncate flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-neutral-500 shrink-0" />
-                            <span>{req.u_id?.phone || req.phone || '—'}</span>
-                          </div>
-                          {req.u_id?.email && (
-                            <div className="text-neutral-400 text-[10px] truncate flex items-center gap-1 mt-0.5">
-                              <Mail className="w-3 h-3 text-neutral-500 shrink-0" />
-                              <span className="truncate">{req.u_id.email}</span>
-                            </div>
-                          )}
+                        {/* 5. Donor Contact */}
+                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                          {req.u_id?.phone || req.phone || '—'}
                         </td>
 
-                        {/* Status & Inventory State */}
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          {isPending && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1.5 bg-amber-500/15 text-amber-300 border-amber-500/30">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                              <span>Pending Decision</span>
-                            </span>
-                          )}
-                          {isAccepted && (
-                            <div className="flex flex-col gap-1">
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1.5 bg-orange-500/15 text-orange-300 border-orange-500/30">
-                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-ping" />
-                                <span>UNFULFILLED</span>
+                        {/* 6. Status */}
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="text-neutral-300 text-xs font-medium">
+                            {isPending ? 'Pending' : isAccepted ? 'Unfulfilled' : isCompleted ? 'Fulfilled' : isRejected ? 'Denied' : req.status}
+                          </span>
+                        </td>
+
+                        {/* 7. Actions */}
+                        <td className="py-3.5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            {isPending && (
+                              <>
+                                <button
+                                  onClick={() => handleAcceptRequest(req)}
+                                  disabled={isActionLoading}
+                                  className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                                  title="Accept donation request"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Accept</span>
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    setDenyModalRequest(req);
+                                    setDenyReason('Donation request denied by BBMS administration.');
+                                  }}
+                                  disabled={isActionLoading}
+                                  className="px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-white/5 border border-white/10 text-neutral-400 hover:text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                                  title="Deny donation request"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                  <span>Deny</span>
+                                </button>
+                              </>
+                            )}
+
+                            {isAccepted && (
+                              <button
+                                onClick={() => handleFulfillDonation(req)}
+                                disabled={isActionLoading}
+                                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                                title="Blood received at BBMS. Fulfill inventory entry."
+                              >
+                                <PackageCheck className="w-3.5 h-3.5" />
+                                <span>Fulfill Receipt</span>
+                              </button>
+                            )}
+
+                            {isCompleted && (
+                              <span className="text-[11px] text-neutral-400 font-mono">
+                                Fulfilled ✓
                               </span>
-                              {bagBarcode && (
-                                <span className="text-[9px] font-mono text-neutral-400 tracking-tight">
-                                  {bagBarcode}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                          {isCompleted && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1.5 bg-emerald-500/15 text-emerald-300 border-emerald-500/30">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                              <span>FULFILLED (In Vault)</span>
-                            </span>
-                          )}
-                          {isRejected && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1.5 bg-red-500/15 text-red-400 border-red-500/30">
-                              <XCircle className="w-3 h-3 text-red-400 shrink-0" />
-                              <span>Denied</span>
-                            </span>
-                          )}
-                        </td>
+                            )}
 
-                        {/* Actions (Accept / Deny / Fulfill) */}
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317] text-center">
-                          {isPending && (
-                            <div className="flex items-center justify-center gap-1.5">
-                              {/* Accept Button */}
-                              <button
-                                onClick={() => handleAcceptRequest(req)}
-                                disabled={isActionLoading}
-                                className="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-emerald-100 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 disabled:opacity-50 shadow-sm"
-                                title="Accept request and add unfulfilled blood entry to inventory"
-                              >
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Accept</span>
-                              </button>
-
-                              {/* Deny Button */}
-                              <button
-                                onClick={() => {
-                                  setDenyModalRequest(req);
-                                  setDenyReason('Donation request denied by BBMS administration.');
-                                }}
-                                disabled={isActionLoading}
-                                className="px-2.5 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-red-100 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 disabled:opacity-50 shadow-sm"
-                                title="Deny donation request"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                                <span>Deny</span>
-                              </button>
-                            </div>
-                          )}
-
-                          {isAccepted && (
-                            <button
-                              onClick={() => handleFulfillDonation(req)}
-                              disabled={isActionLoading}
-                              className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white border border-purple-400/40 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_0_16px_rgba(168,85,247,0.35)] disabled:opacity-50 mx-auto"
-                              title="Blood received at BBMS. Fulfill inventory entry."
-                            >
-                              <PackageCheck className="w-3.5 h-3.5" />
-                              <span>Fulfill Receipt</span>
-                            </button>
-                          )}
-
-                          {isCompleted && (
-                            <span className="text-[11px] text-emerald-400 font-semibold inline-flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                              <span>Received</span>
-                            </span>
-                          )}
-
-                          {isRejected && (
-                            <span className="text-[11px] text-neutral-500 font-mono">
-                              No action
-                            </span>
-                          )}
+                            {isRejected && (
+                              <span className="text-[11px] text-neutral-500 font-mono">
+                                Denied ✕
+                              </span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1126,164 +1018,87 @@ export const DonorsPage = () => {
             /* =========================================================================
                REGISTERED DONORS TABLE (ORIGINAL TABLE VIEW)
                ========================================================================= */
-            <table className="w-full table-fixed border-separate border-spacing-0 text-left text-xs min-w-[940px] bg-[#09090b]">
-              <colgroup>
-                <col className="w-[23%]" />
-                <col className="w-[11%]" />
-                <col className="w-[15%]" />
-                <col className="w-[14%]" />
-                <col className="w-[17%]" />
-                <col className="w-[14%]" />
-                <col className="w-[14%]" />
-              </colgroup>
-
-              <thead className="bg-[#121215] text-neutral-400 uppercase font-mono tracking-wider text-[11px] select-none">
-                <tr>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
-                    Donor ID / Name
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-white/10 bg-[#141418] text-neutral-400 font-mono text-[11px] select-none">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-left">
+                    Donor
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
                     Blood Group
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
                     Total Donations
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
                     Last Donation
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
-                    Current Eligibility
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                    Phone
                   </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
-                    Contact Phone
-                  </th>
-                  <th className="py-4 px-4 font-semibold text-neutral-300 border-b border-white/10 bg-[#121215]">
-                    Location
+                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                    Pincode
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="text-neutral-300 font-sans bg-[#09090b]">
+              <tbody className="divide-y divide-white/5 font-sans">
                 {isLoading ? (
-                  [...Array(5)].map((_, i) => (
-                    <tr key={i} className="bg-[#09090b] animate-pulse">
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-32 bg-white/10 rounded mb-1.5" />
-                        <div className="h-3 w-16 bg-white/5 rounded" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-6 w-12 bg-white/10 rounded-lg" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-20 bg-white/10 rounded" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-24 bg-white/10 rounded" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-6 w-24 bg-white/10 rounded-full" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-28 bg-white/10 rounded" />
-                      </td>
-                      <td className="py-4 px-4 border-b border-white/5 bg-[#09090b]">
-                        <div className="h-4 w-20 bg-white/10 rounded" />
-                      </td>
-                    </tr>
-                  ))
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-neutral-400">
+                      <div className="flex flex-col items-center gap-2">
+                        <RefreshCw className="w-5 h-5 animate-spin text-neutral-400" />
+                        <span>Loading registered donors from database...</span>
+                      </div>
+                    </td>
+                  </tr>
                 ) : processedDonors.length === 0 ? (
-                  <tr className="bg-[#09090b]">
-                    <td colSpan={7} className="py-16 px-4 text-center bg-[#09090b] border-b border-white/5">
-                      <div className="max-w-sm mx-auto flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-400 mb-3">
-                          <Users className="w-6 h-6 text-neutral-500" />
-                        </div>
-                        <h4 className="text-sm font-bold text-white mb-1">No Donors Found</h4>
-                        <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
-                          No registered donor records match your current filter criteria.
-                        </p>
-                        <button
-                          onClick={clearAllFilters}
-                          className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-white font-semibold transition-colors cursor-pointer"
-                        >
-                          Reset All Filters
-                        </button>
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-neutral-400">
+                      <div className="flex flex-col items-center gap-2">
+                        <Inbox className="w-8 h-8 text-neutral-600" />
+                        <span className="font-semibold text-neutral-300">No donors found</span>
+                        <span className="text-neutral-500 text-[11px]">
+                          Try adjusting your filters or search terms
+                        </span>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   processedDonors.map((d, index) => {
-                    const isEligible = d.eligibility?.startsWith('ELIGIBLE');
-                    const isTopDonor = (d.totalDonations || 0) >= 3;
-
                     return (
                       <tr
                         key={d.dbId || d.id || `dnr-row-${index}`}
-                        className="bg-[#09090b] hover:bg-[#131317] group"
+                        className="hover:bg-white/[0.03] transition-colors group"
                       >
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <div className="font-semibold text-white truncate max-w-full group-hover:text-red-300 transition-colors">
+                        <td className="py-3.5 px-4 text-left">
+                          <span className="font-semibold text-white text-xs">
                             {d.name}
-                          </div>
-                          <div className="font-mono text-[10px] text-neutral-400 truncate">
-                            {d.id}
-                          </div>
+                          </span>
                         </td>
 
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <span className="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold font-mono text-xs inline-flex items-center gap-1 shadow-sm">
-                            <Droplet className="w-3 h-3 text-red-400 fill-red-400/30 shrink-0" />
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="font-mono font-semibold text-white text-xs">
                             {d.bloodGroup}
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span className="font-bold text-white">
-                              {d.totalDonations} {d.totalDonations === 1 ? 'Donation' : 'Donations'}
-                            </span>
-                            {isTopDonor && (
-                              <Award
-                                className="w-3.5 h-3.5 text-purple-400 shrink-0"
-                                title="High-impact donor"
-                              />
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <span className="text-neutral-300 truncate block">
-                            {d.lastDonation}
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="text-neutral-200 text-xs font-medium">
+                            {d.totalDonations} {d.totalDonations === 1 ? 'donation' : 'donations'}
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border inline-flex items-center gap-1.5 truncate max-w-full ${
-                              isEligible
-                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
-                                : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                            }`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                isEligible ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
-                              }`}
-                            />
-                            <span className="truncate">{d.eligibility}</span>
-                          </span>
+                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                          {d.lastDonation}
                         </td>
 
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <span className="font-mono text-neutral-400 text-xs truncate block">
-                            {d.phone}
-                          </span>
+                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                          {d.phone}
                         </td>
 
-                        <td className="py-3.5 px-4 overflow-hidden border-b border-white/5 bg-[#09090b] group-hover:bg-[#131317]">
-                          <span className="text-neutral-300 text-xs truncate block" title={d.city}>
-                            {d.city}
-                          </span>
+                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                          {d.pincode || d.city || '—'}
                         </td>
                       </tr>
                     );

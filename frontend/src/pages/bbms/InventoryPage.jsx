@@ -27,17 +27,17 @@ import {
 const BLOOD_GROUPS = ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'];
 
 const STOCK_STYLE = {
-  CRITICAL: 'border-red-500/40 text-red-400',
-  LOW: 'border-amber-500/40 text-amber-400',
-  OPTIMAL: 'border-emerald-500/30 text-emerald-400',
+  CRITICAL: 'border-purple-500/30 text-purple-300',
+  LOW: 'border-purple-500/20 text-purple-300/80',
+  OPTIMAL: 'border-purple-500/40 text-purple-200',
 };
 
 const ITEM_STATUS = {
-  OPTIMAL: { label: 'Available', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
-  LOW: { label: 'Use Soon', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
-  CRITICAL: { label: 'Expiring Soon', cls: 'bg-red-500/15 text-red-400 border-red-500/30' },
-  EXPIRED: { label: 'Expired', cls: 'bg-red-500/15 text-red-400 border-red-500/30' },
-  UNFULFILLED: { label: 'Awaiting Receipt', cls: 'bg-orange-500/15 text-orange-400 border-orange-500/30' },
+  OPTIMAL: { label: 'Available', cls: 'bg-purple-500/15 text-purple-300 border-purple-500/30' },
+  LOW: { label: 'Use Soon', cls: 'bg-purple-500/10 text-purple-300/80 border-purple-500/20' },
+  CRITICAL: { label: 'Expiring Soon', cls: 'bg-purple-900/30 text-purple-200 border-purple-400/40' },
+  EXPIRED: { label: 'Expired', cls: 'bg-neutral-800 text-neutral-400 border-neutral-700' },
+  UNFULFILLED: { label: 'Awaiting Receipt', cls: 'bg-purple-500/20 text-purple-300 border-purple-500/40' },
 };
 
 const VIEW_FILTERS = [
@@ -176,9 +176,9 @@ export const InventoryPage = () => {
   return (
     <section className="w-full space-y-8 animate-fadeIn">
       {notice && (
-        <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 flex items-center justify-between shadow-xl">
+        <div className="p-4 rounded-2xl bg-purple-950/80 border border-purple-500/40 text-purple-200 flex items-center justify-between shadow-xl">
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0" />
             <span className="text-xs font-medium">{notice}</span>
           </div>
           <button onClick={() => setNotice('')} className="p-1 hover:bg-white/10 rounded-lg cursor-pointer"><X className="w-4 h-4" /></button>
@@ -232,37 +232,37 @@ export const InventoryPage = () => {
               <div className="text-[11px] text-neutral-400 truncate">{groupsInStock} of 8 blood groups in stock</div>
             </div>
 
-            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-orange-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
+            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-purple-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
               <div>
                 <div className="flex items-center justify-between text-neutral-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-orange-400 transition-colors">Awaiting Receipt</span>
-                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-orange-400 transition-colors">
+                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-purple-400 transition-colors">Awaiting Receipt</span>
+                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-purple-400 transition-colors">
                     <PackageCheck className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-orange-400 tracking-tight">{summary?.unfulfilled ?? 0} <span className="text-lg font-normal text-orange-400">Entries</span></div>
+                <div className="text-3xl font-extrabold text-purple-400 tracking-tight">{summary?.unfulfilled ?? 0} <span className="text-lg font-normal text-purple-400">Entries</span></div>
               </div>
               <div className="text-[11px] text-neutral-400 truncate">{summary?.unfulfilled ? 'Accepted donations pending receipt' : 'All donations received'}</div>
             </div>
 
-            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-red-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
+            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-purple-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
               <div>
                 <div className="flex items-center justify-between text-neutral-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">Expiring ≤ 7 Days</span>
-                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-red-400 transition-colors">
+                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-purple-400 transition-colors">Expiring ≤ 7 Days</span>
+                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-purple-400 transition-colors">
                     <Hourglass className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-white tracking-tight">{summary?.expiringSoon ?? 0} <span className="text-lg font-normal text-red-400">Units</span></div>
+                <div className="text-3xl font-extrabold text-white tracking-tight">{summary?.expiringSoon ?? 0} <span className="text-lg font-normal text-purple-400">Units</span></div>
               </div>
               <div className="text-[11px] text-neutral-400 truncate">{summary?.expired ? `${summary.expired} expired units` : 'No expired units'}</div>
             </div>
 
-            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-cyan-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
+            <div className="h-[136px] flex flex-col justify-between p-5 rounded-2xl bg-[#0b0b0e] border border-white/10 hover:border-purple-500/40 hover:bg-[#141418] transition-colors duration-200 select-none group">
               <div>
                 <div className="flex items-center justify-between text-neutral-400 mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-cyan-400 transition-colors">Capacity Used</span>
-                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-cyan-400 transition-colors">
+                  <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-purple-400 transition-colors">Capacity Used</span>
+                  <div className="p-1.5 rounded-lg bg-white/5 text-neutral-400 group-hover:text-purple-400 transition-colors">
                     <Gauge className="w-4 h-4" />
                   </div>
                 </div>
@@ -270,7 +270,7 @@ export const InventoryPage = () => {
               </div>
               <div className="flex items-center justify-between text-[11px] text-neutral-400 truncate">
                 <span>{summary?.used ?? 0} / {summary?.capacity ?? 0} slots</span>
-                <span className="font-mono text-[10px] text-cyan-400 font-semibold">{usedPct}%</span>
+                <span className="font-mono text-[10px] text-purple-400 font-semibold">{usedPct}%</span>
               </div>
             </div>
           </div>
@@ -279,10 +279,10 @@ export const InventoryPage = () => {
           <div className="grid grid-cols-4 lg:grid-cols-8 gap-3">
             {stock?.stock.map((g) => (
               <button key={g.type} onClick={() => setGroup(group === g.type ? 'ALL' : g.type)}
-                className={`p-3 rounded-2xl bg-neutral-950/80 border text-center transition-all cursor-pointer ${STOCK_STYLE[g.status]} ${group === g.type ? 'ring-1 ring-purple-400' : ''}`}>
-                <div className="text-sm font-bold font-mono">{g.type}</div>
+                className={`p-3 rounded-2xl bg-neutral-950/80 border text-center transition-all cursor-pointer ${STOCK_STYLE[g.status] || 'border-white/10 text-neutral-300'} ${group === g.type ? 'ring-1 ring-purple-400 bg-purple-950/40 border-purple-500' : 'hover:border-purple-500/40'}`}>
+                <div className="text-sm font-bold font-mono text-purple-400">{g.type}</div>
                 <div className="text-xl font-extrabold text-white">{g.units}</div>
-                <div className="text-[9px] uppercase tracking-wider">{g.status}</div>
+                <div className="text-[9px] uppercase tracking-wider text-neutral-400">{g.status}</div>
               </button>
             ))}
           </div>
@@ -307,12 +307,12 @@ export const InventoryPage = () => {
                     className={`text-left rounded-xl bg-white/[0.03] border p-3.5 transition-colors ${active ? 'border-purple-500/60' : 'border-white/10 hover:border-purple-500/30'} ${facilities.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}>
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-semibold text-white leading-tight truncate">{f.facilityName}</p>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 ${f.facilityType === 'Hospital' ? 'text-blue-400 bg-blue-500/10' : 'text-red-400 bg-red-500/10'}`}>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 border ${f.facilityType === 'Hospital' ? 'text-purple-300 bg-purple-500/15 border-purple-500/30' : 'text-purple-400 bg-purple-500/10 border-purple-500/20'}`}>
                         {f.facilityType === 'Hospital' ? 'Hospital' : 'Blood Bank'}
                       </span>
                     </div>
                     <p className="text-[10px] text-neutral-500 font-mono mt-1">{f.cellno} • {f.shelfno}</p>
-                    <div className="h-1.5 rounded-full bg-white/10 mt-2.5 overflow-hidden"><div className="h-full bg-cyan-400" style={{ width: `${pct}%` }} /></div>
+                    <div className="h-1.5 rounded-full bg-white/10 mt-2.5 overflow-hidden"><div className="h-full bg-purple-500" style={{ width: `${pct}%` }} /></div>
                     <p className="text-[11px] text-neutral-400 mt-1.5">{f.used} / {f.capacity} slots used</p>
                   </button>
                 );
@@ -372,14 +372,14 @@ export const InventoryPage = () => {
                           <div>{item.barcode}</div>
                           {item.donorName && <div className="text-[10px] text-neutral-500 font-sans">{item.donorName}</div>}
                         </td>
-                        <td className="py-3.5 px-4"><span className="px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold font-mono">{item.type}</span></td>
+                        <td className="py-3.5 px-4"><span className="px-2.5 py-1 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 font-bold font-mono">{item.type}</span></td>
                         <td className="py-3.5 px-4">
                           <div className="font-semibold text-white flex items-center gap-1.5 max-w-[190px]"><Building2 className="w-3.5 h-3.5 text-purple-400 shrink-0" /><span className="truncate">{item.facilityName}</span></div>
                           <div className="text-[10px] text-neutral-500 font-mono mt-0.5">{item.cellno} • {item.shelfno}</div>
                         </td>
                         <td className="py-3.5 px-4 text-neutral-300">{item.volumeMl ? `${item.volumeMl} ml` : '—'}</td>
                         <td className="py-3.5 px-4 text-neutral-300">{item.dateOfDonation ? new Date(item.dateOfDonation).toLocaleDateString() : '—'}</td>
-                        <td className={`py-3.5 px-4 ${item.daysToExpiry !== null && item.daysToExpiry <= 7 && !isUnfulfilled ? 'text-red-400 font-semibold' : 'text-neutral-300'}`}>{item.expiry}</td>
+                        <td className={`py-3.5 px-4 ${item.daysToExpiry !== null && item.daysToExpiry <= 7 && !isUnfulfilled ? 'text-purple-300 font-semibold' : 'text-neutral-300'}`}>{item.expiry}</td>
                         <td className="py-3.5 px-4"><span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${st.cls}`}>{st.label}</span></td>
                         <td className="py-3.5 px-4 text-right">
                           {isUnfulfilled ? (

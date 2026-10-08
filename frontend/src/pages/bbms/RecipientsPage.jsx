@@ -419,7 +419,7 @@ export const RecipientsPage = () => {
                 ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
                 : notification.type === 'error'
                 ? 'bg-red-950/90 border-red-500/50 text-red-200'
-                : 'bg-cyan-950/90 border-cyan-500/50 text-cyan-200'
+                : 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
             }`}
           >
             <div className="flex items-center gap-2.5">
@@ -428,7 +428,7 @@ export const RecipientsPage = () => {
               ) : notification.type === 'error' ? (
                 <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
               ) : (
-                <Clock className="w-5 h-5 text-cyan-400 shrink-0" />
+                <Clock className="w-5 h-5 text-emerald-400 shrink-0" />
               )}
               <span className="text-xs font-medium leading-relaxed">{notification.message}</span>
             </div>
@@ -533,33 +533,33 @@ export const RecipientsPage = () => {
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('EMERGENCY')}
           className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none ${
             activeCardFilter === 'EMERGENCY'
-              ? 'bg-red-950/30 border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.25)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-red-500/40 hover:bg-[#141418]'
+              ? 'bg-emerald-950/30 border-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.25)]'
+              : 'bg-[#0b0b0e] border-white/10 hover:border-emerald-500/40 hover:bg-[#141418]'
           }`}
         >
           <div>
             <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
+              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-emerald-400 transition-colors">
                 Emergency Priority
               </span>
               <div
                 className={`p-1.5 rounded-lg transition-colors ${
                   activeCardFilter === 'EMERGENCY'
-                    ? 'bg-red-500/20 text-red-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-red-400'
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : 'bg-white/5 text-neutral-400 group-hover:text-emerald-400'
                 }`}
               >
                 <HeartPulse className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-red-400 tracking-tight">
+            <div className="text-3xl font-extrabold text-emerald-400 tracking-tight">
               {metrics.emergencyTrauma.toLocaleString()}
             </div>
           </div>
           <div className="flex items-center justify-between h-5">
             <span className="text-[11px] text-neutral-400 truncate">Immediate priority triage</span>
             <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
+              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
                 activeCardFilter === 'EMERGENCY' ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
@@ -576,20 +576,20 @@ export const RecipientsPage = () => {
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('TOTAL_UNITS')}
           className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none ${
             activeCardFilter === 'TOTAL_UNITS'
-              ? 'bg-cyan-950/30 border-cyan-500 shadow-[0_0_24px_rgba(6,182,212,0.25)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-cyan-500/40 hover:bg-[#141418]'
+              ? 'bg-emerald-950/30 border-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.25)]'
+              : 'bg-[#0b0b0e] border-white/10 hover:border-emerald-500/40 hover:bg-[#141418]'
           }`}
         >
           <div>
             <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-cyan-400 transition-colors">
+              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-emerald-400 transition-colors">
                 Units Demanded
               </span>
               <div
                 className={`p-1.5 rounded-lg transition-colors ${
                   activeCardFilter === 'TOTAL_UNITS'
-                    ? 'bg-cyan-500/20 text-cyan-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-cyan-400'
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : 'bg-white/5 text-neutral-400 group-hover:text-emerald-400'
                 }`}
               >
                 <Droplet className="w-4 h-4" />
@@ -597,13 +597,13 @@ export const RecipientsPage = () => {
             </div>
             <div className="text-3xl font-extrabold text-white tracking-tight">
               {metrics.totalUnitsRequested.toLocaleString()}{' '}
-              <span className="text-sm font-normal text-neutral-400">Bags</span>
+              <span className="text-sm font-normal text-emerald-400">Bags</span>
             </div>
           </div>
           <div className="flex items-center justify-between h-5">
             <span className="text-[11px] text-neutral-400 truncate">Across 8 ABO Groups</span>
             <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
+              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
                 activeCardFilter === 'TOTAL_UNITS' ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
@@ -620,29 +620,29 @@ export const RecipientsPage = () => {
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('ACTIONABLE')}
           className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none ${
             activeCardFilter === 'ACTIONABLE'
-              ? 'bg-amber-950/30 border-amber-500 shadow-[0_0_24px_rgba(245,158,11,0.25)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-amber-500/40 hover:bg-[#141418]'
+              ? 'bg-emerald-950/30 border-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.25)]'
+              : 'bg-[#0b0b0e] border-white/10 hover:border-emerald-500/40 hover:bg-[#141418]'
           }`}
         >
           <div>
             <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
                 Actionable Orders
                 {metrics.actionableOrders > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 )}
               </span>
               <div
                 className={`p-1.5 rounded-lg transition-colors ${
                   activeCardFilter === 'ACTIONABLE'
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-amber-400'
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : 'bg-white/5 text-neutral-400 group-hover:text-emerald-400'
                 }`}
               >
                 <Inbox className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-amber-400 tracking-tight flex items-baseline gap-2">
+            <div className="text-3xl font-extrabold text-emerald-400 tracking-tight flex items-baseline gap-2">
               {metrics.actionableOrders}{' '}
               <span className="text-xs font-normal text-neutral-400 font-sans">
                 Awaiting Allocation
@@ -654,7 +654,7 @@ export const RecipientsPage = () => {
               Click to view & allocate blood
             </span>
             <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
+              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
                 activeCardFilter === 'ACTIONABLE' ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
@@ -864,22 +864,22 @@ export const RecipientsPage = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-white/10 bg-[#141418] text-neutral-400 font-semibold text-[11px] uppercase tracking-wider">
-                <th className="py-3.5 px-4">Patient / Requester</th>
-                <th className="py-3.5 px-4">Blood Group</th>
-                <th className="py-3.5 px-4">Units & Urgency</th>
-                <th className="py-3.5 px-4">Target Institution</th>
-                <th className="py-3.5 px-4">Required By</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
+              <tr className="border-b border-white/10 bg-[#141418] text-neutral-400 font-mono text-[11px] select-none">
+                <th className="py-3.5 px-4 font-semibold text-neutral-300 text-left">Patient</th>
+                <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">Blood Group</th>
+                <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">Units</th>
+                <th className="py-3.5 px-4 font-semibold text-neutral-300 text-left">Target Institution</th>
+                <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">Required By</th>
+                <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">Status</th>
+                <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 font-medium">
+            <tbody className="divide-y divide-white/5 font-sans">
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-neutral-400">
                     <div className="flex flex-col items-center gap-2">
-                      <RefreshCw className="w-6 h-6 animate-spin text-emerald-400" />
+                      <RefreshCw className="w-5 h-5 animate-spin text-neutral-400" />
                       <span>Loading blood requisitions from database...</span>
                     </div>
                   </td>
@@ -908,115 +908,55 @@ export const RecipientsPage = () => {
                       key={req.dbId}
                       className="hover:bg-white/[0.03] transition-colors group"
                     >
-                      {/* 1. Patient & ID */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center font-bold text-emerald-300 text-xs shrink-0">
-                            {req.patientName?.charAt(0) || 'P'}
-                          </div>
-                          <div>
-                            <div className="font-bold text-white text-xs tracking-tight flex items-center gap-1.5">
-                              <span>{req.patientName}</span>
-                              {req.requestType === 'CITIZEN' && (
-                                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                                  Citizen
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-neutral-500 font-mono mt-0.5">
-                              {req.id} • {req.date}
-                            </div>
-                          </div>
-                        </div>
+                      {/* 1. Patient */}
+                      <td className="py-3.5 px-4 text-left">
+                        <span className="font-semibold text-white text-xs">
+                          {req.patientName}
+                        </span>
                       </td>
 
                       {/* 2. Blood Group */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 font-mono font-bold flex items-center justify-center text-xs">
-                            {req.bloodGroup}
-                          </span>
-                          <span className="text-[11px] text-neutral-400">
-                            {req.component || 'Whole Blood'}
-                          </span>
-                        </div>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="font-mono font-semibold text-white text-xs">
+                          {req.bloodGroup}
+                        </span>
                       </td>
 
-                      {/* 3. Units & Urgency */}
-                      <td className="py-4 px-4">
-                        <div className="space-y-1">
-                          <div className="font-bold text-white text-xs">
-                            {req.units} {req.units === 1 ? 'Unit' : 'Units'}{' '}
-                            <span className="text-neutral-500 font-normal">
-                              ({(req.units * 450)} ml)
-                            </span>
-                          </div>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider inline-block ${
-                              req.isEmergency || req.urgency === 'EMERGENCY'
-                                ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse'
-                                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                            }`}
-                          >
-                            {req.isEmergency || req.urgency === 'EMERGENCY' ? 'Emergency' : 'Routine'}
-                          </span>
-                        </div>
+                      {/* 3. Units */}
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="text-neutral-200 text-xs font-medium">
+                          {req.units} {req.units === 1 ? 'Unit' : 'Units'}
+                        </span>
                       </td>
 
                       {/* 4. Target Institution */}
-                      <td className="py-4 px-4">
-                        <div className="text-neutral-300 font-medium text-xs truncate max-w-[180px]">
+                      <td className="py-3.5 px-4 text-left">
+                        <span className="text-neutral-200 font-medium text-xs truncate block max-w-[200px]" title={req.hospital}>
                           {req.hospital}
-                        </div>
-                        <div className="text-[11px] text-neutral-500 font-mono mt-0.5">
-                          Pincode: {req.pincode}
-                        </div>
+                        </span>
                       </td>
 
                       {/* 5. Required By */}
-                      <td className="py-4 px-4 text-neutral-300 text-xs font-mono">
+                      <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
                         {req.requiredBy}
                       </td>
 
-                      {/* 6. Status Badge */}
-                      <td className="py-4 px-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border inline-flex items-center gap-1.5 ${
-                            isCompleted
-                              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                              : isAllocated
-                              ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                              : isRejected
-                              ? 'bg-neutral-800 text-neutral-400 border-neutral-700 line-through'
-                              : req.status === 'ACCEPTED'
-                              ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
-                              : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isCompleted
-                                ? 'bg-emerald-400'
-                                : isAllocated
-                                ? 'bg-cyan-400 animate-ping'
-                                : isActionable
-                                ? 'bg-amber-400 animate-pulse'
-                                : 'bg-neutral-500'
-                            }`}
-                          />
+                      {/* 6. Status */}
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="text-neutral-300 text-xs font-medium">
                           {req.status}
                         </span>
                       </td>
 
-                      {/* 7. Action Buttons (Problem 5 & Problem 3) */}
-                      <td className="py-4 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      {/* 7. Action Buttons */}
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
                           {/* If NOT_VERIFIED: Accept / Verify Button */}
                           {req.status === 'NOT_VERIFIED' && (
                             <button
                               onClick={() => handleAccept(req)}
                               disabled={actionLoadingId === req.dbId}
-                              className="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1 shadow transition-all cursor-pointer disabled:opacity-50"
+                              className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
                               title="Accept requisition"
                             >
                               <Check className="w-3.5 h-3.5" />
@@ -1024,12 +964,12 @@ export const RecipientsPage = () => {
                             </button>
                           )}
 
-                          {/* Problem 5: ALLOCATE BLOOD BUTTON (for PENDING, VERIFIED, ACCEPTED) */}
+                          {/* ALLOCATE BLOOD BUTTON */}
                           {['PENDING', 'VERIFIED', 'ACCEPTED'].includes(req.status) && (
                             <button
                               onClick={() => handleOpenAllocateModal(req)}
                               disabled={actionLoadingId === req.dbId}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.35)] transition-all cursor-pointer disabled:opacity-50"
+                              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                               title="Allocate matching blood bags from inventory"
                             >
                               <PackageCheck className="w-3.5 h-3.5" />
@@ -1042,7 +982,7 @@ export const RecipientsPage = () => {
                             <button
                               onClick={() => setDenyModalReq(req)}
                               disabled={actionLoadingId === req.dbId}
-                              className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/40 text-neutral-400 hover:text-red-300 font-semibold text-xs flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                              className="px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-white/5 border border-white/10 text-neutral-400 hover:text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
                               title="Deny requisition"
                             >
                               <XCircle className="w-3.5 h-3.5" />
@@ -1055,7 +995,7 @@ export const RecipientsPage = () => {
                             <button
                               onClick={() => handleDispatch(req)}
                               disabled={actionLoadingId === req.dbId}
-                              className="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(8,145,178,0.35)] transition-all cursor-pointer disabled:opacity-50"
+                              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                               title="Blood units handed over — mark requisition completed"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1065,7 +1005,7 @@ export const RecipientsPage = () => {
 
                           {/* If Completed */}
                           {isCompleted && (
-                            <span className="text-[11px] text-emerald-400 font-mono">
+                            <span className="text-[11px] text-neutral-400 font-mono">
                               Dispatched ✓
                             </span>
                           )}
