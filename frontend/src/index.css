@@ -129,7 +129,8 @@ input:focus, select:focus, textarea:focus {
 
 .group\/guide:hover .heartbeat-pulse-line,
 .group\/heart:hover .heartbeat-pulse-line,
-.group:hover .heartbeat-pulse-line {
+.group:hover .heartbeat-pulse-line,
+.heartbeat-pulse-line-active {
   opacity: 1;
   animation: heartbeat-cross 1.3s linear infinite;
 }
