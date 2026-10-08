@@ -1,12 +1,3 @@
-add forget password field in login
-manage padding in hospital registration page ( after adding reset password)
-
-
-RajVaibhav85 (feature/Giver3)
-Need to change backend algorithm for searching hospitals vian pincode after using longitudes and latitudes
-
-to be added after test 1.0
-1.Email to be sent when ur request is accepted or rejected after seeing blood
-2.After accepted by admin need to fix the verification process for seeker 
+to be added after test 1.0 
 1.the history in the admin should not be modified 
 2.after admin process the request it should be notified to user thru email
