@@ -9,161 +9,66 @@ import { fetchApi } from './apiConfig.js';
 
 // ── Phase 1: Submit a new donation request ──
 export async function applyDonationRequest({ u_id, target_type, hospital_id, bloodbank_id, preferred_date, donor_notes }) {
-  try {
-    return await fetchApi('/giver/request', {
-      method: 'POST',
-      body: JSON.stringify({ u_id, target_type, hospital_id, bloodbank_id, preferred_date, donor_notes }),
-    });
-  } catch (err) {
-    console.warn('API unavailable for applyDonationRequest, mock fallback:', err);
-    return {
-      success: true,
-      message: 'Blood donation request submitted successfully. Awaiting Admin verification.',
-      data: {
-        _id: `GR-${Date.now()}`,
-        u_id,
-        target_type: target_type || 'HOSPITAL',
-        hospital_id,
-        bloodbank_id,
-        preferred_date,
-        donor_notes,
-        status: 'NOT_VERIFIED',
-        createdAt: new Date().toISOString(),
-      },
-    };
-  }
+  return fetchApi('/giver/request', {
+    method: 'POST',
+    body: JSON.stringify({ u_id, target_type, hospital_id, bloodbank_id, preferred_date, donor_notes }),
+  });
 }
 
 // ── Phase 2: Admin verifies donor credentials ──
 export async function verifyDonationRequest(requestId, { is_approved, verification_notes, rejection_reason }) {
-  try {
-    return await fetchApi(`/giver/request/${requestId}/verify`, {
-      method: 'PUT',
-      body: JSON.stringify({ is_approved, verification_notes, rejection_reason }),
-    });
-  } catch (err) {
-    console.warn('API unavailable for verifyDonationRequest, mock fallback:', err);
-    return {
-      success: true,
-      message: `Donation request ${is_approved ? 'verified' : 'rejected'}.`,
-      data: { _id: requestId, status: is_approved ? 'VERIFIED' : 'REJECTED' },
-    };
-  }
+  return fetchApi(`/giver/request/${requestId}/verify`, {
+    method: 'PUT',
+    body: JSON.stringify({ is_approved, verification_notes, rejection_reason }),
+  });
 }
 
 // ── Accept donation request (automatically creates unfulfilled inventory BloodBag entry) ──
 export async function acceptDonationRequest(requestId, details = {}) {
-  try {
-    return await fetchApi(`/giver/request/${requestId}/accept`, {
-      method: 'PUT',
-      body: JSON.stringify(details),
-    });
-  } catch (err) {
-    console.warn('API unavailable for acceptDonationRequest, mock fallback:', err);
-    return {
-      success: true,
-      message: 'Donation request accepted! Blood bag entry created in inventory with status UNFULFILLED.',
-      data: {
-        _id: requestId,
-        status: 'ACCEPTED',
-        accepted_at: new Date().toISOString(),
-        bag_id: {
-          _id: `BAG-${Date.now()}`,
-          status: 'UNFULFILLED',
-          barcode: `LV-DON-${Math.floor(1000 + Math.random() * 9000)}`,
-        },
-      },
-    };
-  }
+  return fetchApi(`/giver/request/${requestId}/accept`, {
+    method: 'PUT',
+    body: JSON.stringify(details),
+  });
 }
 
 // ── Deny donation request ──
 export async function denyDonationRequest(requestId, reason = 'Donation request denied.') {
-  try {
-    return await fetchApi(`/giver/request/${requestId}/deny`, {
-      method: 'PUT',
-      body: JSON.stringify({ reason }),
-    });
-  } catch (err) {
-    console.warn('API unavailable for denyDonationRequest, mock fallback:', err);
-    return {
-      success: true,
-      message: 'Donation request denied.',
-      data: { _id: requestId, status: 'REJECTED', rejection_reason: reason },
-    };
-  }
+  return fetchApi(`/giver/request/${requestId}/deny`, {
+    method: 'PUT',
+    body: JSON.stringify({ reason }),
+  });
 }
 
 // ── Fulfill donation receipt (BBMS receives the blood -> inventory entry fulfilled) ──
 export async function fulfillDonationReceipt(requestIdOrBagId, details = {}) {
-  try {
-    return await fetchApi(`/giver/request/${requestIdOrBagId}/fulfill`, {
-      method: 'PUT',
-      body: JSON.stringify(details),
-    });
-  } catch (err) {
-    console.warn('API unavailable for fulfillDonationReceipt, mock fallback:', err);
-    return {
-      success: true,
-      message: 'Blood donation received! Inventory entry fulfilled and marked available.',
-      data: {
-        success: true,
-        bloodBag: { _id: requestIdOrBagId, status: 'AVAILABLE' },
-        request: { _id: requestIdOrBagId, status: 'COMPLETED' },
-      },
-    };
-  }
+  return fetchApi(`/giver/request/${requestIdOrBagId}/fulfill`, {
+    method: 'PUT',
+    body: JSON.stringify(details),
+  });
 }
 
 // ── Phase 3: Accept & schedule appointment ──
 export async function acceptAndScheduleDonation(requestId, { appointment_date, appointment_time, appointment_venue, scheduling_notes }) {
-  try {
-    return await fetchApi(`/giver/request/${requestId}/schedule`, {
-      method: 'PUT',
-      body: JSON.stringify({ appointment_date, appointment_time, appointment_venue, scheduling_notes }),
-    });
-  } catch (err) {
-    console.warn('API unavailable for acceptAndScheduleDonation, mock fallback:', err);
-    return {
-      success: true,
-      message: 'Donation request accepted and appointment scheduled.',
-      data: { _id: requestId, status: 'ACCEPTED', appointment_date, appointment_time },
-    };
-  }
+  return fetchApi(`/giver/request/${requestId}/schedule`, {
+    method: 'PUT',
+    body: JSON.stringify({ appointment_date, appointment_time, appointment_venue, scheduling_notes }),
+  });
 }
 
 // ── Phase 4: Complete donation ──
 export async function completeDonation(requestId, { staff_id, haemoglobin, pressure, volume_donated_ml }) {
-  try {
-    return await fetchApi(`/giver/request/${requestId}/complete`, {
-      method: 'POST',
-      body: JSON.stringify({ staff_id, haemoglobin, pressure, volume_donated_ml }),
-    });
-  } catch (err) {
-    console.warn('API unavailable for completeDonation, mock fallback:', err);
-    return {
-      success: true,
-      message: 'Donation completed! Blood bag created.',
-      data: { _id: requestId, status: 'COMPLETED' },
-    };
-  }
+  return fetchApi(`/giver/request/${requestId}/complete`, {
+    method: 'POST',
+    body: JSON.stringify({ staff_id, haemoglobin, pressure, volume_donated_ml }),
+  });
 }
 
 // ── Cancel request ──
 export async function cancelDonationRequest(requestId, reason) {
-  try {
-    return await fetchApi(`/giver/request/${requestId}/cancel`, {
-      method: 'PUT',
-      body: JSON.stringify({ reason }),
-    });
-  } catch (err) {
-    console.warn('API unavailable for cancelDonationRequest, mock fallback:', err);
-    return {
-      success: true,
-      message: 'Donation request cancelled.',
-      data: { _id: requestId, status: 'CANCELLED' },
-    };
-  }
+  return fetchApi(`/giver/request/${requestId}/cancel`, {
+    method: 'PUT',
+    body: JSON.stringify({ reason }),
+  });
 }
 
 // ── Query: Get single request details ──

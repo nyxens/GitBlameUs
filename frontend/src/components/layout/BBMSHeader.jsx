@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut,
   Boxes,
+  Building2,
+  Droplets,
   Users,
   UserCheck,
   History,
@@ -39,6 +41,8 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
 
   const staffMenuItems = [
     { id: 'inventory', label: 'Inventory', icon: Boxes, iconColor: 'text-purple-400' },
+    { id: 'hospitals', label: 'Hospitals', icon: Building2, iconColor: 'text-blue-400' },
+    { id: 'bloodbanks', label: 'Blood Banks', icon: Droplets, iconColor: 'text-red-400' },
     { id: 'donors', label: 'Donors', icon: Users, iconColor: 'text-red-400' },
     { id: 'recipients', label: 'Recipients', icon: UserCheck, iconColor: 'text-emerald-400' },
     { id: 'history', label: 'History', icon: History, iconColor: 'text-amber-400' },

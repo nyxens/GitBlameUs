@@ -1,0 +1,388 @@
+// HOSPITAL DATA
+
+//HYDERABAD HOSPITALS DATA
+[
+  {
+    "hos_name": "Apollo Hospitals (Jubilee Hills)",
+    "pincode": "500033",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-40-23607777",
+    "email": "infonlg@apollohospitals.com",
+    "address": "Apollo Health City, Road No. 72, Film Nagar, Jubilee Hills, Hyderabad, Telangana",
+    "latitude": 17.4172,
+    "longitude": 78.4093,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "AIG Hospitals (Gachibowli)",
+    "pincode": "500032",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-40-42444222",
+    "email": "info@aighospitals.com",
+    "address": "1-66/AIG/2/B/25, Mindspace Road, Gachibowli, Hyderabad, Telangana",
+    "latitude": 17.4429,
+    "longitude": 78.3756,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "Yashoda Hospitals (Somajiguda)",
+    "pincode": "500082",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-40-45674567",
+    "email": "info@yashodahospitals.com",
+    "address": "Raj Bhavan Road, Matha Nagar, Somajiguda, Hyderabad, Telangana",
+    "latitude": 17.4211,
+    "longitude": 78.4552,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "KIMS - Sunshine Hospitals (Begumpet)",
+    "pincode": "500003",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-40-44550000",
+    "email": "info@kimssunshine.co.in",
+    "address": "Penderghast Road, behind Paradise Hotel, Secunderabad, Hyderabad, Telangana",
+    "latitude": 17.4423,
+    "longitude": 78.4852,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "Medicover Hospitals (HITEC City)",
+    "pincode": "500081",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-40-68334455",
+    "email": "info@medicoverhospitals.in",
+    "address": "Behind Cyber Towers, Lane Next to open image hospital, HITEC City, Hyderabad, Telangana",
+    "latitude": 17.4502,
+    "longitude": 78.3831,
+    "geocodeAttemptedAt": new Date()
+  }
+]
+
+// Tadepalligudem HOSPITALS DATA
+[
+  {
+    "hos_name": "AVIDEEP MOTHER AND CHILDREN HOSPITAL",
+    "pincode": "534101",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-9959958453",
+    "email": "info@avideephospital.com",
+    "address": "Railway Station Rd, Railway Colony, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8239,
+    "longitude": 81.5284,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "Vaishnavi Multispecialty Hospitals",
+    "pincode": "534101",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-9912693720",
+    "email": "contact@vaishnavihospitals.com",
+    "address": "Railway Station Road, near BSNL Office, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8242,
+    "longitude": 81.5271,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "TRINITY HOSPITALS",
+    "pincode": "534102",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-9091108108",
+    "email": "admin@trinityhospitals.org",
+    "address": "BEST Campus, K N Road, Pedatadepalli, Bye-Pass Junction, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8456,
+    "longitude": 81.4988,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "GOWTHAMI MULTI SPECIALITY HOSPITALS",
+    "pincode": "534102",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-8818225577",
+    "email": "gowthamitpg@gmail.com",
+    "address": "Sri Sri Dental Hospital Campus, Opp: Municipal Office, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8208,
+    "longitude": 81.5331,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "HITHA HOSPITAL",
+    "pincode": "534101",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-9063430666",
+    "email": "hithahospital@gmail.com",
+    "address": "Bhupal nagar, beside Chennai shopping mall, Subbaraopet, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8189,
+    "longitude": 81.5312,
+    "geocodeAttemptedAt": new Date()
+  }
+]
+
+// BANGALORE HOSPITALS DATA
+[
+  {
+    "hos_name": "Manipal Hospitals (Old Airport Road)",
+    "pincode": "500017",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-18001024647",
+    "email": "info@manipalhospitals.com",
+    "address": "98, HAL Old Airport Rd, Kodihalli, Bengaluru, Karnataka",
+    "latitude": 12.9593,
+    "longitude": 77.6481,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "Aster CMI Hospital (Hebbal)",
+    "pincode": "560092",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-8043420100",
+    "email": "astercmi.bangalore@asterhospitals.in",
+    "address": "43/2, NH 7, New Airport Road, Sahakar Nagar, Sanjeevini Nagar, Bengaluru, Karnataka",
+    "latitude": 13.0612,
+    "longitude": 77.5954,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "Apollo Hospitals (Bannerghatta Road)",
+    "pincode": "560076",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-8069049765",
+    "email": "customercare_bangalore@apollohospitals.com",
+    "address": "IIM, 154/11, Bannerghatta Rd, opposite Krishnaraju Layout, Panduranga Nagar, Bengaluru, Karnataka",
+    "latitude": 12.8961,
+    "longitude": 77.6002,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "Aster RV Hospital (J. P. Nagar)",
+    "pincode": "560078",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-8066040400",
+    "email": "asterrv@asterhospitals.in",
+    "address": "CA 37, 24th Main Rd, ITI Layout, 1st Phase, J. P. Nagar, Bengaluru, Karnataka",
+    "latitude": 12.9092,
+    "longitude": 77.5855,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "hos_name": "Ramaiah Memorial Hospital",
+    "pincode": "560054",
+    "I_Id": null,
+    "admin_id": null,
+    "phone": "+91-8040503300",
+    "email": "info@msrmh.com",
+    "address": "New BEL Rd, M S Ramaiah Nagar, MSRIT Post, Bengaluru, Karnataka",
+    "latitude": 13.0326,
+    "longitude": 77.5684,
+    "geocodeAttemptedAt": new Date()
+  }
+]
+
+
+// Blood Banks Data
+
+// HYDERABAD BLOOD BANKS DATA
+[
+  {
+    "bank_name": "NTR Trust Blood Bank",
+    "pincode": "500034",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-40-23555005",
+    "email": "bloodbank@ntrtrust.org",
+    "address": "Road No. 2, NTR Bhavan, Banjara Hills, Hyderabad, Telangana",
+    "latitude": 17.4223,
+    "longitude": 78.4328,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Indian Red Cross Society Blood Bank",
+    "pincode": "500029",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-40-23221748",
+    "email": "secretarytsrc@yahoo.com",
+    "address": "Red Cross Road, Street No. 15, Himayatnagar, Hyderabad, Telangana",
+    "latitude": 17.4011,
+    "longitude": 78.4842,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Chiranjeevi Charitable Blood and Eye Bank",
+    "pincode": "500033",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-40-23555005",
+    "email": "contact@chiranjeevicharitabletrust.org",
+    "address": "Road No. 1, Jubilee Hills, Near Jubilee Hills Check Post, Hyderabad, Telangana",
+    "latitude": 17.4264,
+    "longitude": 78.4116,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Sanjeevani Blood Bank",
+    "pincode": "500020",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-40-27667500",
+    "email": "support@sanjeevanibloodbank.org",
+    "address": "1-1-79/A, Bhagyanagar Complex, RTC X Roads, Musheerabad, Hyderabad, Telangana",
+    "latitude": 17.4105,
+    "longitude": 78.4912,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Lions Club of Hyderabad Blood Bank",
+    "pincode": "500095",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-40-24745243",
+    "email": "lionsbloodbank.koti@gmail.com",
+    "address": "4-4-248, Near Sultan Bazar, Koti, Hyderabad, Telangana",
+    "latitude": 17.3879,
+    "longitude": 78.4811,
+    "geocodeAttemptedAt": new Date()
+  }
+]
+
+// Tadepalligudem BLOOD BANKS DATA
+[
+  {
+    "bank_name": "Government Blood Centre Tadepalligudem",
+    "pincode": "534101",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-9700123885",
+    "email": "govtbloodcentretadepalligudem@gmail.com",
+    "address": "Area Hospital Campus, KN Road, Ramaraopeta, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8211,
+    "longitude": 81.5298,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Voluntary Blood Bank",
+    "pincode": "534101",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-9349344848",
+    "email": "voluntarybloodbank.tpg@gmail.com",
+    "address": "Near District Library, Ramarao Peta, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8224,
+    "longitude": 81.5281,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Narni Blood Bank",
+    "pincode": "534101",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-9349344848",
+    "email": "narnibloodbank@gmail.com",
+    "address": "RG6H+V83, near Library, Ramarao Peta, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8225,
+    "longitude": 81.5283,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Uddaraju Ananda Raju Blood Bank",
+    "pincode": "534102",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-8818225577",
+    "email": "uarbloodbank@yahoo.com",
+    "address": "1st Floor, Chamber of Commerce Building, Tadepalli, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8285,
+    "longitude": 81.5244,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Rotary Blood Bank (Satellite Unit)",
+    "pincode": "534101",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-9091108108",
+    "email": "rotarytpg@gmail.com",
+    "address": "Main Road, Near Town Railway Station, Ramaraopeta, Tadepalligudem, Andhra Pradesh",
+    "latitude": 16.8219,
+    "longitude": 81.5305,
+    "geocodeAttemptedAt": new Date()
+  }
+]
+
+// BANGALORE BLOOD BANKS DATA
+[
+  {
+    "bank_name": "Indian Red Cross Society (Karnataka State)",
+    "pincode": "560001",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-8022268435",
+    "email": "ircskar@gmail.com",
+    "address": "No-26, Red Cross Bhavan, 326, 1st Floor, Race Course Road, Bengaluru, Karnataka",
+    "latitude": 12.9844,
+    "longitude": 77.5798,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Bangalore Medical Services Trust (BMST)",
+    "pincode": "560075",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-9900115300",
+    "email": "bloodbank@bmstindia.org",
+    "address": "New Thippasandra Main Road, HAL 3rd Stage, Bengaluru, Karnataka",
+    "latitude": 12.9734,
+    "longitude": 77.6531,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Rashtrotthana Blood Centre",
+    "pincode": "560018",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-8029747870",
+    "email": "bloodcenter@rashtrotthana.org",
+    "address": "Raghavendra Colony, 1st Cross Road, Chamrajpet, Bengaluru, Karnataka",
+    "latitude": 12.9602,
+    "longitude": 77.5615,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "Bangalore Lions Service Trust Blood Bank",
+    "pincode": "560052",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-9845315670",
+    "email": "lionsbloodbank_vasant@yahoo.co.in",
+    "address": "No. 5, Lions Eye Hospital Campus, Thimmaiah Road, Vasanth Nagar, Bengaluru, Karnataka",
+    "latitude": 12.9912,
+    "longitude": 77.5936,
+    "geocodeAttemptedAt": new Date()
+  },
+  {
+    "bank_name": "BSK Jeevashraya Blood Centre",
+    "pincode": "560070",
+    "I_Id": null,
+    "admin_id": null,
+    "contact_no": "+91-8296999666",
+    "email": "jeevashrayabsk@gmail.com",
+    "address": "No. 14, 2nd Cross, Padmanabhanagar, Banashankari 2nd Stage, Bengaluru, Karnataka",
+    "latitude": 12.9189,
+    "longitude": 77.5583,
+    "geocodeAttemptedAt": new Date()
+  }
+]

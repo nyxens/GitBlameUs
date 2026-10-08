@@ -35,6 +35,7 @@ import {
   submitEmergencyRequisition,
   deleteRequisition,
 } from '../../services/hospitalService.js';
+import { fulfillSeekerRequest } from '../../services/seekerService.js';
 
 function formatDate(dateStr) {
   if (!dateStr) return '—';
@@ -187,7 +188,30 @@ export const RecipientsPage = () => {
         type: 'error',
         message: `Failed to accept requisition: ${err.message}`,
       });
+      loadData(false);
     } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // Action: Dispatch allocated blood units to the patient (marks the requisition COMPLETED)
+  const handleDispatch = async (req) => {
+    setActionLoadingId(req.dbId);
+    try {
+      const res = await fulfillSeekerRequest(req.dbId);
+      if (res && res.success) {
+        setNotification({
+          type: 'success',
+          message: `Blood for ${req.patientName} (${req.bloodGroup}, ${req.units} Units) DISPATCHED! Requisition completed.`,
+        });
+      }
+    } catch (err) {
+      setNotification({
+        type: 'error',
+        message: `Failed to dispatch blood: ${err.message}`,
+      });
+    } finally {
+      await loadData(false);
       setActionLoadingId(null);
     }
   };
@@ -247,6 +271,7 @@ export const RecipientsPage = () => {
         type: 'error',
         message: `Allocation failed: ${err.message}`,
       });
+      loadData(false);
     } finally {
       setActionLoadingId(null);
     }
@@ -277,6 +302,7 @@ export const RecipientsPage = () => {
         type: 'error',
         message: `Failed to deny requisition: ${err.message}`,
       });
+      loadData(false);
     } finally {
       setActionLoadingId(null);
     }
@@ -1031,10 +1057,15 @@ export const RecipientsPage = () => {
 
                           {/* If Allocated: Ready for dispatch */}
                           {isAllocated && (
-                            <span className="text-[11px] text-cyan-400 font-mono flex items-center gap-1">
+                            <button
+                              onClick={() => handleDispatch(req)}
+                              disabled={actionLoadingId === req.dbId}
+                              className="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_0_12px_rgba(8,145,178,0.35)] transition-all cursor-pointer disabled:opacity-50"
+                              title="Blood units handed over — mark requisition completed"
+                            >
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              Allocated ✓
-                            </span>
+                              <span>Dispatch</span>
+                            </button>
                           )}
 
                           {/* If Completed */}

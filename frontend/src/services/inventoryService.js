@@ -21,40 +21,33 @@ export async function getColdChainTelemetry() {
   };
 }
 
+// ── Scoped (admin: all; staff: own facility) inventory queries ──
+const facilityQuery = (facilityId) =>
+  facilityId && facilityId !== 'ALL' ? `?facilityId=${encodeURIComponent(facilityId)}` : '';
+
 export async function getInventoryItems(facilityId = null) {
   try {
-    const query = facilityId && facilityId !== 'ALL' ? `?facilityId=${encodeURIComponent(facilityId)}` : '';
-    const res = await fetchApi(`/inventory/items${query}`);
-    if (res && res.items) {
-      const items = res.items;
-      items.facilities = res.facilities || [];
-      return items;
-    }
-    const emptyItems = [];
-    emptyItems.facilities = [];
-    return emptyItems;
+    const res = await fetchApi(`/inventory/items${facilityQuery(facilityId)}`);
+    return res.items || [];
   } catch (err) {
     console.warn('API connection unavailable for getInventoryItems:', err);
-    const emptyItems = [];
-    emptyItems.facilities = [];
-    return emptyItems;
+    return [];
   }
 }
 
-export async function fulfillInventoryItem(id, details = {}) {
-  try {
-    return await fetchApi(`/inventory/fulfill/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(details),
-    });
-  } catch (err) {
-    console.warn('API connection unavailable for fulfillInventoryItem:', err);
-    return {
-      success: true,
-      message: 'Blood received and inventory fulfilled (mock fallback).',
-    };
-  }
+export const getInventoryStock = (facilityId = null) => fetchApi(`/inventory/stock${facilityQuery(facilityId)}`);
+
+export async function getInventoryFacilities() {
+  const res = await fetchApi('/inventory/facilities');
+  return res.facilities || [];
 }
+
+export const addBloodBag = (bag) => fetchApi('/inventory/bags', { method: 'POST', body: JSON.stringify(bag) });
+
+export const discardBloodBag = (id) => fetchApi(`/inventory/bags/${id}/discard`, { method: 'PUT' });
+
+export const fulfillInventoryItem = (id, details = {}) =>
+  fetchApi(`/inventory/fulfill/${id}`, { method: 'PUT', body: JSON.stringify(details) });
 
 export async function getInventoriesByPincode(pincode = '') {
   const cleanPin = String(pincode || '').trim();
@@ -178,7 +171,14 @@ export const inventoryService = {
   getLiveStock,
   getColdChainTelemetry,
   getInventoryItems,
+  getInventoryStock,
+  getInventoryFacilities,
+  addBloodBag,
+  discardBloodBag,
   fulfillInventoryItem,
   getInventoriesByPincode,
 };
+
+export default inventoryService;
+
 

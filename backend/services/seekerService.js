@@ -313,6 +313,9 @@ export async function allocateBloodToRequest(requestId, {
   if (!request) {
     throw new Error('Blood request not found');
   }
+  if (!['NOT_VERIFIED', 'VERIFIED', 'PENDING', 'ACCEPTED'].includes(request.status)) {
+    throw new Error(`Cannot allocate blood to a request that is already ${request.status}.`);
+  }
 
   let resolvedStaffId = staff_id || request.staff_id;
   if (!resolvedStaffId) {

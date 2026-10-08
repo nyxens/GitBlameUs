@@ -191,6 +191,7 @@ export const DonorsPage = () => {
         type: 'error',
         message: `Failed to accept donation request: ${err.message}`,
       });
+      loadData(false);
     } finally {
       setActionLoadingId(null);
     }
@@ -227,6 +228,7 @@ export const DonorsPage = () => {
         type: 'error',
         message: `Failed to deny request: ${err.message}`,
       });
+      loadData(false);
     } finally {
       setActionLoadingId(null);
     }
@@ -275,6 +277,7 @@ export const DonorsPage = () => {
         type: 'error',
         message: `Failed to fulfill inventory entry: ${err.message}`,
       });
+      loadData(false);
     } finally {
       setActionLoadingId(null);
     }

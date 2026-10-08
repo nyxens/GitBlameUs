@@ -92,7 +92,19 @@ export async function getCandidateBags(bloodGroup = null, facilityId = null) {
   }
 }
 
+// ── Hospitals (admin: all; staff: own hospital only) ──
+export const getHospitals = () => fetchApi('/hospitals');
+
+// ── Admin only ──
+export const createHospital = (hospital) =>
+  fetchApi('/hospitals', { method: 'POST', body: JSON.stringify(hospital) });
+
+export const deleteHospital = (id) => fetchApi(`/hospitals/${id}`, { method: 'DELETE' });
+
 export const hospitalService = {
+  getHospitals,
+  createHospital,
+  deleteHospital,
   authenticateHospital,
   submitEmergencyRequisition,
   getRequisitions,

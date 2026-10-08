@@ -1,6 +1,13 @@
 import mongoose from 'mongoose';
 import { Request, Allotment, BloodBag, User, Staff, Hospital, BloodBank, Inventory } from '../models/index.js';
 import * as seekerService from '../services/seekerService.js';
+import { sendRequestEmail } from './emailController.js';
+
+const EMAIL_POPULATE = [
+  { path: 'u_id', select: 'name username email bloodgroup' },
+  { path: 'hospital_id', select: 'hos_name' },
+  { path: 'bloodbank_id', select: 'bank_name' },
+];
 
 /**
  * UNIFIED REQUISITION CONTROLLER
@@ -192,10 +199,15 @@ export async function acceptRequisition(req, res) {
       return res.status(404).json({ success: false, error: 'Requisition not found' });
     }
 
+    if (!['NOT_VERIFIED', 'VERIFIED', 'PENDING'].includes(request.status)) {
+      return res.status(409).json({ success: false, error: `Cannot accept a requisition that is already ${request.status}.` });
+    }
+
     request.status = 'ACCEPTED';
     request.accepted_at = new Date();
     request.schedule_date = request.required_date || new Date();
     await request.save();
+    sendRequestEmail('SEEKER', 'ACCEPTED', await request.populate(EMAIL_POPULATE));
 
     return res.status(200).json({
       success: true,
@@ -218,6 +230,7 @@ export async function allocateRequisition(req, res) {
       bag_ids: Array.isArray(bag_ids) ? bag_ids : [],
       notes,
     });
+    sendRequestEmail('SEEKER', 'ALLOCATED', updated);
 
     return res.status(200).json({
       success: true,
@@ -240,9 +253,14 @@ export async function denyRequisition(req, res) {
       return res.status(404).json({ success: false, error: 'Requisition not found' });
     }
 
+    if (!['NOT_VERIFIED', 'VERIFIED', 'PENDING', 'ACCEPTED'].includes(request.status)) {
+      return res.status(409).json({ success: false, error: `Cannot deny a requisition that is already ${request.status}.` });
+    }
+
     request.status = 'REJECTED';
     request.rejection_reason = reason || 'Requisition denied by medical board / BBMS administration.';
     await request.save();
+    sendRequestEmail('SEEKER', 'DENIED', await request.populate(EMAIL_POPULATE));
 
     return res.status(200).json({
       success: true,

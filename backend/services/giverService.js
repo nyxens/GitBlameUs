@@ -412,8 +412,8 @@ export async function acceptDonationRequest(requestId, {
     throw new Error('Donation request not found');
   }
 
-  if (['COMPLETED', 'CANCELLED'].includes(request.status)) {
-    throw new Error(`Cannot accept request in status '${request.status}'`);
+  if (!['NOT_VERIFIED', 'VERIFIED', 'PENDING'].includes(request.status)) {
+    throw new Error(`Cannot accept a request that is already ${request.status}`);
   }
 
   const donorUser = request.u_id;
@@ -570,6 +570,9 @@ export async function fulfillDonationReceipt(identifier, {
 
   if (!bloodBag) {
     throw new Error('Blood bag or donation entry not found');
+  }
+  if (bloodBag.status !== 'UNFULFILLED') {
+    throw new Error('This donation has already been received.');
   }
 
   let resolvedStaffId = staff_id;
