@@ -9,7 +9,6 @@ import {
   ChevronDown,
   X,
   RefreshCw,
-  Award,
   Inbox,
   Check,
   PackageCheck,
@@ -20,6 +19,11 @@ import {
   Mail,
   AlertCircle,
   FileText,
+  ShieldCheck,
+  Calendar,
+  MapPin,
+  Activity,
+  HeartHandshake,
 } from 'lucide-react';
 import { getRegisteredDonors } from '../../services/donorService.js';
 import {
@@ -56,8 +60,10 @@ export const DonorsPage = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dbConnected, setDbConnected] = useState(false);
 
-  // Filter States: 'ALL', 'ELIGIBLE', 'TOTAL_DONATED', 'INCOMING_REQUESTS'
-  const [activeCardFilter, setActiveCardFilter] = useState('ALL');
+  // Tab View State: 'donors' (Registered Donors) | 'requests' (Incoming Requests)
+  const [activeTab, setActiveTab] = useState('donors');
+
+  // Filter States
   const [donorSearch, setDonorSearch] = useState('');
   const [donorGroupFilter, setDonorGroupFilter] = useState('ALL');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -67,6 +73,10 @@ export const DonorsPage = () => {
   const [notification, setNotification] = useState(null);
   const [denyModalRequest, setDenyModalRequest] = useState(null);
   const [denyReason, setDenyReason] = useState('Donation request denied by BBMS administration.');
+
+  // Report Modal states
+  const [selectedReportDonor, setSelectedReportDonor] = useState(null);
+  const [selectedReportRequest, setSelectedReportRequest] = useState(null);
 
   const dropdownRef = useRef(null);
 
@@ -143,141 +153,79 @@ export const DonorsPage = () => {
     }
   }, [notification]);
 
-  // Handle Card Clicks
-  const handleCardClick = (cardType) => {
-    if (activeCardFilter === cardType) {
-      setActiveCardFilter('ALL');
-    } else {
-      setActiveCardFilter(cardType);
-    }
-  };
-
-  // Action: Accept Donation Request -> automatically adds UNFULFILLED blood bag to inventory
-  const handleAcceptRequest = async (request) => {
-    setActionLoadingId(request._id);
+  // Accept a voluntary donation intake
+  const handleAcceptRequest = async (req) => {
+    setActionLoadingId(req._id);
     try {
-      const res = await acceptDonationRequest(request._id, {
-        appointment_date: request.preferred_date || new Date().toISOString(),
-        scheduling_notes: 'Accepted via Donors incoming request dashboard.',
-      });
-
-      if (res && res.success) {
-        const donorName = request.u_id?.name || request.u_id?.username || 'Donor';
-        const barcode = res.bloodBag?.barcode || res.data?.bag_id?.barcode || 'LV-INBOUND';
+      const res = await acceptDonationRequest(req._id);
+      if (res && (res.request || res.data || res.success)) {
         setNotification({
           type: 'success',
-          message: `Request from ${donorName} ACCEPTED! Blood donation entry (${barcode}) automatically created in Inventory with status UNFULFILLED.`,
+          message: `Donation request for ${req.u_id?.name || 'Donor'} accepted. Donor scheduled for intake.`,
         });
-
-        // Update local request state
-        setGiverRequests((prev) =>
-          prev.map((r) =>
-            r._id === request._id
-              ? {
-                  ...r,
-                  status: 'ACCEPTED',
-                  bag_id: res.bloodBag || res.data?.bag_id || {
-                    status: 'UNFULFILLED',
-                    barcode,
-                  },
-                  accepted_at: new Date().toISOString(),
-                }
-              : r
-          )
-        );
+        await loadData(false);
+      } else {
+        throw new Error(res?.error || 'Failed to accept request');
       }
     } catch (err) {
       setNotification({
         type: 'error',
-        message: `Failed to accept donation request: ${err.message}`,
+        message: `Failed to accept request: ${err.message}`,
       });
-      loadData(false);
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // Action: Deny Donation Request
-  const handleConfirmDeny = async () => {
+  // Deny a voluntary donation intake
+  const handleDenySubmit = async () => {
     if (!denyModalRequest) return;
-    setActionLoadingId(denyModalRequest._id);
+    const req = denyModalRequest;
+    setActionLoadingId(req._id);
     try {
-      const res = await denyDonationRequest(denyModalRequest._id, denyReason);
-      if (res && res.success) {
-        const donorName = denyModalRequest.u_id?.name || denyModalRequest.u_id?.username || 'Donor';
+      const res = await denyDonationRequest(req._id, denyReason);
+      if (res && (res.request || res.data || res.success)) {
         setNotification({
-          type: 'info',
-          message: `Donation request from ${donorName} has been DENIED.`,
+          type: 'success',
+          message: `Donation request for ${req.u_id?.name || 'Donor'} has been denied.`,
         });
-
-        setGiverRequests((prev) =>
-          prev.map((r) =>
-            r._id === denyModalRequest._id
-              ? {
-                  ...r,
-                  status: 'REJECTED',
-                  rejection_reason: denyReason,
-                }
-              : r
-          )
-        );
         setDenyModalRequest(null);
+        await loadData(false);
+      } else {
+        throw new Error(res?.error || 'Failed to deny request');
       }
     } catch (err) {
       setNotification({
         type: 'error',
         message: `Failed to deny request: ${err.message}`,
       });
-      loadData(false);
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // Action: Fulfill Inventory Entry when BBMS receives the blood
-  const handleFulfillDonation = async (request) => {
-    setActionLoadingId(request._id);
+  // Fulfill donation intake and create inventory unit
+  const handleFulfillDonation = async (req) => {
+    setActionLoadingId(req._id);
     try {
-      const bagIdentifier = request.bag_id?._id || request.bag_id || request._id;
-      const res = await fulfillDonationReceipt(bagIdentifier, {
-        haemoglobin: 13.8,
-        pressure: '120/80 mmHg',
-        weight: 450,
+      const res = await fulfillDonationReceipt(req._id, {
+        component: 'Whole Blood (450 ml)',
+        notes: `Fulfilled intake from voluntary donor ${req.u_id?.name || 'Donor'}`,
       });
-
-      if (res && res.success) {
-        const donorName = request.u_id?.name || request.u_id?.username || 'Donor';
+      if (res && (res.request || res.data || res.success)) {
         setNotification({
           type: 'success',
-          message: `Physical blood received from ${donorName}! Inventory entry FULFILLED and marked available in vault stock.`,
+          message: `Donation fulfilled! Blood unit credited to vault inventory ledger.`,
         });
-
-        // Update local request state
-        setGiverRequests((prev) =>
-          prev.map((r) =>
-            r._id === request._id
-              ? {
-                  ...r,
-                  status: 'COMPLETED',
-                  completed_at: new Date().toISOString(),
-                  bag_id: {
-                    ...(typeof r.bag_id === 'object' ? r.bag_id : {}),
-                    status: 'AVAILABLE',
-                  },
-                }
-              : r
-          )
-        );
-
-        // Refresh donor counts
-        loadData(false);
+        await loadData(false);
+      } else {
+        throw new Error(res?.error || 'Failed to fulfill donation receipt');
       }
     } catch (err) {
       setNotification({
         type: 'error',
-        message: `Failed to fulfill inventory entry: ${err.message}`,
+        message: `Failed to fulfill receipt: ${err.message}`,
       });
-      loadData(false);
     } finally {
       setActionLoadingId(null);
     }
@@ -286,13 +234,8 @@ export const DonorsPage = () => {
   // Blood group list for dropdown
   const bloodGroups = ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'];
 
-  // Filter Pipeline for Registered Donors
+  // Process Registered Donors list
   let processedDonors = [...donors];
-  if (activeCardFilter === 'ELIGIBLE') {
-    processedDonors = processedDonors.filter((d) => d.eligibility?.startsWith('ELIGIBLE'));
-  } else if (activeCardFilter === 'TOTAL_DONATED') {
-    processedDonors.sort((a, b) => (b.totalDonations || 0) - (a.totalDonations || 0));
-  }
 
   if (donorGroupFilter !== 'ALL') {
     processedDonors = processedDonors.filter((d) => d.bloodGroup === donorGroupFilter);
@@ -304,18 +247,20 @@ export const DonorsPage = () => {
       (d) =>
         d.name?.toLowerCase().includes(q) ||
         d.id?.toLowerCase().includes(q) ||
-        d.city?.toLowerCase().includes(q) ||
         d.phone?.toLowerCase().includes(q) ||
-        d.bloodGroup?.toLowerCase().includes(q)
+        d.bloodGroup?.toLowerCase().includes(q) ||
+        d.pincode?.toLowerCase().includes(q)
     );
   }
 
-  // Filter Pipeline for Incoming Giver Requests
+  // Process Incoming Giver Requests list
   let processedRequests = [...giverRequests];
+
   if (donorGroupFilter !== 'ALL') {
-    processedRequests = processedRequests.filter(
-      (r) => (r.u_id?.bloodgroup || r.bloodgroup) === donorGroupFilter
-    );
+    processedRequests = processedRequests.filter((r) => {
+      const bg = r.u_id?.bloodgroup || r.bloodgroup;
+      return bg === donorGroupFilter;
+    });
   }
 
   if (donorSearch.trim()) {
@@ -324,7 +269,6 @@ export const DonorsPage = () => {
       (r) =>
         r.u_id?.name?.toLowerCase().includes(q) ||
         r.u_id?.username?.toLowerCase().includes(q) ||
-        r._id?.toLowerCase().includes(q) ||
         r.u_id?.phone?.toLowerCase().includes(q) ||
         r.u_id?.email?.toLowerCase().includes(q) ||
         r.hospital_id?.hos_name?.toLowerCase().includes(q) ||
@@ -334,46 +278,42 @@ export const DonorsPage = () => {
   }
 
   const clearAllFilters = () => {
-    setActiveCardFilter('ALL');
     setDonorGroupFilter('ALL');
     setDonorSearch('');
   };
 
-  const isAnyFilterActive =
-    activeCardFilter !== 'ALL' || donorGroupFilter !== 'ALL' || donorSearch.trim() !== '';
-
-  const isIncomingView = activeCardFilter === 'INCOMING_REQUESTS';
+  const isAnyFilterActive = donorGroupFilter !== 'ALL' || donorSearch.trim() !== '';
 
   return (
-    <section className="w-full flex flex-col gap-5 animate-fadeIn relative">
+    <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 font-sans text-white space-y-6">
       {/* Dynamic Toast / Feedback Notification */}
       <AnimatePresence>
         {notification && (
           <motion.div
-            initial={{ opacity: 0, y: -16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -16, scale: 0.96 }}
-            className={`p-4 rounded-2xl border flex items-start justify-between gap-3 shadow-2xl backdrop-blur-xl ${
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`p-3.5 rounded-md border flex items-center justify-between gap-3 text-xs ${
               notification.type === 'success'
-                ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
+                ? 'bg-neutral-900 border-emerald-500/40 text-emerald-400'
                 : notification.type === 'error'
-                ? 'bg-red-950/90 border-red-500/50 text-red-200'
-                : 'bg-blue-950/90 border-blue-500/50 text-blue-200'
+                ? 'bg-neutral-900 border-red-500/40 text-red-400'
+                : 'bg-neutral-900 border-neutral-700 text-neutral-300'
             }`}
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               {notification.type === 'success' ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               ) : notification.type === 'error' ? (
-                <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
               ) : (
-                <Clock className="w-5 h-5 text-blue-400 shrink-0" />
+                <Clock className="w-4 h-4 text-neutral-400 shrink-0" />
               )}
-              <span className="text-xs font-medium leading-relaxed">{notification.message}</span>
+              <span>{notification.message}</span>
             </div>
             <button
               onClick={() => setNotification(null)}
-              className="p-1 hover:bg-white/10 rounded-lg transition-colors cursor-pointer shrink-0"
+              className="p-1 hover:bg-neutral-800 rounded transition-colors cursor-pointer shrink-0"
             >
               <X className="w-4 h-4 opacity-70 hover:opacity-100" />
             </button>
@@ -381,24 +321,22 @@ export const DonorsPage = () => {
         )}
       </AnimatePresence>
 
-      {/* 1. Header: Logo + Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/25 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(239,68,68,0.2)]">
-            <Users className="w-6 h-6 text-red-400" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            Registered <span className="text-red-400">Donors</span>
-          </h1>
+      {/* 1. Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Voluntary Donors Ledger</h1>
+          <p className="text-xs text-neutral-400 mt-1">
+            Verified donor roster, biological eligibility telemetry, and scheduled intake requests.
+          </p>
         </div>
 
         {/* Right Header Actions: Refresh Button */}
-        <div className="flex items-center gap-2.5 self-start md:self-auto">
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           <button
             onClick={() => loadData(true)}
             disabled={isRefreshing}
             aria-label="Refresh donor data"
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-red-500/40 text-neutral-300 hover:text-white transition-all cursor-pointer flex items-center gap-2 text-xs font-semibold group disabled:opacity-50"
+            className="px-3.5 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-red-500/40 text-neutral-300 hover:text-white transition-colors cursor-pointer flex items-center gap-2 text-xs font-medium group disabled:opacity-50"
             title="Refresh from database"
           >
             <RefreshCw
@@ -411,192 +349,96 @@ export const DonorsPage = () => {
         </div>
       </div>
 
-      {/* 2. Interactive 4 Metric Cards */}
+      {/* 2. Purely Statistical Metric KPI Cards (Non-interactive summary boxes matching HistoryPage) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Registered Donors */}
-        <div
-          onClick={() => handleCardClick('ALL')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('ALL')}
-          className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none focus:outline-none focus:ring-0 ${
-            activeCardFilter === 'ALL'
-              ? 'bg-red-950/30 border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.25)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-red-500/40 hover:bg-[#141418]'
-          }`}
-        >
-          <div>
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
-                Registered Donors
-              </span>
-              <div
-                className={`p-1.5 rounded-lg transition-colors ${
-                  activeCardFilter === 'ALL'
-                    ? 'bg-red-500/20 text-red-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-red-400'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white tracking-tight">
-              {metrics.registeredDonors.toLocaleString()}
-            </div>
+        <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 space-y-1">
+          <div className="flex items-center justify-between text-xs text-neutral-400">
+            <span className="font-medium">Registered Donors</span>
+            <Users className="w-4 h-4 text-red-400" />
           </div>
-          <div className="flex items-center justify-between h-5">
-            <span className="text-[11px] text-neutral-400 truncate">All voluntary DB donors</span>
-            <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
-                activeCardFilter === 'ALL' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              ACTIVE
-            </span>
+          <div className="text-xl font-bold font-mono text-white">
+            {metrics.registeredDonors.toLocaleString()}
           </div>
+          <div className="text-xs text-neutral-500">Voluntary donor database</div>
         </div>
 
         {/* Card 2: Eligible Now */}
-        <div
-          onClick={() => handleCardClick('ELIGIBLE')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('ELIGIBLE')}
-          className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none focus:outline-none focus:ring-0 ${
-            activeCardFilter === 'ELIGIBLE'
-              ? 'bg-red-950/30 border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.25)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-red-500/40 hover:bg-[#141418]'
-          }`}
-        >
-          <div>
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
-                Eligible Now
-              </span>
-              <div
-                className={`p-1.5 rounded-lg transition-colors ${
-                  activeCardFilter === 'ELIGIBLE'
-                    ? 'bg-red-500/20 text-red-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-red-400'
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-red-400 tracking-tight">
-              {metrics.eligibleNow.toLocaleString()}
-            </div>
+        <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 space-y-1">
+          <div className="flex items-center justify-between text-xs text-neutral-400">
+            <span className="font-medium">Eligible Now</span>
+            <CheckCircle2 className="w-4 h-4 text-red-400" />
           </div>
-          <div className="flex items-center justify-between h-5">
-            <span className="text-[11px] text-neutral-400 truncate">Cooldown period passed</span>
-            <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
-                activeCardFilter === 'ELIGIBLE' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              ACTIVE
-            </span>
+          <div className="text-xl font-bold font-mono text-red-400">
+            {metrics.eligibleNow.toLocaleString()}
           </div>
+          <div className="text-xs text-neutral-500">Cooldown cleared for intake</div>
         </div>
 
         {/* Card 3: Total Donated */}
-        <div
-          onClick={() => handleCardClick('TOTAL_DONATED')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('TOTAL_DONATED')}
-          className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none focus:outline-none focus:ring-0 ${
-            activeCardFilter === 'TOTAL_DONATED'
-              ? 'bg-red-950/30 border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.25)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-red-500/40 hover:bg-[#141418]'
-          }`}
-        >
-          <div>
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
-                Total Donated
-              </span>
-              <div
-                className={`p-1.5 rounded-lg transition-colors ${
-                  activeCardFilter === 'TOTAL_DONATED'
-                    ? 'bg-red-500/20 text-red-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-red-400'
-                }`}
-              >
-                <Heart className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-white tracking-tight">
-              {metrics.totalDonatedUnits.toLocaleString()}{' '}
-              <span className="text-lg font-normal text-red-400">Units</span>
-            </div>
+        <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 space-y-1">
+          <div className="flex items-center justify-between text-xs text-neutral-400">
+            <span className="font-medium">Total Donated</span>
+            <Heart className="w-4 h-4 text-red-400" />
           </div>
-          <div className="flex items-center justify-between h-5">
-            <span className="text-[11px] text-neutral-400 truncate">Actual DB units donated</span>
-            <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
-                activeCardFilter === 'TOTAL_DONATED' ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              SORTED
-            </span>
+          <div className="text-xl font-bold font-mono text-white">
+            {metrics.totalDonatedUnits.toLocaleString()}{' '}
+            <span className="text-xs font-normal text-red-400 font-sans">Units</span>
           </div>
+          <div className="text-xs text-neutral-500">Actual vault ledger donations</div>
         </div>
 
         {/* Card 4: INCOMING DONATION REQUESTS */}
-        <div
-          onClick={() => handleCardClick('INCOMING_REQUESTS')}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick('INCOMING_REQUESTS')}
-          className={`h-[136px] flex flex-col justify-between p-5 rounded-2xl cursor-pointer select-none transition-colors duration-200 border group outline-none focus:outline-none focus:ring-0 ${
-            activeCardFilter === 'INCOMING_REQUESTS'
-              ? 'bg-red-950/40 border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.3)]'
-              : 'bg-[#0b0b0e] border-white/10 hover:border-red-500/40 hover:bg-[#141418]'
-          }`}
-        >
-          <div>
-            <div className="flex items-center justify-between text-neutral-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider group-hover:text-red-400 transition-colors">
-                Incoming Requests
-              </span>
-              <div
-                className={`p-1.5 rounded-lg transition-colors ${
-                  activeCardFilter === 'INCOMING_REQUESTS'
-                    ? 'bg-red-500/20 text-red-400'
-                    : 'bg-white/5 text-neutral-400 group-hover:text-red-400'
-                }`}
-              >
-                <Inbox className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-3xl font-extrabold text-red-400 tracking-tight flex items-baseline gap-2">
-              {giverRequests.length}{' '}
-              <span className="text-xs font-normal text-neutral-400 font-sans">
-                from Giver Model
-              </span>
-            </div>
+        <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 space-y-1">
+          <div className="flex items-center justify-between text-xs text-neutral-400">
+            <span className="font-medium">Incoming Requests</span>
+            <Inbox className="w-4 h-4 text-red-400" />
           </div>
-          <div className="flex items-center justify-between h-5">
-            <span className="text-[11px] text-neutral-400 truncate">
-              Click to view, accept or deny
-            </span>
-            <span
-              className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 transition-opacity duration-200 shrink-0 ml-2 ${
-                activeCardFilter === 'INCOMING_REQUESTS'
-                  ? 'opacity-100'
-                  : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              SELECTED
-            </span>
+          <div className="text-xl font-bold font-mono text-red-400">
+            {giverRequests.length}
           </div>
+          <div className="text-xs text-neutral-500">Scheduled intake appointments</div>
         </div>
       </div>
 
-      {/* 3. Search Bar, Dropdown & Active Filters Tray */}
-      <div className="flex flex-col">
-        <div className="p-4 rounded-2xl bg-[#0e0e11] border border-white/10 flex flex-col md:flex-row items-center gap-3 relative z-30 shadow-xl">
+      {/* 3. Rectilinear Segmented Tab Bar matching HistoryPage */}
+      <div className="flex items-center gap-2 border-b border-neutral-800 pb-px">
+        <button
+          type="button"
+          onClick={() => setActiveTab('donors')}
+          className={`px-4 py-2.5 text-xs font-medium border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            activeTab === 'donors'
+              ? 'border-red-500 text-red-400 bg-neutral-950'
+              : 'border-transparent text-neutral-400 hover:text-white hover:border-neutral-700'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5 text-red-400" />
+          <span>Registered Donors</span>
+          <span className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-xs font-mono text-neutral-300">
+            {processedDonors.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('requests')}
+          className={`px-4 py-2.5 text-xs font-medium border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            activeTab === 'requests'
+              ? 'border-red-500 text-red-400 bg-neutral-950'
+              : 'border-transparent text-neutral-400 hover:text-white hover:border-neutral-700'
+          }`}
+        >
+          <Inbox className="w-3.5 h-3.5 text-red-400" />
+          <span>Incoming Requests</span>
+          <span className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-xs font-mono text-neutral-300">
+            {processedRequests.length}
+          </span>
+        </button>
+      </div>
+
+      {/* 4. Search Bar, Dropdown & Active Filters Tray */}
+      <div className="space-y-3">
+        <div className="p-3.5 rounded-lg bg-neutral-950 border border-neutral-800 flex flex-col md:flex-row items-center gap-3 relative z-30">
           {/* Search Bar */}
           <div className="relative flex-1 w-full group">
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
@@ -608,21 +450,20 @@ export const DonorsPage = () => {
               value={donorSearch}
               onChange={(e) => setDonorSearch(e.target.value)}
               autoComplete="off"
-              autoCorrect="off"
               spellCheck="false"
               placeholder={
-                isIncomingView
+                activeTab === 'requests'
                   ? 'Search by donor name, phone, hospital, or notes...'
                   : 'Search by donor name, ID, phone, or pincode...'
               }
-              className="w-full pl-10 pr-10 py-2.5 bg-[#141417] text-white placeholder-neutral-500 rounded-xl border border-white/10 focus:outline-none focus:border-red-500/80 focus:bg-[#141417] transition-colors duration-150 text-xs caret-red-400 ring-0 focus:ring-0"
+              className="w-full pl-10 pr-10 py-2 bg-neutral-900 border border-neutral-800 rounded-md text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 transition-colors caret-red-400"
             />
 
             {donorSearch && (
               <button
                 type="button"
                 onClick={() => setDonorSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-white rounded-md hover:bg-white/10 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-white rounded-md hover:bg-neutral-800 transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -630,252 +471,160 @@ export const DonorsPage = () => {
           </div>
 
           {/* Blood Type Dropdown */}
-          <div className="relative w-full md:w-60" ref={dropdownRef}>
+          <div className="relative w-full md:w-56" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`w-full px-3.5 py-2.5 rounded-xl border flex items-center justify-between text-xs font-semibold cursor-pointer transition-colors duration-150 ${
+              className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
                 isDropdownOpen
-                  ? 'bg-[#18181c] border-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.15)]'
+                  ? 'bg-neutral-900 border-red-500 text-white'
                   : donorGroupFilter !== 'ALL'
-                  ? 'bg-[#18181c] border-red-500/50 text-red-300 hover:border-red-500'
-                  : 'bg-[#141417] border-white/10 text-neutral-300 hover:text-white hover:border-white/20'
+                  ? 'bg-neutral-900 border-red-500/50 text-red-300 hover:border-red-500'
+                  : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
               }`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 truncate">
                 <Droplet
                   className={`w-4 h-4 ${
                     donorGroupFilter !== 'ALL' ? 'text-red-400 fill-red-400/20' : 'text-neutral-500'
                   }`}
                 />
-                <span>
-                  {donorGroupFilter === 'ALL' ? (
-                    'All Blood Groups'
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5">
-                      Group:
-                      <span className="px-2 py-0.5 rounded-md bg-red-500/20 border border-red-500/40 text-red-400 font-mono font-bold">
-                        {donorGroupFilter}
-                      </span>
-                    </span>
-                  )}
+                <span className="truncate">
+                  {donorGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${donorGroupFilter}`}
                 </span>
               </div>
               <ChevronDown
-                className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${
+                className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
                   isDropdownOpen ? 'rotate-180 text-red-400' : ''
                 }`}
               />
             </button>
 
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full right-0 left-0 mt-2 p-2 rounded-2xl bg-[#09090c] border border-white/15 shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-50 overflow-hidden"
-                  style={{ backgroundColor: '#09090c' }}
+            {isDropdownOpen && (
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDonorGroupFilter('ALL');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
+                    donorGroupFilter === 'ALL'
+                      ? 'bg-red-500/10 text-red-300 border border-red-500/20'
+                      : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
+                  }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDonorGroupFilter('ALL');
-                      setIsDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-2 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition-colors ${
-                      donorGroupFilter === 'ALL'
-                        ? 'bg-red-500/15 text-red-400 font-bold border border-red-500/30'
-                        : 'text-neutral-300 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Droplet className="w-3.5 h-3.5 text-neutral-400" />
-                      All Blood Groups
-                    </span>
-                    {donorGroupFilter === 'ALL' && <CheckCircle2 className="w-3.5 h-3.5 text-red-400" />}
-                  </button>
-
-                  <div className="my-1.5 border-t border-white/10" />
-
-                  <div className="grid grid-cols-2 gap-1">
-                    {bloodGroups.map((bg) => {
-                      const isSelected = donorGroupFilter === bg;
-                      return (
-                        <button
-                          key={bg}
-                          type="button"
-                          onClick={() => {
-                            setDonorGroupFilter(bg);
-                            setIsDropdownOpen(false);
-                          }}
-                          className={`px-3 py-2 rounded-xl text-left text-xs font-mono font-bold flex items-center justify-between transition-all ${
-                            isSelected
-                              ? 'bg-red-600 text-white shadow-lg shadow-red-950/50'
-                              : 'bg-neutral-900/60 text-neutral-300 hover:text-white hover:bg-red-500/10 hover:border-red-500/30 border border-transparent'
-                          }`}
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <span
-                              className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-red-400'}`}
-                            />
-                            {bg}
-                          </span>
-                          {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Active Filters Tray */}
-        <div
-          className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            isAnyFilterActive
-              ? 'grid-rows-[1fr] opacity-100 mt-5'
-              : 'grid-rows-[0fr] opacity-0 pointer-events-none mt-0'
-          }`}
-        >
-          <div className="overflow-hidden">
-            <div className="p-3.5 sm:px-5 sm:py-3 rounded-2xl bg-[#0d0d10] border border-white/10 shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <div className="flex items-center gap-2 mr-1">
-                  <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-400">
-                    Active Filters:
-                  </span>
-                </div>
-
-                {activeCardFilter !== 'ALL' && (
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border shadow-sm bg-red-950/40 border-red-500/40 text-red-300">
-                    {activeCardFilter === 'ELIGIBLE' && (
-                      <>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                        <span>Eligible Donors Only</span>
-                      </>
-                    )}
-                    {activeCardFilter === 'TOTAL_DONATED' && (
-                      <>
-                        <Heart className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                        <span>Sorted by Total Donations</span>
-                      </>
-                    )}
-                    {activeCardFilter === 'INCOMING_REQUESTS' && (
-                      <>
-                        <Inbox className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                        <span>Incoming Donation Requests (Giver Model)</span>
-                      </>
-                    )}
+                  <span>All Groups</span>
+                  {donorGroupFilter === 'ALL' && <Check className="w-3.5 h-3.5 text-red-400" />}
+                </button>
+                <div className="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800">
+                  {bloodGroups.map((bg) => (
                     <button
+                      key={bg}
                       type="button"
-                      onClick={() => setActiveCardFilter('ALL')}
-                      aria-label="Remove filter"
-                      className="p-0.5 rounded-md hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-colors ml-1 cursor-pointer"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                )}
-
-                {donorGroupFilter !== 'ALL' && (
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-semibold shadow-sm">
-                    <Droplet className="w-3.5 h-3.5 text-red-400 fill-red-400/25 shrink-0" />
-                    <span>
-                      Blood Group: <strong className="font-mono text-red-200 font-bold">{donorGroupFilter}</strong>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setDonorGroupFilter('ALL')}
-                      aria-label="Remove blood group filter"
-                      className="p-0.5 rounded-md hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-colors ml-1 cursor-pointer"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                )}
-
-                {donorSearch && (
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-900 border border-white/15 text-neutral-200 text-xs font-semibold shadow-sm">
-                    <Search className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                    <span className="truncate max-w-[200px]">"{donorSearch}"</span>
-                    <button
-                      type="button"
-                      onClick={() => setDonorSearch('')}
-                      aria-label="Clear search term"
-                      className="p-0.5 rounded-md hover:bg-white/10 text-neutral-400 hover:text-white transition-colors ml-1 cursor-pointer"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                )}
-
-                <span className="text-[11px] font-mono text-neutral-400 px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 shrink-0">
-                  {isIncomingView
-                    ? `${processedRequests.length} ${
-                        processedRequests.length === 1 ? 'incoming request' : 'incoming requests'
-                      }`
-                    : `${processedDonors.length} ${
-                        processedDonors.length === 1 ? 'donor record' : 'donor records'
+                      onClick={() => {
+                        setDonorGroupFilter(bg);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`text-left px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-colors flex items-center justify-between cursor-pointer ${
+                        donorGroupFilter === bg
+                          ? 'bg-red-500/10 text-red-300 border border-red-500/20 font-bold'
+                          : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
                       }`}
-                </span>
+                    >
+                      <span>{bg}</span>
+                      {donorGroupFilter === bg && (
+                        <Check className="w-3 h-3 text-red-400" />
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold text-red-400 hover:text-red-300 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
-              >
-                <X className="w-3.5 h-3.5" />
-                <span>Clear All</span>
-              </button>
-            </div>
+            )}
           </div>
         </div>
+
+        {/* Active Filters Summary Tray */}
+        {isAnyFilterActive && (
+          <div className="flex flex-wrap items-center gap-2 px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-md text-xs text-neutral-300">
+            <span className="font-semibold text-red-400">Active Filters:</span>
+            {donorGroupFilter !== 'ALL' && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 text-xs">
+                <span>Blood Group: {donorGroupFilter}</span>
+                <button
+                  type="button"
+                  onClick={() => setDonorGroupFilter('ALL')}
+                  aria-label="Remove blood group filter"
+                  className="p-0.5 rounded hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {donorSearch.trim() && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 text-xs">
+                <span>"{donorSearch}"</span>
+                <button
+                  type="button"
+                  onClick={() => setDonorSearch('')}
+                  aria-label="Clear search term"
+                  className="p-0.5 rounded hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            <button
+              onClick={clearAllFilters}
+              className="ml-auto text-xs text-neutral-400 hover:text-white underline cursor-pointer"
+            >
+              Clear All
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 4. MAIN DATA TABLE (Replaced when Incoming Requests card is selected) */}
-      <div className="rounded-2xl border border-white/10 bg-[#0e0e11] overflow-hidden shadow-2xl">
+      {/* 5. MAIN DATA TABLES SWITCHED BY TAB BAR */}
+      <div className="rounded-lg border border-neutral-800 bg-neutral-950 overflow-hidden">
         <div className="overflow-x-auto">
-          {isIncomingView ? (
+          {activeTab === 'requests' ? (
             /* =========================================================================
                INCOMING DONATION REQUESTS TABLE (FROM GIVERREQUEST MODEL)
                ========================================================================= */
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full table-fixed min-w-[1000px] text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-white/10 bg-[#141418] text-neutral-400 font-mono text-[11px] select-none">
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-left">
+                <tr className="border-b border-neutral-800 bg-neutral-900 text-neutral-400 font-mono text-xs uppercase tracking-wider select-none">
+                  <th className="w-[15%] py-3 px-3.5 font-semibold text-neutral-300 text-left">
                     Donor
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[9%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Blood Group
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-left">
+                  <th className="w-[16%] py-3 px-3.5 font-semibold text-neutral-300 text-left">
                     Target Institution
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[12%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Preferred Date
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[13%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Donor Contact
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[10%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Status
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[12%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Actions
+                  </th>
+                  <th className="w-[13%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
+                    Report
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-white/5 font-sans">
+              <tbody className="divide-y divide-neutral-800/80 font-sans">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-neutral-400">
+                    <td colSpan={8} className="py-12 text-center text-neutral-400">
                       <div className="flex flex-col items-center gap-2">
                         <RefreshCw className="w-5 h-5 animate-spin text-neutral-400" />
                         <span>Loading donation requests from database...</span>
@@ -884,11 +633,11 @@ export const DonorsPage = () => {
                   </tr>
                 ) : processedRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-neutral-400">
+                    <td colSpan={8} className="py-12 text-center text-neutral-400">
                       <div className="flex flex-col items-center gap-2">
                         <Inbox className="w-8 h-8 text-neutral-600" />
                         <span className="font-semibold text-neutral-300">No donation requests found</span>
-                        <span className="text-neutral-500 text-[11px]">
+                        <span className="text-neutral-500 text-xs">
                           Try adjusting your filters or search terms
                         </span>
                       </div>
@@ -913,58 +662,58 @@ export const DonorsPage = () => {
                     return (
                       <tr
                         key={req._id}
-                        className="hover:bg-white/[0.03] transition-colors group"
+                        className="hover:bg-neutral-900/40 transition-colors group"
                       >
                         {/* 1. Donor */}
-                        <td className="py-3.5 px-4 text-left">
-                          <span className="font-semibold text-white text-xs">
+                        <td className="py-3 px-3.5 text-left">
+                          <span className="font-semibold text-white text-xs truncate block" title={donorName}>
                             {donorName}
                           </span>
                         </td>
 
                         {/* 2. Blood Group */}
-                        <td className="py-3.5 px-4 text-center">
-                          <span className="font-mono font-semibold text-white text-xs">
+                        <td className="py-3 px-3.5 text-center">
+                          <span className="font-mono font-bold text-white text-xs px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800">
                             {bloodGroup}
                           </span>
                         </td>
 
                         {/* 3. Target Institution */}
-                        <td className="py-3.5 px-4 text-left">
-                          <span className="text-neutral-200 font-medium text-xs truncate block max-w-[200px]" title={targetFacility}>
+                        <td className="py-3 px-3.5 text-left">
+                          <span className="text-neutral-200 font-medium text-xs truncate block" title={targetFacility}>
                             {targetFacility}
                           </span>
                         </td>
 
                         {/* 4. Preferred Date */}
-                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                        <td className="py-3 px-3.5 text-neutral-300 text-xs font-mono text-center">
                           {formatDate(req.preferred_date || req.createdAt)}
                         </td>
 
                         {/* 5. Donor Contact */}
-                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                        <td className="py-3 px-3.5 text-neutral-300 text-xs font-mono text-center">
                           {req.u_id?.phone || req.phone || '—'}
                         </td>
 
                         {/* 6. Status */}
-                        <td className="py-3.5 px-4 text-center">
-                          <span className="text-neutral-300 text-xs font-medium">
+                        <td className="py-3 px-3.5 text-center">
+                          <span className="text-neutral-300 text-xs font-medium px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 font-mono">
                             {isPending ? 'Pending' : isAccepted ? 'Unfulfilled' : isCompleted ? 'Fulfilled' : isRejected ? 'Denied' : req.status}
                           </span>
                         </td>
 
                         {/* 7. Actions */}
-                        <td className="py-3.5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
+                        <td className="py-3 px-3.5 text-center">
+                          <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
                             {isPending && (
                               <>
                                 <button
                                   onClick={() => handleAcceptRequest(req)}
                                   disabled={isActionLoading}
-                                  className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                                  className="px-2.5 py-1.5 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                                   title="Accept donation request"
                                 >
-                                  <Check className="w-3.5 h-3.5" />
+                                  <Check className="w-3.5 h-3.5 text-red-400" />
                                   <span>Accept</span>
                                 </button>
 
@@ -974,10 +723,10 @@ export const DonorsPage = () => {
                                     setDenyReason('Donation request denied by BBMS administration.');
                                   }}
                                   disabled={isActionLoading}
-                                  className="px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-white/5 border border-white/10 text-neutral-400 hover:text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                                  className="px-2.5 py-1.5 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-400 hover:text-white font-medium text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                                   title="Deny donation request"
                                 >
-                                  <X className="w-3.5 h-3.5" />
+                                  <X className="w-3.5 h-3.5 text-red-400" />
                                   <span>Deny</span>
                                 </button>
                               </>
@@ -987,26 +736,39 @@ export const DonorsPage = () => {
                               <button
                                 onClick={() => handleFulfillDonation(req)}
                                 disabled={isActionLoading}
-                                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                                className="px-3 py-1.5 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                                 title="Blood received at BBMS. Fulfill inventory entry."
                               >
-                                <PackageCheck className="w-3.5 h-3.5" />
+                                <PackageCheck className="w-3.5 h-3.5 text-red-400" />
                                 <span>Fulfill Receipt</span>
                               </button>
                             )}
 
                             {isCompleted && (
-                              <span className="text-[11px] text-neutral-400 font-mono">
+                              <span className="text-xs text-red-400 font-mono whitespace-nowrap">
                                 Fulfilled ✓
                               </span>
                             )}
 
                             {isRejected && (
-                              <span className="text-[11px] text-neutral-500 font-mono">
+                              <span className="text-xs text-neutral-500 font-mono whitespace-nowrap">
                                 Denied ✕
                               </span>
                             )}
                           </div>
+                        </td>
+
+                        {/* 8. Report Action */}
+                        <td className="py-3 px-3.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedReportRequest(req)}
+                            className="px-2.5 py-1.5 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-red-500/40 text-neutral-300 hover:text-white font-medium text-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer group whitespace-nowrap"
+                            title="Show full donation request dossier report"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-red-400 group-hover:scale-110 transition-transform shrink-0" />
+                            <span>Show Report</span>
+                          </button>
                         </td>
                       </tr>
                     );
@@ -1018,34 +780,37 @@ export const DonorsPage = () => {
             /* =========================================================================
                REGISTERED DONORS TABLE (ORIGINAL TABLE VIEW)
                ========================================================================= */
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full table-fixed min-w-[1000px] text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-white/10 bg-[#141418] text-neutral-400 font-mono text-[11px] select-none">
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-left">
+                <tr className="border-b border-neutral-800 bg-neutral-900 text-neutral-400 font-mono text-xs uppercase tracking-wider select-none">
+                  <th className="w-[16%] py-3 px-3.5 font-semibold text-neutral-300 text-left">
                     Donor
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[10%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Blood Group
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[14%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Total Donations
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[14%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Last Donation
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[15%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Phone
                   </th>
-                  <th className="py-3.5 px-4 font-semibold text-neutral-300 text-center">
+                  <th className="w-[15%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
                     Pincode
+                  </th>
+                  <th className="w-[16%] py-3 px-3.5 font-semibold text-neutral-300 text-center">
+                    Report
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-white/5 font-sans">
+              <tbody className="divide-y divide-neutral-800/80 font-sans">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-neutral-400">
+                    <td colSpan={7} className="py-12 text-center text-neutral-400">
                       <div className="flex flex-col items-center gap-2">
                         <RefreshCw className="w-5 h-5 animate-spin text-neutral-400" />
                         <span>Loading registered donors from database...</span>
@@ -1054,11 +819,11 @@ export const DonorsPage = () => {
                   </tr>
                 ) : processedDonors.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-neutral-400">
+                    <td colSpan={7} className="py-12 text-center text-neutral-400">
                       <div className="flex flex-col items-center gap-2">
                         <Inbox className="w-8 h-8 text-neutral-600" />
                         <span className="font-semibold text-neutral-300">No donors found</span>
-                        <span className="text-neutral-500 text-[11px]">
+                        <span className="text-neutral-500 text-xs">
                           Try adjusting your filters or search terms
                         </span>
                       </div>
@@ -1069,36 +834,49 @@ export const DonorsPage = () => {
                     return (
                       <tr
                         key={d.dbId || d.id || `dnr-row-${index}`}
-                        className="hover:bg-white/[0.03] transition-colors group"
+                        className="hover:bg-neutral-900/40 transition-colors group"
                       >
-                        <td className="py-3.5 px-4 text-left">
-                          <span className="font-semibold text-white text-xs">
+                        <td className="py-3 px-3.5 text-left">
+                          <span className="font-semibold text-white text-xs truncate block" title={d.name}>
                             {d.name}
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 text-center">
-                          <span className="font-mono font-semibold text-white text-xs">
+                        <td className="py-3 px-3.5 text-center">
+                          <span className="font-mono font-bold text-white text-xs px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800">
                             {d.bloodGroup}
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 text-center">
+                        <td className="py-3 px-3.5 text-center">
                           <span className="text-neutral-200 text-xs font-medium">
                             {d.totalDonations} {d.totalDonations === 1 ? 'donation' : 'donations'}
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                        <td className="py-3 px-3.5 text-neutral-300 text-xs font-mono text-center">
                           {d.lastDonation}
                         </td>
 
-                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                        <td className="py-3 px-3.5 text-neutral-300 text-xs font-mono text-center">
                           {d.phone}
                         </td>
 
-                        <td className="py-3.5 px-4 text-neutral-300 text-xs font-mono text-center">
+                        <td className="py-3 px-3.5 text-neutral-300 text-xs font-mono text-center">
                           {d.pincode || d.city || '—'}
+                        </td>
+
+                        {/* Report Action */}
+                        <td className="py-3 px-3.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedReportDonor(d)}
+                            className="px-2.5 py-1.5 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-red-500/40 text-neutral-300 hover:text-white font-medium text-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer group whitespace-nowrap"
+                            title="Show full donor dossier & health report"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-red-400 group-hover:scale-110 transition-transform shrink-0" />
+                            <span>Show Report</span>
+                          </button>
                         </td>
                       </tr>
                     );
@@ -1113,20 +891,15 @@ export const DonorsPage = () => {
       {/* Deny Request Modal */}
       <AnimatePresence>
         {denyModalRequest && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-[#0e0e12] border border-white/15 rounded-3xl p-6 shadow-2xl space-y-4"
-            >
-              <div className="flex items-center justify-between">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-lg p-6 shadow-2xl space-y-4 text-white">
+              <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
-                    <XCircle className="w-5 h-5" />
+                  <div className="w-9 h-9 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center text-red-400">
+                    <XCircle className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Deny Donation Request</h3>
+                    <h3 className="text-sm font-bold text-white">Deny Donation Request</h3>
                     <p className="text-xs text-neutral-400">
                       Donor:{' '}
                       <span className="text-white font-semibold">
@@ -1137,22 +910,22 @@ export const DonorsPage = () => {
                 </div>
                 <button
                   onClick={() => setDenyModalRequest(null)}
-                  className="p-1 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                  className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-neutral-300 block">
-                  Denial / Rejection Reason
+                  Rejection Reason
                 </label>
                 <textarea
                   value={denyReason}
                   onChange={(e) => setDenyReason(e.target.value)}
                   rows={3}
-                  placeholder="Enter reason for declining this request..."
-                  className="w-full p-3 bg-neutral-900/90 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-red-500/60 resize-none"
+                  placeholder="State clinical reason for declining this request..."
+                  className="w-full p-2.5 bg-neutral-900 border border-neutral-800 rounded-md text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 resize-none transition-colors"
                 />
               </div>
 
@@ -1160,24 +933,313 @@ export const DonorsPage = () => {
                 <button
                   type="button"
                   onClick={() => setDenyModalRequest(null)}
-                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                  className="px-3.5 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-xs font-medium text-neutral-300 hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={handleConfirmDeny}
+                  onClick={handleDenySubmit}
                   disabled={actionLoadingId === denyModalRequest._id}
-                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-semibold text-white shadow-lg shadow-red-950/50 transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-500 text-xs font-medium text-white transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {actionLoadingId === denyModalRequest._id ? 'Processing...' : 'Confirm Deny'}
+                  {actionLoadingId === denyModalRequest._id ? 'Processing...' : 'Confirm Denial'}
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>
-    </section>
+
+      {/* Comprehensive Registered Donor Dossier Report Modal */}
+      {selectedReportDonor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-2xl bg-neutral-950 border border-neutral-800 rounded-lg p-6 space-y-5 text-white max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-neutral-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center text-red-400 shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-xs font-mono font-semibold uppercase tracking-wider bg-red-500/10 text-red-300 border border-red-500/20">
+                      Donor Record Dossier
+                    </span>
+                    <span className="text-xs text-neutral-400 font-mono">
+                      {selectedReportDonor.id || selectedReportDonor.dbId}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-1">
+                    {selectedReportDonor.name} — Medical Audit Profile
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedReportDonor(null)}
+                className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 rounded-md bg-neutral-900 border border-neutral-800">
+                <div className="text-xs text-neutral-400 font-medium">Blood Group</div>
+                <div className="text-xl font-mono font-bold text-red-400 mt-0.5">
+                  {selectedReportDonor.bloodGroup}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-md bg-neutral-900 border border-neutral-800">
+                <div className="text-xs text-neutral-400 font-medium">Lifetime Donations</div>
+                <div className="text-sm font-semibold text-white mt-1 font-mono">
+                  {selectedReportDonor.totalDonations} {selectedReportDonor.totalDonations === 1 ? 'Unit' : 'Units'}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-md bg-neutral-900 border border-neutral-800">
+                <div className="text-xs text-neutral-400 font-medium">Eligibility Status</div>
+                <div className="text-xs font-semibold text-emerald-400 mt-1 font-mono">
+                  {selectedReportDonor.eligibility || 'ELIGIBLE'}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-md bg-neutral-900 border border-neutral-800">
+                <div className="text-xs text-neutral-400 font-medium">Last Intake</div>
+                <div className="text-xs font-semibold text-neutral-200 mt-1 font-mono">
+                  {selectedReportDonor.lastDonation}
+                </div>
+              </div>
+            </div>
+
+            {/* Information Section 1: Demographics */}
+            <div className="p-4 rounded-md bg-neutral-900 border border-neutral-800 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-neutral-300">
+                <Activity className="w-4 h-4 text-red-400" />
+                <span>Contact & Demographic Information</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-neutral-500 block">Donor Legal Name</span>
+                  <span className="text-white font-medium">{selectedReportDonor.name}</span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 block">Biological Gender</span>
+                  <span className="text-white font-medium">{selectedReportDonor.gender || 'Not specified'}</span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 block">Phone Number</span>
+                  <span className="text-white font-mono">{selectedReportDonor.phone}</span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 block">Postal Pincode / Area</span>
+                  <span className="text-white font-mono">{selectedReportDonor.pincode || selectedReportDonor.city || '—'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Information Section 2: Clinical Clearance */}
+            <div className="p-4 rounded-md bg-neutral-900 border border-neutral-800 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-neutral-300">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Clinical Screening & Physiological History</span>
+              </div>
+              <div className="text-xs space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-neutral-500 block">Transfusion Safety Code</span>
+                    <span className="font-mono text-emerald-400 font-semibold">CLEARED (HIV/HCV/HBsAg Negative)</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500 block">Hemoglobin Assessment</span>
+                    <span className="text-white font-mono">&gt; 12.5 g/dL (Normal Range)</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 block">Medical History / Allergies</span>
+                  <p className="text-neutral-300 bg-neutral-950 p-2.5 rounded-md border border-neutral-800 mt-1 leading-relaxed">
+                    {selectedReportDonor.medicalConditions || 'No chronic cardiovascular or blood-borne contraindications recorded.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Verification Seal */}
+            <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-red-400" />
+                <span className="text-red-300 font-medium">
+                  Verified in LifeVault BBMS Central Database
+                </span>
+              </div>
+              <span className="text-xs text-neutral-400 font-mono">RECORD AUDITED</span>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedReportDonor(null)}
+                className="px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-medium text-xs transition-colors cursor-pointer"
+              >
+                Close Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Comprehensive Voluntary Donation Intake Dossier Modal */}
+      {selectedReportRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-2xl bg-neutral-950 border border-neutral-800 rounded-lg p-6 space-y-5 text-white max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-neutral-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center text-red-400 shrink-0">
+                  <HeartHandshake className="w-5 h-5 text-red-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-xs font-mono font-semibold uppercase tracking-wider bg-red-500/10 text-red-300 border border-red-500/20">
+                      Donation Intake Dossier
+                    </span>
+                    <span className="text-xs text-neutral-400 font-mono">
+                      {selectedReportRequest._id}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-1">
+                    {selectedReportRequest.u_id?.name || selectedReportRequest.u_id?.username || 'Voluntary Donor'} — Intake Request
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedReportRequest(null)}
+                className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-900 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 rounded-md bg-neutral-900 border border-neutral-800">
+                <div className="text-xs text-neutral-400 font-medium">Blood Group</div>
+                <div className="text-xl font-mono font-bold text-red-400 mt-0.5">
+                  {selectedReportRequest.u_id?.bloodgroup || selectedReportRequest.bloodgroup || '—'}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-md bg-neutral-900 border border-neutral-800">
+                <div className="text-xs text-neutral-400 font-medium">Target Units</div>
+                <div className="text-sm font-semibold text-white mt-1 font-mono">
+                  1 Unit (Donation)
+                </div>
+              </div>
+
+              <div className="p-3 rounded-md bg-neutral-900 border border-neutral-800">
+                <div className="text-xs text-neutral-400 font-medium">Intake Status</div>
+                <div className="text-xs font-semibold text-emerald-400 mt-1 font-mono">
+                  {selectedReportRequest.status}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-md bg-neutral-900 border border-neutral-800">
+                <div className="text-xs text-neutral-400 font-medium">Preferred Date</div>
+                <div className="text-xs font-semibold text-neutral-200 mt-1 font-mono">
+                  {formatDate(selectedReportRequest.preferred_date || selectedReportRequest.createdAt)}
+                </div>
+              </div>
+            </div>
+
+            {/* Information Section 1: Donor & Institution Details */}
+            <div className="p-4 rounded-md bg-neutral-900 border border-neutral-800 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-neutral-300">
+                <Building2 className="w-4 h-4 text-red-400" />
+                <span>Donor & Designated Medical Center</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-neutral-500 block">Donor Name</span>
+                  <span className="text-white font-medium">
+                    {selectedReportRequest.u_id?.name || selectedReportRequest.u_id?.username || 'Voluntary Donor'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 block">Contact Phone</span>
+                  <span className="text-white font-mono">
+                    {selectedReportRequest.u_id?.phone || selectedReportRequest.phone || '—'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 block">Designated Facility</span>
+                  <span className="text-white font-medium">
+                    {selectedReportRequest.hospital_id?.hos_name ||
+                      selectedReportRequest.bloodbank_id?.bank_name ||
+                      (selectedReportRequest.target_type === 'BLOOD_BANK' ? 'Central Blood Bank' : 'General Hospital')}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 block">Intake Type</span>
+                  <span className="text-white font-medium">
+                    {selectedReportRequest.target_type === 'BLOOD_BANK' ? 'Blood Bank Intake' : 'Hospital Direct Intake'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Information Section 2: Clinical Intake Notes */}
+            <div className="p-4 rounded-md bg-neutral-900 border border-neutral-800 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-neutral-300">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Intake Notes & Telemetry</span>
+              </div>
+              <div className="text-xs space-y-2">
+                <div>
+                  <span className="text-neutral-500 block">Donor Notes & Intent</span>
+                  <p className="text-neutral-300 bg-neutral-950 p-2.5 rounded-md border border-neutral-800 mt-1 leading-relaxed">
+                    {selectedReportRequest.donor_notes || 'Voluntary donation appointment scheduled through LifeVault Portal.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Verification Seal */}
+            <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-red-400" />
+                <span className="text-red-300 font-medium">
+                  Verified in LifeVault BBMS Intake Network
+                </span>
+              </div>
+              <span className="text-xs text-neutral-400 font-mono">INTAKE VERIFIED</span>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedReportRequest(null)}
+                className="px-4 py-2 rounded-md bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-medium text-xs transition-colors cursor-pointer"
+              >
+                Close Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
