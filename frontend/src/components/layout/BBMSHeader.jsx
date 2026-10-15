@@ -4,6 +4,7 @@ import {
   LogOut,
   Boxes,
   KeyRound,
+  ScanLine,
   Building2,
   Droplets,
   Users,
@@ -121,6 +122,23 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
       <div className="flex items-center gap-3">
         {/* Unified notification button with only bell icon */}
         <UnifiedNotificationBell user={user} onSelectSection={onSelectSection} />
+
+        {/* QR scanner: icon button beside the bell, organization members & master admin only */}
+        {isStaff && (
+          <button
+            type="button"
+            onClick={() => onSelectSection('scanner')}
+            aria-label="Scan member QR code"
+            title="Scan QR"
+            className={`p-2 rounded-xl border transition-all duration-200 flex items-center justify-center cursor-pointer bg-black ${
+              activeSection === 'scanner'
+                ? 'border-teal-400/60 text-teal-300'
+                : 'border-white/10 text-neutral-300 hover:text-white hover:border-teal-500/40'
+            }`}
+          >
+            <ScanLine className="w-4 h-4" />
+          </button>
+        )}
 
         <div
           className="relative"

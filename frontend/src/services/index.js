@@ -8,3 +8,4 @@ export * from './seekerService.js';
 export * from './historyService.js';
 export * from './bloodBankService.js';
 export * from './accountService.js';
+export * from './qrService.js';

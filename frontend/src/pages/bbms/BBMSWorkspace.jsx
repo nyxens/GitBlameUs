@@ -9,6 +9,7 @@ import { ProfilePage } from './ProfilePage';
 import { FacilitiesPage } from './FacilitiesPage';
 import { InventoryPage } from './InventoryPage';
 import { AccountsPage } from './AccountsPage';
+import { ScannerPage } from './ScannerPage';
 
 export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
   const isStaff = isStaffOrAdmin(user?.role);
@@ -20,7 +21,7 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
         'inventory',
         ...(canManageOrg ? ['accounts'] : []),
         ...(isMaster ? ['hospitals', 'bloodbanks'] : ['organization']),
-        'donors', 'recipients', 'history', 'profile',
+        'donors', 'recipients', 'history', 'scanner', 'profile',
       ]
     : ['seeker', 'giver', 'profile'];
 
@@ -49,6 +50,7 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
         {isStaff && activeSection === 'inventory' && <InventoryPage />}
 
         {/* HOSPITALS / BLOOD BANKS SECTIONS (Staff / Admin Only) */}
+        {isStaff && activeSection === 'scanner' && <ScannerPage />}
         {isStaff && canManageOrg && activeSection === 'accounts' && <AccountsPage isMaster={isMaster} />}
         {isStaff && !isMaster && activeSection === 'organization' && (
           <FacilitiesPage type={orgType === 'BloodBank' ? 'bloodbank' : 'hospital'} isAdmin={false} />
