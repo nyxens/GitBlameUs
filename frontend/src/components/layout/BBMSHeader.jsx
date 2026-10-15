@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut,
   Boxes,
+  KeyRound,
+  ScanLine,
   Building2,
   Droplets,
   Users,
@@ -23,6 +25,7 @@ export const isStaffOrAdmin = (role) => {
   if (!role) return false;
   const staffOrAdminRoles = [
     'ADMIN',
+    'ORG_ADMIN',
     'SUPER_ADMIN',
     'DOCTOR',
     'NURSE',
@@ -40,10 +43,24 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
 
   const isStaff = isStaffOrAdmin(user?.role);
 
+  const isMaster = user?.role === 'ADMIN';
+  const isOrgAdmin = user?.role === 'ORG_ADMIN';
+  const orgType = user?.staffDetails?.hos_or_bank_type;
+
   const staffMenuItems = [
     { id: 'inventory', label: 'Inventory', icon: Boxes, iconColor: 'text-purple-400' },
-    { id: 'hospitals', label: 'Hospitals', icon: Building2, iconColor: 'text-blue-400' },
-    { id: 'bloodbanks', label: 'Blood Banks', icon: Droplets, iconColor: 'text-red-400' },
+    ...(isMaster
+      ? [
+          { id: 'hospitals', label: 'Hospitals', icon: Building2, iconColor: 'text-blue-400' },
+          { id: 'bloodbanks', label: 'Blood Banks', icon: Droplets, iconColor: 'text-red-400' },
+        ]
+      : [{
+          id: 'organization',
+          label: orgType === 'BloodBank' ? 'My Blood Bank' : 'My Hospital',
+          icon: orgType === 'BloodBank' ? Droplets : Building2,
+          iconColor: orgType === 'BloodBank' ? 'text-red-400' : 'text-blue-400',
+        }]),
+    ...(isMaster || isOrgAdmin ? [{ id: 'accounts', label: 'Accounts', icon: KeyRound, iconColor: 'text-amber-400' }] : []),
     { id: 'donors', label: 'Donors', icon: Users, iconColor: 'text-red-400' },
     { id: 'recipients', label: 'Recipients', icon: UserCheck, iconColor: 'text-emerald-400' },
     { id: 'history', label: 'History', icon: History, iconColor: 'text-amber-400' },
@@ -105,6 +122,23 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
       <div className="flex items-center gap-3">
         {/* Unified notification button with only bell icon */}
         <UnifiedNotificationBell user={user} onSelectSection={onSelectSection} />
+
+        {/* QR scanner: icon button beside the bell, organization members & master admin only */}
+        {isStaff && (
+          <button
+            type="button"
+            onClick={() => onSelectSection('scanner')}
+            aria-label="Scan member QR code"
+            title="Scan QR"
+            className={`p-2 rounded-xl border transition-all duration-200 flex items-center justify-center cursor-pointer bg-black ${
+              activeSection === 'scanner'
+                ? 'border-teal-400/60 text-teal-300'
+                : 'border-white/10 text-neutral-300 hover:text-white hover:border-teal-500/40'
+            }`}
+          >
+            <ScanLine className="w-4 h-4" />
+          </button>
+        )}
 
         <div
           className="relative"

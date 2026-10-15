@@ -75,6 +75,8 @@ export const AuthModal = ({
 
   // Reset states when modal role or mode changes
   useEffect(() => {
+    // Organization accounts are issued by admins - there is no sign-up for them
+    if (selectedRole === 'HOSPITAL' && authMode === 'signup') setAuthMode('signin');
     setErrorMsg('');
     setSuccessMsg('');
     setShowOtpVerify(false);
@@ -747,7 +749,12 @@ export const AuthModal = ({
           )}
 
           {/* Bottom Switcher: Between Sign In and Sign Up */}
-          {!showOtpVerify && authMode !== 'forgot-password' && (
+          {!showOtpVerify && authMode !== 'forgot-password' && selectedRole === 'HOSPITAL' && (
+            <p className="text-center mt-6 pt-4 border-t border-white/10 text-xs text-neutral-500">
+              Organization accounts are created by your LifeVault administrator.
+            </p>
+          )}
+          {!showOtpVerify && authMode !== 'forgot-password' && selectedRole !== 'HOSPITAL' && (
             <div className="text-center mt-6 pt-4 border-t border-white/10">
               <button
                 type="button"

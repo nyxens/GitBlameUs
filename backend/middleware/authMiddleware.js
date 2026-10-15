@@ -131,8 +131,9 @@ export function requireAdmin(req, res, next) {
 }
 
 /**
- * Sets req.scope: admins see everything ({ all: true }); staff only see the single
- * hospital / blood bank they belong to ({ all: false, id, type }). Others are rejected.
+ * Sets req.scope: the master admin sees everything ({ all: true }); org admins and staff only see
+ * the single hospital / blood bank they belong to ({ all: false, id, type, staffId, staffRole }).
+ * The Staff record is read from the DB, so a deleted account loses access immediately.
  */
 export async function resolveScope(req, res, next) {
   try {
@@ -144,9 +145,28 @@ export async function resolveScope(req, res, next) {
     if (!staff) {
       return res.status(403).json({ success: false, error: 'Only admins and hospital/blood bank staff can access this.' });
     }
-    req.scope = { all: false, id: staff.hos_or_bank_id, type: staff.hos_or_bank_type };
+    req.scope = {
+      all: false,
+      id: staff.hos_or_bank_id,
+      type: staff.hos_or_bank_type,
+      staffId: staff._id,
+      staffRole: staff.role,
+    };
     next();
   } catch (err) {
     next(err);
   }
+}
+
+/** Master admin or an organization admin (staff members are rejected). Use after resolveScope. */
+export function requireOrgAdmin(req, res, next) {
+  if (req.scope?.all || req.scope?.staffRole === 'ORG_ADMIN') return next();
+  return res.status(403).json({ success: false, error: 'Organization admin access required.' });
+}
+
+/** True when a hospital/blood bank id pair belongs to the requester's scope. */
+export function inScope(scope, hospitalId, bloodbankId) {
+  if (scope.all) return true;
+  const target = scope.type === 'Hospital' ? hospitalId : bloodbankId;
+  return Boolean(target) && String(target?._id || target) === String(scope.id);
 }

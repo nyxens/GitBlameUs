@@ -24,6 +24,8 @@ import {
 import { CustomDropdown } from '@ui';
 import { updateUserProfile } from '../../services/authService.js';
 import { getMyGiverRequests } from '../../services/giverService.js';
+import { getMyQrPayload } from '../../services/qrService.js';
+import QRCode from 'qrcode';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const GENDERS = [
@@ -102,84 +104,23 @@ function getDonorRegistrationCode(id) {
   return `LV-${hashStr.slice(0, 4)}-${hashStr.slice(4, 8)}-${hashStr.slice(8, 12)}`;
 }
 
-// Clean, sharp vector QR matrix rendering donor credentials
-const DonorQRCodeSVG = ({ value }) => {
-  // Generate deterministic bit pattern based on hash of string
-  const hash = useMemo(() => {
-    let h = 0x811c9dc5;
-    for (let i = 0; i < value.length; i++) {
-      h ^= value.charCodeAt(i);
-      h = Math.imul(h, 0x01000193);
-    }
-    return h >>> 0;
-  }, [value]);
+// Real, signed QR code for this account (resolves to the member's details for organization scanners)
+const UserQRCode = () => {
+  const [src, setSrc] = useState('');
+  const [failed, setFailed] = useState(false);
 
-  const size = 21;
-  const modules = useMemo(() => {
-    const grid = Array.from({ length: size }, () => Array(size).fill(false));
+  useEffect(() => {
+    let cancelled = false;
+    getMyQrPayload()
+      .then((payload) => QRCode.toDataURL(payload, { errorCorrectionLevel: 'M', margin: 1, width: 360 }))
+      .then((url) => { if (!cancelled) setSrc(url); })
+      .catch(() => { if (!cancelled) setFailed(true); });
+    return () => { cancelled = true; };
+  }, []);
 
-    // Draw finder patterns (7x7 outer, 5x5 white, 3x3 black)
-    const drawFinder = (startX, startY) => {
-      for (let r = 0; r < 7; r++) {
-        for (let c = 0; c < 7; c++) {
-          if (
-            r === 0 ||
-            r === 6 ||
-            c === 0 ||
-            c === 6 ||
-            (r >= 2 && r <= 4 && c >= 2 && c <= 4)
-          ) {
-            grid[startY + r][startX + c] = true;
-          }
-        }
-      }
-    };
-
-    drawFinder(0, 0); // Top-left
-    drawFinder(size - 7, 0); // Top-right
-    drawFinder(0, size - 7); // Bottom-left
-
-    // Fill timing lines
-    for (let i = 8; i < size - 8; i++) {
-      grid[6][i] = i % 2 === 0;
-      grid[i][6] = i % 2 === 0;
-    }
-
-    // Fill pseudo-random data modules from hash
-    let seed = hash;
-    for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        // Skip finder zones and timing lines
-        const inFinder =
-          (r < 8 && c < 8) ||
-          (r < 8 && c >= size - 8) ||
-          (r >= size - 8 && c < 8) ||
-          r === 6 ||
-          c === 6;
-        if (!inFinder) {
-          seed = (seed * 1664525 + 1013904223) >>> 0;
-          grid[r][c] = seed % 3 !== 0;
-        }
-      }
-    }
-
-    return grid;
-  }, [hash]);
-
-  return (
-    <svg
-      viewBox={`0 0 ${size} ${size}`}
-      className="w-full h-full shape-rendering-crisp"
-      aria-label={`Verification QR Code for ${value}`}
-    >
-      <rect width={size} height={size} fill="#ffffff" />
-      {modules.map((row, r) =>
-        row.map((cell, c) =>
-          cell ? <rect key={`${r}-${c}`} x={c} y={r} width="1" height="1" fill="#0a0a0a" /> : null
-        )
-      )}
-    </svg>
-  );
+  if (failed) return <span className="text-[11px] text-neutral-500 text-center px-2">QR code unavailable for this account.</span>;
+  if (!src) return <span className="text-[11px] text-neutral-500">Generating…</span>;
+  return <img src={src} alt="Your LifeVault QR code" className="w-full h-full" />;
 };
 
 export const ProfilePage = ({ user, onUpdateUser }) => {
@@ -772,10 +713,10 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
             {/* Integrated Vector QR Code Box */}
             <div className="p-3 bg-neutral-900 border border-neutral-800 rounded-md flex flex-col items-center">
               <div className="w-36 h-36 p-2 bg-white rounded-md flex items-center justify-center">
-                <DonorQRCodeSVG value={donorCode} />
+                <UserQRCode />
               </div>
               <span className="text-xs text-neutral-400 font-mono mt-2 text-center">
-                Scan for Hospital Triage Check-in
+                Scan at any LifeVault organization to verify your profile
               </span>
             </div>
 

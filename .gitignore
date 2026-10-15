@@ -25,4 +25,4 @@ yarn-debug.log*
 .DS_Store
 .vscode/
 .idea/
-.agents/
+.agents/CREDENTIALS.md

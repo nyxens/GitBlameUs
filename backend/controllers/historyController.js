@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { BloodBag, Allotment } from '../models/index.js';
+import { BloodBag, Allotment, Inventory } from '../models/index.js';
 
 const staffPopulate = { path: 'u_id', select: 'name username' };
 const facilityName = (f) => f?.hos_name || f?.bank_name || 'Unknown facility';
@@ -10,14 +10,22 @@ const ledgerHash = (payload) => `0x${crypto.createHash('sha256').update(payload)
  * QUERY: Audit ledger built from real records — donation intakes (BloodBag) and allotments.
  * GET /api/v1/history
  */
-export async function getHistory(_req, res, next) {
+export async function getHistory(req, res, next) {
   try {
+    // Master admin: every organization. Org admin / staff: their own organization only.
+    const inventoryIds = req.scope.all
+      ? null
+      : (await Inventory.find({ hos_or_bank_id: req.scope.id, hos_or_bank_type: req.scope.type }).select('_id').lean()).map((i) => i._id);
+    const orgBagIds = inventoryIds
+      ? (await BloodBag.find({ I_ID: { $in: inventoryIds } }).select('_id').lean()).map((b) => b._id)
+      : null;
+
     const [bags, allotments] = await Promise.all([
-      BloodBag.find({})
+      BloodBag.find(inventoryIds ? { I_ID: { $in: inventoryIds } } : {})
         .populate({ path: 'S_Id', select: 'licence_id u_id', populate: staffPopulate })
         .populate({ path: 'I_ID', select: 'hos_or_bank_id hos_or_bank_type', populate: { path: 'hos_or_bank_id', select: 'hos_name bank_name' } })
         .lean(),
-      Allotment.find({})
+      Allotment.find(orgBagIds ? { bag_id: { $in: orgBagIds } } : {})
         .populate({ path: 'bag_id', select: 'bloodgroup barcode weight expired_date status' })
         .populate({ path: 's_id', select: 'licence_id u_id', populate: staffPopulate })
         .populate({ path: 'req_id', select: 'pincode weight status u_id', populate: { path: 'u_id', select: 'name username' } })

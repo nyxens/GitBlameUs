@@ -309,6 +309,7 @@ export async function allocateBloodToRequest(requestId, {
   staff_id = null,
   bag_ids = [],
   notes = null,
+  inventory_ids = null, // restrict allocation to these inventories (organization scope)
 } = {}) {
   const request = await SeekerRequest.findById(requestId).populate('u_id');
   if (!request) {
@@ -331,6 +332,7 @@ export async function allocateBloodToRequest(requestId, {
       _id: { $in: bag_ids },
       status: 'AVAILABLE',
       isdiscresed: false,
+      ...(inventory_ids ? { I_ID: { $in: inventory_ids } } : {}),
     });
   }
 
@@ -340,6 +342,7 @@ export async function allocateBloodToRequest(requestId, {
       bloodgroup: request.bloodgroup,
       status: 'AVAILABLE',
       isdiscresed: false,
+      ...(inventory_ids ? { I_ID: { $in: inventory_ids } } : {}),
     })
       .sort({ expired_date: 1 })
       .limit(neededUnits);

@@ -282,7 +282,7 @@ export const InventoryPage = () => {
   const availableCount = items.filter((i) => i.rawStatus === 'AVAILABLE').length;
   const awaitingCount = items.filter((i) => i.status === 'UNFULFILLED').length;
   const expiringCount = items.filter(
-    (i) => i.rawStatus === 'AVAILABLE' && item.daysToExpiry !== null && item.daysToExpiry <= 7
+    (i) => i.rawStatus === 'AVAILABLE' && i.daysToExpiry !== null && i.daysToExpiry <= 7
   ).length;
 
   const isAnyFilterActive = search.trim() !== '' || selectedGroup !== 'ALL' || facilityId !== 'ALL';

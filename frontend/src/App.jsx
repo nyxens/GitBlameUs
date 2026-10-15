@@ -54,7 +54,7 @@ export function App() {
         }
 
         if (!cancelled && result.success && result.user) {
-          setUser({ ...result.user, role: result.role || result.user.role });
+          setUser({ ...result.user, role: result.role || result.user.role, staffDetails: result.staff || null });
         }
       } catch {
         // Not authenticated — stay on landing page

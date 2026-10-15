@@ -1,5 +1,7 @@
 import * as seekerService from '../services/seekerService.js';
 import { sendRequestEmail } from './emailController.js';
+import { Request } from '../models/index.js';
+import { inScope } from '../middleware/authMiddleware.js';
 
 /**
  * =======================================================================================
@@ -170,7 +172,12 @@ export async function fulfillSeekerRequest(req, res) {
     const { id } = req.params;
     const { staff_id, notes, allocated_bag_ids } = req.body || {};
 
-    const staffId = req.user?.staffId || staff_id;
+    const staffId = req.scope.staffId || req.user?.staffId || staff_id;
+
+    const target = await Request.findById(id).select('hospital_id bloodbank_id').lean();
+    if (target && !inScope(req.scope, target.hospital_id, target.bloodbank_id)) {
+      return res.status(403).json({ success: false, error: 'This requisition belongs to another organization.' });
+    }
 
     const result = await seekerService.fulfillSeekerRequest(id, {
       staff_id: staffId,

@@ -62,18 +62,34 @@ export async function scheduleDonation(req, res) {
   }
 }
 
-export async function getDonors(_req, res) {
+/** Inventory ids of the requester's organization (null = master admin, no restriction). */
+async function orgInventoryIds(scope) {
+  if (scope.all) return null;
+  const invs = await Inventory.find({ hos_or_bank_id: scope.id, hos_or_bank_type: scope.type }).select('_id').lean();
+  return invs.map((i) => i._id);
+}
+
+/**
+ * QUERY: People who have legitimately donated to the requester's organization (a Donor log whose
+ * blood bag sits in the organization's inventory). The master admin sees donors of every organization.
+ * GET /api/v1/donors
+ */
+export async function getDonors(req, res) {
   try {
-    const donorUsers = await User.find({}).lean();
-    const donations = await Donor.find({}).populate('bag_id').lean();
+    const inventoryIds = await orgInventoryIds(req.scope);
+    const orgBagIds = inventoryIds
+      ? (await BloodBag.find({ I_ID: { $in: inventoryIds } }).select('_id').lean()).map((b) => b._id)
+      : null;
+
+    const donationFilter = orgBagIds ? { bag_id: { $in: orgBagIds } } : { bag_id: { $ne: null } };
+    const donations = await Donor.find(donationFilter).populate('bag_id').lean();
+    const donorIds = [...new Set(donations.map((d) => String(d.u_id)))];
+    const donorUsers = await User.find({ _id: { $in: donorIds } }).lean();
 
     const donationsByUser = {};
     for (const d of donations) {
-      const uid = d.u_id ? d.u_id.toString() : null;
-      if (uid) {
-        if (!donationsByUser[uid]) donationsByUser[uid] = [];
-        donationsByUser[uid].push(d);
-      }
+      const uid = String(d.u_id);
+      (donationsByUser[uid] = donationsByUser[uid] || []).push(d);
     }
 
     const pinToCity = {
@@ -132,6 +148,7 @@ export async function getDonors(_req, res) {
     const totalDonatedUnits = donations.length;
     const incomingRequestsCount = await GiverRequest.countDocuments({
       status: { $in: ['NOT_VERIFIED', 'PENDING', 'VERIFIED', 'ACCEPTED'] },
+      ...(req.scope.all ? {} : { [req.scope.type === 'Hospital' ? 'hospital_id' : 'bloodbank_id']: req.scope.id }),
     });
 
     return res.status(200).json({
