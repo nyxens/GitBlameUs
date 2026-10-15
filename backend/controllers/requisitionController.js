@@ -2,6 +2,26 @@ import mongoose from 'mongoose';
 import { Request, Allotment, BloodBag, User, Staff, Hospital, BloodBank, Inventory } from '../models/index.js';
 import * as seekerService from '../services/seekerService.js';
 import { sendRequestEmail } from './emailController.js';
+import { inScope } from '../middleware/authMiddleware.js';
+
+const orgInventoryIds = async (scope) =>
+  scope.all
+    ? null
+    : (await Inventory.find({ hos_or_bank_id: scope.id, hos_or_bank_type: scope.type }).select('_id').lean()).map((i) => i._id);
+
+/** Loads a requisition and answers 404/403 itself when it is missing or belongs to another organization. */
+async function loadScopedRequest(req, res) {
+  const request = await Request.findById(req.params.id);
+  if (!request) {
+    res.status(404).json({ success: false, error: 'Requisition not found' });
+    return null;
+  }
+  if (!inScope(req.scope, request.hospital_id, request.bloodbank_id)) {
+    res.status(403).json({ success: false, error: 'This requisition belongs to another organization.' });
+    return null;
+  }
+  return request;
+}
 
 const EMAIL_POPULATE = [
   { path: 'u_id', select: 'name username email bloodgroup' },
@@ -106,10 +126,11 @@ export async function getRequisitions(req, res) {
     if (status && status !== 'ALL') {
       filter.status = status;
     }
-    if (facilityId && facilityId !== 'ALL') {
+    const orgOnly = req.scope.all ? facilityId : req.scope.id;
+    if (orgOnly && orgOnly !== 'ALL') {
       filter.$or = [
-        { hospital_id: facilityId },
-        { bloodbank_id: facilityId },
+        { hospital_id: orgOnly },
+        { bloodbank_id: orgOnly },
       ];
     }
 
@@ -194,10 +215,8 @@ export async function getRequisitions(req, res) {
 export async function acceptRequisition(req, res) {
   try {
     const { id } = req.params;
-    const request = await Request.findById(id);
-    if (!request) {
-      return res.status(404).json({ success: false, error: 'Requisition not found' });
-    }
+    const request = await loadScopedRequest(req, res);
+    if (!request) return;
 
     if (!['NOT_VERIFIED', 'VERIFIED', 'PENDING'].includes(request.status)) {
       return res.status(409).json({ success: false, error: `Cannot accept a requisition that is already ${request.status}.` });
@@ -224,9 +243,11 @@ export async function allocateRequisition(req, res) {
   try {
     const { id } = req.params;
     const { staff_id, bag_ids, notes } = req.body || {};
+    if (!(await loadScopedRequest(req, res))) return;
 
     const updated = await seekerService.allocateBloodToRequest(id, {
-      staff_id: req.user?.staffId || staff_id,
+      inventory_ids: await orgInventoryIds(req.scope),
+      staff_id: req.scope.staffId || req.user?.staffId || staff_id,
       bag_ids: Array.isArray(bag_ids) ? bag_ids : [],
       notes,
     });
@@ -248,10 +269,8 @@ export async function denyRequisition(req, res) {
     const { id } = req.params;
     const { reason } = req.body || {};
 
-    const request = await Request.findById(id);
-    if (!request) {
-      return res.status(404).json({ success: false, error: 'Requisition not found' });
-    }
+    const request = await loadScopedRequest(req, res);
+    if (!request) return;
 
     if (!['NOT_VERIFIED', 'VERIFIED', 'PENDING', 'ACCEPTED'].includes(request.status)) {
       return res.status(409).json({ success: false, error: `Cannot deny a requisition that is already ${request.status}.` });
@@ -285,6 +304,9 @@ export async function getCandidateBags(req, res) {
     if (bloodGroup && bloodGroup !== 'ALL') {
       query.bloodgroup = bloodGroup;
     }
+
+    const inventoryIds = await orgInventoryIds(req.scope);
+    if (inventoryIds) query.I_ID = { $in: inventoryIds };
 
     let bags = await BloodBag.find(query)
       .populate('I_ID')
@@ -323,6 +345,8 @@ export async function deleteRequisition(req, res) {
     if (!id) {
       return res.status(400).json({ success: false, error: 'Requisition ID is required' });
     }
+
+    if (!(await loadScopedRequest(req, res))) return;
 
     let deleted = null;
     if (mongoose.Types.ObjectId.isValid(id)) {

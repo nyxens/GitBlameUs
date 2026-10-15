@@ -142,7 +142,9 @@ export async function verifyOTP(req, res) {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const assignedRole = role || (hospitalName || licenseId ? 'HOSPITAL' : 'DONOR');
+    // Public sign-up only ever creates citizen (donor / seeker) accounts. Organization logins
+    // are issued by the master admin / organization admins (see accountController).
+    const assignedRole = 'DONOR';
 
     const user = await User.create({
       username: computedUsername,
@@ -152,25 +154,11 @@ export async function verifyOTP(req, res) {
       pincode: pincode || '10001',
       bloodgroup: bloodgroup || 'O+',
       gender: gender || 'OTHER',
-      name: name || hospitalName || computedUsername,
+      name: name || computedUsername,
       phone: phone || '+1-555-0100',
       role: assignedRole,
       status: 'ACTIVE',
     });
-
-    // Create Hospital domain record if hospital signup
-    if (assignedRole === 'HOSPITAL' || hospitalName) {
-      try {
-        await Hospital.create({
-          hos_name: hospitalName || user.name,
-          pincode: pincode || '10001',
-          email: user.email,
-          phone: user.phone,
-        });
-      } catch (_err) {
-        // Non-fatal domain record creation error
-      }
-    }
 
     // Clean up temporary OTP storage
     otpStorage.delete(email);

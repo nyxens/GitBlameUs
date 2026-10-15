@@ -18,7 +18,7 @@ import {
   getActiveRequest,
   getNearbyInstitutions,
 } from '../controllers/giverController.js';
-import { authMiddleware, optionalAuthMiddleware } from '../middleware/authMiddleware.js';
+import { authMiddleware, optionalAuthMiddleware, resolveScope } from '../middleware/authMiddleware.js';
 // import { donorOnlyMiddleware } from '../middleware/donorOnlyMiddleware.js'; // TODO: create when role gating is ready
 
 export function setupGiverRoutes(router) {
@@ -54,14 +54,14 @@ export function setupGiverRoutes(router) {
   router.put('/giver/request/:id/verify', verifyDonationRequest);
 
   // Accept or Deny donation requests (adds unfulfilled blood entry to inventory on accept)
-  router.put('/giver/request/:id/accept', acceptDonationRequest);
-  router.post('/giver/request/:id/accept', acceptDonationRequest);
-  router.put('/giver/request/:id/deny', denyDonationRequest);
-  router.post('/giver/request/:id/deny', denyDonationRequest);
+  router.put('/giver/request/:id/accept', authMiddleware, resolveScope, acceptDonationRequest);
+  router.post('/giver/request/:id/accept', authMiddleware, resolveScope, acceptDonationRequest);
+  router.put('/giver/request/:id/deny', authMiddleware, resolveScope, denyDonationRequest);
+  router.post('/giver/request/:id/deny', authMiddleware, resolveScope, denyDonationRequest);
 
   // Fulfill donation entry when BBMS receives the blood
-  router.put('/giver/request/:id/fulfill', fulfillDonationReceipt);
-  router.post('/giver/request/:id/fulfill', fulfillDonationReceipt);
+  router.put('/giver/request/:id/fulfill', authMiddleware, resolveScope, fulfillDonationReceipt);
+  router.post('/giver/request/:id/fulfill', authMiddleware, resolveScope, fulfillDonationReceipt);
 
   // Phase 3: Hospital/BloodBank accepts & schedules appointment
   router.put('/giver/request/:id/schedule', acceptAndScheduleDonation);
@@ -102,5 +102,5 @@ export function setupGiverRoutes(router) {
   router.get('/giver/bloodbank/:bloodbankId', getBloodBankRequests);
 
   // All requests with filtering & pagination
-  router.get('/giver/requests', getAllRequests);
+  router.get('/giver/requests', authMiddleware, resolveScope, getAllRequests);
 }

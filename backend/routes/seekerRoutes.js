@@ -15,7 +15,7 @@ import {
   getActiveRequest,
   getNearbyInstitutions,
 } from '../controllers/seekerController.js';
-import { authMiddleware, optionalAuthMiddleware } from '../middleware/authMiddleware.js';
+import { authMiddleware, optionalAuthMiddleware, resolveScope } from '../middleware/authMiddleware.js';
 
 export function setupSeekerRoutes(router) {
   // ── Seeker-facing: Find nearby institutions & form pre-fill ──────────────────
@@ -56,8 +56,8 @@ export function setupSeekerRoutes(router) {
   router.put('/seeker/request/:id/schedule', acceptAndScheduleSeekerRequest);
 
   // ── Phase 4: Hospital fulfills blood requisition ─────────────────────────────
-  router.put('/seeker/request/:id/fulfill', fulfillSeekerRequest);
-  router.post('/seeker/request/:id/fulfill', fulfillSeekerRequest);
+  router.put('/seeker/request/:id/fulfill', authMiddleware, resolveScope, fulfillSeekerRequest);
+  router.post('/seeker/request/:id/fulfill', authMiddleware, resolveScope, fulfillSeekerRequest);
 
   // ── Cancel a seeker blood request ────────────────────────────────────────────
   router.put(

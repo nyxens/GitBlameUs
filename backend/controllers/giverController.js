@@ -1,4 +1,6 @@
 import * as giverService from '../services/giverService.js';
+import { GiverRequest, BloodBag, Inventory } from '../models/index.js';
+import { inScope } from '../middleware/authMiddleware.js';
 import { sendRequestEmail } from './emailController.js';
 
 /**
@@ -16,6 +18,28 @@ import { sendRequestEmail } from './emailController.js';
  * 5. cancelDonationRequest     -> Donor cancels request (status: CANCELLED)
  * =======================================================================================
  */
+
+/** Staff / org admins may only act on requests addressed to their own organization. */
+async function forbidIfOutOfScope(req, res, id) {
+  if (req.scope.all) return false;
+  const request = await GiverRequest.findById(id).select('hospital_id bloodbank_id').lean();
+  if (request && inScope(req.scope, request.hospital_id, request.bloodbank_id)) return false;
+  res.status(403).json({ success: false, error: 'This request belongs to another organization.' });
+  return true;
+}
+
+/** Same check when the id may be a blood bag id (fulfil by bag). */
+async function forbidBagIfOutOfScope(req, res, id) {
+  if (req.scope.all) return false;
+  const bag = await BloodBag.findById(id).select('I_ID').lean();
+  if (bag) {
+    const owned = await Inventory.exists({ _id: bag.I_ID, hos_or_bank_id: req.scope.id, hos_or_bank_type: req.scope.type });
+    if (owned) return false;
+    res.status(403).json({ success: false, error: 'This unit belongs to another organization.' });
+    return true;
+  }
+  return forbidIfOutOfScope(req, res, id);
+}
 
 /**
  * PHASE 1: Donor applies to donate blood
@@ -492,6 +516,9 @@ export async function getAllRequests(req, res) {
     const filter = {};
     if (status) filter.status = status;
     if (target_type) filter.target_type = target_type;
+    if (!req.scope.all) {
+      filter[req.scope.type === 'Hospital' ? 'hospital_id' : 'bloodbank_id'] = req.scope.id;
+    }
 
     const result = await giverService.getAllDonationRequests(filter, { limit, skip });
     return res.status(200).json({
@@ -522,10 +549,11 @@ export async function acceptDonationRequest(req, res) {
     } = req.body || {};
 
     const adminId = req.user?.id || req.user?._id || req.user?.sub || req.body?.admin_id;
+    if (await forbidIfOutOfScope(req, res, id)) return;
 
     const result = await giverService.acceptDonationRequest(id, {
       admin_id: adminId,
-      staff_id: req.user?.staffId || staff_id,
+      staff_id: req.scope.staffId || req.user?.staffId || staff_id,
       appointment_date,
       appointment_time,
       appointment_venue,
@@ -558,6 +586,8 @@ export async function denyDonationRequest(req, res) {
     const { reason } = req.body || {};
     const adminId = req.user?.id || req.user?._id || req.user?.sub || req.body?.admin_id;
 
+    if (await forbidIfOutOfScope(req, res, id)) return;
+
     const updatedRequest = await giverService.denyDonationRequest(id, {
       reason: reason || 'Donation request denied by BBMS administration.',
       admin_id: adminId,
@@ -587,8 +617,10 @@ export async function fulfillDonationReceipt(req, res) {
     const { id } = req.params;
     const { staff_id, haemoglobin, pressure, weight } = req.body || {};
 
+    if (await forbidBagIfOutOfScope(req, res, id)) return;
+
     const result = await giverService.fulfillDonationReceipt(id, {
-      staff_id: req.user?.staffId || staff_id,
+      staff_id: req.scope.staffId || req.user?.staffId || staff_id,
       haemoglobin,
       pressure,
       weight,

@@ -8,11 +8,20 @@ import { SeekerPage } from './SeekerPage';
 import { ProfilePage } from './ProfilePage';
 import { FacilitiesPage } from './FacilitiesPage';
 import { InventoryPage } from './InventoryPage';
+import { AccountsPage } from './AccountsPage';
 
 export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
   const isStaff = isStaffOrAdmin(user?.role);
+  const isMaster = user?.role === 'ADMIN';
+  const canManageOrg = isMaster || user?.role === 'ORG_ADMIN';
+  const orgType = user?.staffDetails?.hos_or_bank_type;
   const allowedSections = isStaff
-    ? ['inventory', 'hospitals', 'bloodbanks', 'donors', 'recipients', 'history', 'profile']
+    ? [
+        'inventory',
+        ...(canManageOrg ? ['accounts'] : []),
+        ...(isMaster ? ['hospitals', 'bloodbanks'] : ['organization']),
+        'donors', 'recipients', 'history', 'profile',
+      ]
     : ['seeker', 'giver', 'profile'];
 
   const [activeSection, setActiveSection] = useState(() => (isStaff ? 'inventory' : 'seeker'));
@@ -40,8 +49,12 @@ export const BBMSWorkspace = ({ user, onLogout, onUpdateUser }) => {
         {isStaff && activeSection === 'inventory' && <InventoryPage />}
 
         {/* HOSPITALS / BLOOD BANKS SECTIONS (Staff / Admin Only) */}
-        {isStaff && activeSection === 'hospitals' && <FacilitiesPage type="hospital" isAdmin={user?.role === 'ADMIN'} />}
-        {isStaff && activeSection === 'bloodbanks' && <FacilitiesPage type="bloodbank" isAdmin={user?.role === 'ADMIN'} />}
+        {isStaff && canManageOrg && activeSection === 'accounts' && <AccountsPage isMaster={isMaster} />}
+        {isStaff && !isMaster && activeSection === 'organization' && (
+          <FacilitiesPage type={orgType === 'BloodBank' ? 'bloodbank' : 'hospital'} isAdmin={false} />
+        )}
+        {isStaff && isMaster && activeSection === 'hospitals' && <FacilitiesPage type="hospital" isAdmin={user?.role === 'ADMIN'} />}
+        {isStaff && isMaster && activeSection === 'bloodbanks' && <FacilitiesPage type="bloodbank" isAdmin={user?.role === 'ADMIN'} />}
 
         {/* 2. DONORS SECTION (Staff / Admin Only) */}
         {isStaff && activeSection === 'donors' && <DonorsPage />}

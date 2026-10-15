@@ -9,6 +9,8 @@
     "dev": "node --watch server.js",
     "seed": "node seed.js",
     "load-facilities": "node loadFacilities.js",
+    "seed-org-accounts": "node seedOrgAccounts.js",
+    "seed-blood-bags": "node seedBloodBags.js",
     "create-admin": "node createMasterAdmin.js"
   },
   "dependencies": {

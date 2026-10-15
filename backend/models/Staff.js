@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
-export const STAFF_ROLES = ['DOCTOR', 'NURSE', 'LAB_TECHNICIAN', 'PHLEBOTOMIST', 'MANAGER', 'STAFF'];
+export const STAFF_ROLES = ['ORG_ADMIN', 'DOCTOR', 'NURSE', 'LAB_TECHNICIAN', 'PHLEBOTOMIST', 'MANAGER', 'STAFF'];
 
 export const staffSchema = new Schema(
   {
@@ -41,6 +41,12 @@ export const staffSchema = new Schema(
       type: String,
       required: true,
       enum: ['Hospital', 'BloodBank'],
+    },
+    // Account that created this one: master Admin (for an ORG_ADMIN) or the org admin's User id (for staff)
+    created_by: {
+      type: Schema.Types.ObjectId,
+      default: null,
+      index: true,
     },
     admin_id: {
       type: Schema.Types.ObjectId,
