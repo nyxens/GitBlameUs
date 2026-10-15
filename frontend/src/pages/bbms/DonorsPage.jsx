@@ -25,6 +25,7 @@ import {
   Activity,
   HeartHandshake,
 } from 'lucide-react';
+import { CustomDropdown } from '@ui';
 import { getRegisteredDonors } from '../../services/donorService.js';
 import {
   getAllGiverRequests,
@@ -472,77 +473,25 @@ export const DonorsPage = () => {
           </div>
 
           {/* Blood Type Dropdown */}
-          <div className="relative w-full md:w-56" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                isDropdownOpen
-                  ? 'bg-neutral-900 border-red-500 text-white'
-                  : donorGroupFilter !== 'ALL'
-                  ? 'bg-neutral-900 border-red-500/50 text-red-300 hover:border-red-500'
-                  : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-              }`}
-            >
-              <div className="flex items-center gap-2 truncate">
-                <Droplet
-                  className={`w-4 h-4 ${
-                    donorGroupFilter !== 'ALL' ? 'text-red-400 fill-red-400/20' : 'text-neutral-500'
-                  }`}
-                />
-                <span className="truncate">
-                  {donorGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${donorGroupFilter}`}
-                </span>
-              </div>
-              <ChevronDown
-                className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                  isDropdownOpen ? 'rotate-180 text-red-400' : ''
-                }`}
-              />
-            </button>
-
-            {isDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDonorGroupFilter('ALL');
-                    setIsDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                    donorGroupFilter === 'ALL'
-                      ? 'bg-red-500/10 text-red-300 border border-red-500/20'
-                      : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                  }`}
-                >
-                  <span>All Groups</span>
-                  {donorGroupFilter === 'ALL' && <Check className="w-3.5 h-3.5 text-red-400" />}
-                </button>
-                <div className="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800">
-                  {bloodGroups.map((bg) => (
-                    <button
-                      key={bg}
-                      type="button"
-                      onClick={() => {
-                        setDonorGroupFilter(bg);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`text-left px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                        donorGroupFilter === bg
-                          ? 'bg-red-500/10 text-red-300 border border-red-500/20 font-bold'
-                          : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                      }`}
-                    >
-                      <span>{bg}</span>
-                      {donorGroupFilter === bg && (
-                        <Check className="w-3 h-3 text-red-400" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <CustomDropdown
+            value={donorGroupFilter}
+            onChange={setDonorGroupFilter}
+            options={[
+              { value: 'ALL', label: 'All Blood Groups' },
+              ...bloodGroups.map((bg) => ({ value: bg, label: bg })),
+            ]}
+            placeholder="All Blood Groups"
+            accentColor="red"
+            gridCols={2}
+            icon={Droplet}
+            rounded="rounded-md"
+            renderValue={() => (
+              <span className="truncate">
+                {donorGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${donorGroupFilter}`}
+              </span>
             )}
-          </div>
+            className="w-full md:w-56"
+          />
         </div>
 
         {/* Active Filters Summary Tray */}

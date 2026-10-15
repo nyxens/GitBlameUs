@@ -25,6 +25,7 @@ import {
   Calendar,
   CheckCircle2,
 } from 'lucide-react';
+import { CustomDropdown } from '@ui';
 import { getHistory } from '../../services/historyService.js';
 import { getRequisitions } from '../../services/hospitalService.js';
 import { getAllGiverRequests } from '../../services/giverService.js';
@@ -340,15 +341,19 @@ export const HistoryPage = () => {
           </span>
           <div className="flex items-center gap-1.5 ml-2">
             <span className="text-neutral-500">Per page:</span>
-            <select
+            <CustomDropdown
               value={pageSize}
-              onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="bg-neutral-900 text-white border border-neutral-800 rounded-md px-2 py-1 text-xs focus:outline-none focus:border-amber-500 cursor-pointer"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
+              onChange={(val) => onPageSizeChange(Number(val))}
+              options={[
+                { value: 10, label: '10' },
+                { value: 25, label: '25' },
+                { value: 50, label: '50' },
+              ]}
+              accentColor="amber"
+              size="sm"
+              rounded="rounded-md"
+              className="w-20"
+            />
           </div>
         </div>
 
@@ -559,171 +564,50 @@ export const HistoryPage = () => {
             </div>
 
             {/* Custom Movement Filter Dropdown */}
-            <div className="relative w-full md:w-56" ref={invMovementRef}>
-              <button
-                type="button"
-                onClick={() => setIsInvMovementOpen(!isInvMovementOpen)}
-                className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                  isInvMovementOpen
-                    ? 'bg-neutral-900 border-amber-500 text-white'
-                    : invMovementFilter !== 'ALL'
-                    ? 'bg-neutral-900 border-amber-500/50 text-amber-300 hover:border-amber-500'
-                    : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Layers
-                    className={`w-4 h-4 ${
-                      invMovementFilter !== 'ALL' ? 'text-amber-400' : 'text-neutral-500'
-                    }`}
-                  />
-                  <span className="truncate">
-                    {invMovementFilter === 'ALL'
-                      ? 'All Movements'
-                      : invMovementFilter === 'DONATION_INTAKE'
-                      ? 'Inputs (Intakes)'
-                      : 'Outputs (Allotments)'}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                    isInvMovementOpen ? 'rotate-180 text-amber-400' : ''
-                  }`}
-                />
-              </button>
-
-              {isInvMovementOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInvMovementFilter('ALL');
-                      setIsInvMovementOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      invMovementFilter === 'ALL'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span>All Movements</span>
-                    {invMovementFilter === 'ALL' && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </button>
-
-                  <div className="my-1 border-t border-neutral-800" />
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInvMovementFilter('DONATION_INTAKE');
-                      setIsInvMovementOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      invMovementFilter === 'DONATION_INTAKE'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Inputs (Intakes)</span>
-                    </span>
-                    {invMovementFilter === 'DONATION_INTAKE' && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInvMovementFilter('BLOOD_ALLOTMENT');
-                      setIsInvMovementOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      invMovementFilter === 'BLOOD_ALLOTMENT'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <ArrowUpRight className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Outputs (Allotments)</span>
-                    </span>
-                    {invMovementFilter === 'BLOOD_ALLOTMENT' && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </button>
-                </div>
+            <CustomDropdown
+              value={invMovementFilter}
+              onChange={setInvMovementFilter}
+              options={[
+                { value: 'ALL', label: 'All Movements' },
+                { value: 'DONATION_INTAKE', label: 'Inputs (Intakes)', icon: ArrowDownLeft },
+                { value: 'BLOOD_ALLOTMENT', label: 'Outputs (Allotments)', icon: ArrowUpRight },
+              ]}
+              placeholder="All Movements"
+              accentColor="amber"
+              icon={Layers}
+              rounded="rounded-md"
+              renderValue={() => (
+                <span className="truncate">
+                  {invMovementFilter === 'ALL'
+                    ? 'All Movements'
+                    : invMovementFilter === 'DONATION_INTAKE'
+                    ? 'Inputs (Intakes)'
+                    : 'Outputs (Allotments)'}
+                </span>
               )}
-            </div>
+              className="w-full md:w-56"
+            />
 
             {/* Custom Blood Group Dropdown */}
-            <div className="relative w-full md:w-56" ref={invGroupRef}>
-              <button
-                type="button"
-                onClick={() => setIsInvGroupOpen(!isInvGroupOpen)}
-                className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                  isInvGroupOpen
-                    ? 'bg-neutral-900 border-amber-500 text-white'
-                    : invGroupFilter !== 'ALL'
-                    ? 'bg-neutral-900 border-amber-500/50 text-amber-300 hover:border-amber-500'
-                    : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Droplet
-                    className={`w-4 h-4 ${
-                      invGroupFilter !== 'ALL' ? 'text-amber-400 fill-amber-400/20' : 'text-neutral-500'
-                    }`}
-                  />
-                  <span className="truncate">
-                    {invGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${invGroupFilter}`}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                    isInvGroupOpen ? 'rotate-180 text-amber-400' : ''
-                  }`}
-                />
-              </button>
-
-              {isInvGroupOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInvGroupFilter('ALL');
-                      setIsInvGroupOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      invGroupFilter === 'ALL'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span>All Groups</span>
-                    {invGroupFilter === 'ALL' && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </button>
-
-                  <div className="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800">
-                    {BLOOD_GROUPS.map((bg) => (
-                      <button
-                        key={bg}
-                        type="button"
-                        onClick={() => {
-                          setInvGroupFilter(bg);
-                          setIsInvGroupOpen(false);
-                        }}
-                        className={`text-left px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                          invGroupFilter === bg
-                            ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold'
-                            : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                        }`}
-                      >
-                        <span>{bg}</span>
-                        {invGroupFilter === bg && <Check className="w-3 h-3 text-amber-400" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <CustomDropdown
+              value={invGroupFilter}
+              onChange={setInvGroupFilter}
+              options={[
+                { value: 'ALL', label: 'All Blood Groups' },
+                ...BLOOD_GROUPS.map((bg) => ({ value: bg, label: bg })),
+              ]}
+              placeholder="All Blood Groups"
+              accentColor="amber"
+              gridCols={2}
+              icon={Droplet}
+              rounded="rounded-md"
+              renderValue={() => (
+                <span className="truncate">
+                  {invGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${invGroupFilter}`}
+                </span>
               )}
-            </div>
+              className="w-full md:w-56"
+            />
 
             {/* Sort Toggle Button */}
             <button
@@ -919,173 +803,50 @@ export const HistoryPage = () => {
             </div>
 
             {/* Custom Request Type Filter Dropdown (Donor vs Recipient) */}
-            <div className="relative w-full md:w-56" ref={reqTypeRef}>
-              <button
-                type="button"
-                onClick={() => setIsReqTypeOpen(!isReqTypeOpen)}
-                className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                  isReqTypeOpen
-                    ? 'bg-neutral-900 border-amber-500 text-white'
-                    : reqTypeFilter !== 'ALL'
-                    ? 'bg-neutral-900 border-amber-500/50 text-amber-300 hover:border-amber-500'
-                    : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Boxes
-                    className={`w-4 h-4 ${
-                      reqTypeFilter !== 'ALL' ? 'text-amber-400' : 'text-neutral-500'
-                    }`}
-                  />
-                  <span className="truncate">
-                    {reqTypeFilter === 'ALL'
-                      ? 'All Request Types'
-                      : reqTypeFilter === 'DONOR_REQUEST'
-                      ? 'Donor Requests'
-                      : 'Recipient Requests'}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                    isReqTypeOpen ? 'rotate-180 text-amber-400' : ''
-                  }`}
-                />
-              </button>
-
-              {isReqTypeOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReqTypeFilter('ALL');
-                      setIsReqTypeOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      reqTypeFilter === 'ALL'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span>All Request Types</span>
-                    {reqTypeFilter === 'ALL' && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </button>
-
-                  <div className="my-1 border-t border-neutral-800" />
-
-                  {/* Donor Request Option */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReqTypeFilter('DONOR_REQUEST');
-                      setIsReqTypeOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      reqTypeFilter === 'DONOR_REQUEST'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <HeartHandshake className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Donor Requests</span>
-                    </span>
-                    {reqTypeFilter === 'DONOR_REQUEST' && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </button>
-
-                  {/* Recipient Request Option */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReqTypeFilter('RECIPIENT_REQUISITION');
-                      setIsReqTypeOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      reqTypeFilter === 'RECIPIENT_REQUISITION'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <User className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Recipient Requests</span>
-                    </span>
-                    {reqTypeFilter === 'RECIPIENT_REQUISITION' && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </button>
-                </div>
+            <CustomDropdown
+              value={reqTypeFilter}
+              onChange={setReqTypeFilter}
+              options={[
+                { value: 'ALL', label: 'All Request Types' },
+                { value: 'DONOR_REQUEST', label: 'Donor Requests', icon: HeartHandshake },
+                { value: 'RECIPIENT_REQUISITION', label: 'Recipient Requests', icon: User },
+              ]}
+              placeholder="All Request Types"
+              accentColor="amber"
+              icon={Boxes}
+              rounded="rounded-md"
+              renderValue={() => (
+                <span className="truncate">
+                  {reqTypeFilter === 'ALL'
+                    ? 'All Request Types'
+                    : reqTypeFilter === 'DONOR_REQUEST'
+                    ? 'Donor Requests'
+                    : 'Recipient Requests'}
+                </span>
               )}
-            </div>
+              className="w-full md:w-56"
+            />
 
             {/* Custom Blood Group Dropdown */}
-            <div className="relative w-full md:w-56" ref={reqGroupRef}>
-              <button
-                type="button"
-                onClick={() => setIsReqGroupOpen(!isReqGroupOpen)}
-                className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                  isReqGroupOpen
-                    ? 'bg-neutral-900 border-amber-500 text-white'
-                    : reqGroupFilter !== 'ALL'
-                    ? 'bg-neutral-900 border-amber-500/50 text-amber-300 hover:border-amber-500'
-                    : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Droplet
-                    className={`w-4 h-4 ${
-                      reqGroupFilter !== 'ALL' ? 'text-amber-400 fill-amber-400/20' : 'text-neutral-500'
-                    }`}
-                  />
-                  <span className="truncate">
-                    {reqGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${reqGroupFilter}`}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                    isReqGroupOpen ? 'rotate-180 text-amber-400' : ''
-                  }`}
-                />
-              </button>
-
-              {isReqGroupOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReqGroupFilter('ALL');
-                      setIsReqGroupOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      reqGroupFilter === 'ALL'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span>All Groups</span>
-                    {reqGroupFilter === 'ALL' && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </button>
-
-                  <div className="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800">
-                    {BLOOD_GROUPS.map((bg) => (
-                      <button
-                        key={bg}
-                        type="button"
-                        onClick={() => {
-                          setReqGroupFilter(bg);
-                          setIsReqGroupOpen(false);
-                        }}
-                        className={`text-left px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                          reqGroupFilter === bg
-                            ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold'
-                            : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                        }`}
-                      >
-                        <span>{bg}</span>
-                        {reqGroupFilter === bg && <Check className="w-3 h-3 text-amber-400" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <CustomDropdown
+              value={reqGroupFilter}
+              onChange={setReqGroupFilter}
+              options={[
+                { value: 'ALL', label: 'All Blood Groups' },
+                ...BLOOD_GROUPS.map((bg) => ({ value: bg, label: bg })),
+              ]}
+              placeholder="All Blood Groups"
+              accentColor="amber"
+              gridCols={2}
+              icon={Droplet}
+              rounded="rounded-md"
+              renderValue={() => (
+                <span className="truncate">
+                  {reqGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${reqGroupFilter}`}
+                </span>
               )}
-            </div>
+              className="w-full md:w-56"
+            />
 
             {/* Sort Toggle Button */}
             <button

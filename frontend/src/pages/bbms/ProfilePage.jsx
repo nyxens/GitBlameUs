@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Sparkles,
 } from 'lucide-react';
+import { CustomDropdown } from '@ui';
 import { updateUserProfile } from '../../services/authService.js';
 import { getMyGiverRequests } from '../../services/giverService.js';
 
@@ -489,33 +490,30 @@ export const ProfilePage = ({ user, onUpdateUser }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <div>
-                  <label className="block text-xs font-medium text-neutral-300 mb-1.5">Blood Group</label>
-                  <select
+                  <CustomDropdown
+                    label="Blood Group"
                     value={formData.bloodgroup}
-                    onChange={(e) => handleInputChange('bloodgroup', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-md text-xs text-white focus:outline-none focus:border-purple-500 cursor-pointer transition-colors"
-                  >
-                    {BLOOD_GROUPS.map((bg) => (
-                      <option key={bg} value={bg}>
-                        {bg}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => handleInputChange('bloodgroup', val)}
+                    options={BLOOD_GROUPS.map((bg) => ({ value: bg, label: bg }))}
+                    placeholder="Select group"
+                    accentColor="purple"
+                    gridCols={4}
+                    icon={Droplet}
+                    rounded="rounded-md"
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-neutral-300 mb-1.5">Biological Gender</label>
-                  <select
+                  <CustomDropdown
+                    label="Biological Gender"
                     value={formData.gender}
-                    onChange={(e) => handleInputChange('gender', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-md text-xs text-white focus:outline-none focus:border-purple-500 cursor-pointer transition-colors"
-                  >
-                    {GENDERS.map((g) => (
-                      <option key={g.value} value={g.value}>
-                        {g.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => handleInputChange('gender', val)}
+                    options={GENDERS}
+                    placeholder="Select gender"
+                    accentColor="purple"
+                    icon={User}
+                    rounded="rounded-md"
+                  />
                 </div>
 
                 <div>

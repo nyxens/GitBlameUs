@@ -24,7 +24,7 @@ import {
   Info,
   ArrowRight,
 } from 'lucide-react';
-import { SpotlightCard, AnimatedButton } from '@ui/index';
+import { SpotlightCard, AnimatedButton, CustomDropdown } from '@ui/index';
 
 /**
  * =======================================================================================
@@ -539,21 +539,19 @@ export const CitizenPortalPage = ({ user, onOpenFindBlood }) => {
 
                   {/* Blood Group (Autofilled & Editable) */}
                   <div>
-                    <label className="block text-neutral-300 font-semibold mb-1.5 flex items-center gap-1.5">
-                      <Droplet className="w-3.5 h-3.5 text-red-400" />
-                      <span>Blood Group</span>
-                    </label>
-                    <select
+                    <CustomDropdown
+                      label="Blood Group"
                       value={giverBloodGroup}
-                      onChange={(e) => setGiverBloodGroup(e.target.value)}
-                      className="w-full p-3 rounded-xl bg-neutral-900 border border-white/10 text-white font-mono focus:outline-none focus:border-red-500 transition-colors"
-                    >
-                      {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
-                        <option key={bg} value={bg}>
-                          {bg}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setGiverBloodGroup}
+                      options={['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => ({
+                        value: bg,
+                        label: bg,
+                      }))}
+                      accentColor="red"
+                      gridCols={4}
+                      icon={Droplet}
+                      rounded="rounded-xl"
+                    />
                     <p className="text-[10px] text-neutral-500 mt-1">Stored in your certified health record.</p>
                   </div>
 
@@ -972,16 +970,19 @@ export const CitizenPortalPage = ({ user, onOpenFindBlood }) => {
             {!appointment.booked ? (
               <form onSubmit={handleBookAppointment} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-neutral-300 font-medium mb-1">Blood Center Location</label>
-                  <select
+                  <CustomDropdown
+                    label="Blood Center Location"
                     value={appointment.center}
-                    onChange={(e) => setAppointment({ ...appointment, center: e.target.value })}
-                    className="w-full p-3 rounded-xl bg-neutral-900 border border-white/10 text-white focus:outline-none focus:border-red-500"
-                  >
-                    <option value="New York Central Blood Vault">New York Central Blood Vault</option>
-                    <option value="Brooklyn Community Drive">Brooklyn Community Drive</option>
-                    <option value="Chicago General Reserve">Chicago General Reserve</option>
-                  </select>
+                    onChange={(val) => setAppointment({ ...appointment, center: val })}
+                    options={[
+                      { value: 'New York Central Blood Vault', label: 'New York Central Blood Vault' },
+                      { value: 'Brooklyn Community Drive', label: 'Brooklyn Community Drive' },
+                      { value: 'Chicago General Reserve', label: 'Chicago General Reserve' },
+                    ]}
+                    accentColor="red"
+                    icon={Building2}
+                    rounded="rounded-xl"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -997,17 +998,20 @@ export const CitizenPortalPage = ({ user, onOpenFindBlood }) => {
                   </div>
 
                   <div>
-                    <label className="block text-neutral-300 font-medium mb-1">Time Slot</label>
-                    <select
+                    <CustomDropdown
+                      label="Time Slot"
                       value={appointment.slot}
-                      onChange={(e) => setAppointment({ ...appointment, slot: e.target.value })}
-                      className="w-full p-3 rounded-xl bg-neutral-900 border border-white/10 text-white focus:outline-none focus:border-red-500"
-                    >
-                      <option value="09:00 AM">09:00 AM</option>
-                      <option value="10:00 AM">10:00 AM</option>
-                      <option value="11:30 AM">11:30 AM</option>
-                      <option value="02:00 PM">02:00 PM</option>
-                    </select>
+                      onChange={(val) => setAppointment({ ...appointment, slot: val })}
+                      options={[
+                        { value: '09:00 AM', label: '09:00 AM' },
+                        { value: '10:00 AM', label: '10:00 AM' },
+                        { value: '11:30 AM', label: '11:30 AM' },
+                        { value: '02:00 PM', label: '02:00 PM' },
+                      ]}
+                      accentColor="red"
+                      icon={Clock}
+                      rounded="rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -1071,18 +1075,19 @@ export const CitizenPortalPage = ({ user, onOpenFindBlood }) => {
                 </div>
 
                 <div>
-                  <label className="block text-neutral-300 font-medium mb-1">Required Blood Group</label>
-                  <select
+                  <CustomDropdown
+                    label="Required Blood Group"
                     value={bloodRequest.bloodGroup}
-                    onChange={(e) => setBloodRequest({ ...bloodRequest, bloodGroup: e.target.value })}
-                    className="w-full p-3 rounded-xl bg-neutral-900 border border-white/10 text-white focus:outline-none focus:border-red-500"
-                  >
-                    {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
-                      <option key={bg} value={bg}>
-                        {bg}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setBloodRequest({ ...bloodRequest, bloodGroup: val })}
+                    options={['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => ({
+                      value: bg,
+                      label: bg,
+                    }))}
+                    accentColor="red"
+                    gridCols={4}
+                    icon={Droplet}
+                    rounded="rounded-xl"
+                  />
                 </div>
               </div>
 

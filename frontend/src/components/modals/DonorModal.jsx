@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Calendar, MapPin, CheckCircle2, User, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { CustomDropdown } from '@ui';
 import { scheduleAppointment } from '../../services/donorService.js';
 
 export const DonorModal = ({ isOpen, onClose }) => {
@@ -137,20 +138,21 @@ export const DonorModal = ({ isOpen, onClose }) => {
                 {/* Preferred Location & Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-neutral-400 mb-1">Blood Center Location</label>
-                    <div className="relative">
-                      <MapPin className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
-                      <select
-                        value={formData.city}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full pl-9 pr-3 py-2 rounded-lg bg-neutral-900 border border-white/10 text-sm text-white focus:outline-none focus:border-red-500 appearance-none"
-                      >
-                        <option value="New York Central Hub">New York Central Hub</option>
-                        <option value="Chicago General Vault">Chicago General Vault</option>
-                        <option value="Los Angeles Metro Bank">Los Angeles Metro Bank</option>
-                        <option value="Houston Life Center">Houston Life Center</option>
-                      </select>
-                    </div>
+                    <CustomDropdown
+                      label="Blood Center Location"
+                      value={formData.city}
+                      onChange={(val) => setFormData({ ...formData, city: val })}
+                      options={[
+                        { value: 'New York Central Hub', label: 'New York Central Hub' },
+                        { value: 'Chicago General Vault', label: 'Chicago General Vault' },
+                        { value: 'Los Angeles Metro Bank', label: 'Los Angeles Metro Bank' },
+                        { value: 'Houston Life Center', label: 'Houston Life Center' },
+                      ]}
+                      placeholder="Select location"
+                      accentColor="red"
+                      icon={MapPin}
+                      rounded="rounded-lg"
+                    />
                   </div>
 
                   <div>

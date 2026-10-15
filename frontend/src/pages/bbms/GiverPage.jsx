@@ -27,6 +27,7 @@ import {
   Heart,
   Trash2,
 } from 'lucide-react';
+import { CustomDropdown } from '@ui';
 import {
   getDonorProfile,
   getActiveRequest,
@@ -636,15 +637,17 @@ export const GiverPage = ({ user }) => {
 
           {/* Blood Group */}
           <div>
-            <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">Blood Group</label>
-            <div className="relative">
-              <select value={formData.bloodgroup} onChange={e => handleFormChange('bloodgroup', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500/40 appearance-none cursor-pointer">
-                <option value="" className="bg-neutral-900">Select blood group</option>
-                {BLOOD_GROUPS.map(bg => <option key={bg} value={bg} className="bg-neutral-900">{bg}</option>)}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-neutral-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            <CustomDropdown
+              label="Blood Group"
+              value={formData.bloodgroup}
+              onChange={(val) => handleFormChange('bloodgroup', val)}
+              options={BLOOD_GROUPS.map((bg) => ({ value: bg, label: bg }))}
+              placeholder="Select blood group"
+              accentColor="purple"
+              gridCols={4}
+              icon={Droplets}
+              rounded="rounded-xl"
+            />
           </div>
 
           {/* Search-by toggle: Pincode / Current Location */}
@@ -726,24 +729,24 @@ export const GiverPage = ({ user }) => {
           {/* Filters */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">Institution Type</label>
-              <div className="relative">
-                <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500/40 appearance-none cursor-pointer">
-                  {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-neutral-900">{o.label}</option>)}
-                </select>
-                <ChevronDown className="w-3 h-3 text-neutral-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <CustomDropdown
+                label="Institution Type"
+                value={typeFilter}
+                onChange={setTypeFilter}
+                options={TYPE_OPTIONS}
+                accentColor="purple"
+                rounded="rounded-xl"
+              />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-neutral-400 mb-1.5">{locationMode === 'location' ? 'Max Distance' : 'Distance Zone'}</label>
-              <div className="relative">
-                <select value={radiusFilter} onChange={e => setRadiusFilter(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-neutral-900/60 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500/40 appearance-none cursor-pointer">
-                  {RADIUS_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-neutral-900">{o.label}</option>)}
-                </select>
-                <ChevronDown className="w-3 h-3 text-neutral-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+              <CustomDropdown
+                label={locationMode === 'location' ? 'Max Distance' : 'Distance Zone'}
+                value={radiusFilter}
+                onChange={setRadiusFilter}
+                options={RADIUS_OPTIONS}
+                accentColor="purple"
+                rounded="rounded-xl"
+              />
             </div>
           </div>
 

@@ -4,3 +4,4 @@ export * from './DotMatrixBackground.jsx';
 export * from './LifeVaultLogoSVG.jsx';
 export * from './InteractiveHoverButton.jsx';
 export * from './MotionButton.jsx';
+export * from './CustomDropdown.jsx';

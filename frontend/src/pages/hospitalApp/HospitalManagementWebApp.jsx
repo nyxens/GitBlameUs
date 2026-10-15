@@ -10,6 +10,7 @@ import {
   Bell,
   X,
 } from 'lucide-react';
+import { CustomDropdown } from '@ui';
 import { getLiveStock, getInventoryItems } from '../../services/inventoryService.js';
 import { submitEmergencyRequisition, getRequisitions } from '../../services/hospitalService.js';
 
@@ -357,32 +358,35 @@ export const HospitalManagementWebApp = ({ user, onOpenLanding }) => {
 
               <form onSubmit={handleAddStock} className="space-y-4">
                 <div>
-                  <label className="block text-neutral-400 mb-1">Blood Group</label>
-                  <select
+                  <CustomDropdown
+                    label="Blood Group"
                     value={newUnit.type}
-                    onChange={(e) => setNewUnit({ ...newUnit, type: e.target.value })}
-                    className="w-full p-2.5 rounded-lg bg-neutral-900 border border-white/10 text-white"
-                  >
-                    {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
-                      <option key={bg} value={bg}>
-                        {bg}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setNewUnit({ ...newUnit, type: val })}
+                    options={['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => ({
+                      value: bg,
+                      label: bg,
+                    }))}
+                    accentColor="red"
+                    gridCols={4}
+                    icon={Droplet}
+                    rounded="rounded-lg"
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-neutral-400 mb-1">Component</label>
-                  <select
+                  <CustomDropdown
+                    label="Component"
                     value={newUnit.component}
-                    onChange={(e) => setNewUnit({ ...newUnit, component: e.target.value })}
-                    className="w-full p-2.5 rounded-lg bg-neutral-900 border border-white/10 text-white"
-                  >
-                    <option value="PRBC">Packed Red Blood Cells (PRBC)</option>
-                    <option value="Whole Blood">Whole Blood</option>
-                    <option value="FFP (Plasma)">Fresh Frozen Plasma (FFP)</option>
-                    <option value="Platelets">Platelet Concentrate</option>
-                  </select>
+                    onChange={(val) => setNewUnit({ ...newUnit, component: val })}
+                    options={[
+                      { value: 'PRBC', label: 'Packed Red Blood Cells (PRBC)' },
+                      { value: 'Whole Blood', label: 'Whole Blood' },
+                      { value: 'FFP (Plasma)', label: 'Fresh Frozen Plasma (FFP)' },
+                      { value: 'Platelets', label: 'Platelet Concentrate' },
+                    ]}
+                    accentColor="red"
+                    rounded="rounded-lg"
+                  />
                 </div>
 
                 <div>

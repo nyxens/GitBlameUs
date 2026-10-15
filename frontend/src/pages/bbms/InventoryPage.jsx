@@ -25,6 +25,7 @@ import {
   Activity,
   Layers,
 } from 'lucide-react';
+import { CustomDropdown } from '@ui';
 import {
   getInventoryItems,
   getInventoryStock,
@@ -645,149 +646,48 @@ export const InventoryPage = () => {
           </div>
 
           {/* Blood Type Dropdown */}
-          <div className="relative w-full md:w-52" ref={groupDropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
-              className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                isGroupDropdownOpen
-                  ? 'bg-neutral-900 border-purple-500 text-white'
-                  : selectedGroup !== 'ALL'
-                  ? 'bg-neutral-900 border-purple-500/50 text-purple-300 hover:border-purple-500'
-                  : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-              }`}
-            >
-              <div className="flex items-center gap-2 truncate">
-                <Droplet
-                  className={`w-4 h-4 ${
-                    selectedGroup !== 'ALL' ? 'text-purple-400 fill-purple-400/20' : 'text-neutral-500'
-                  }`}
-                />
-                <span className="truncate">
-                  {selectedGroup === 'ALL' ? 'All Blood Groups' : `Blood: ${selectedGroup}`}
-                </span>
-              </div>
-              <ChevronDown
-                className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                  isGroupDropdownOpen ? 'rotate-180 text-purple-400' : ''
-                }`}
-              />
-            </button>
-
-            {isGroupDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedGroup('ALL');
-                    setIsGroupDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                    selectedGroup === 'ALL'
-                      ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
-                      : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                  }`}
-                >
-                  <span>All Groups</span>
-                  {selectedGroup === 'ALL' && <Check className="w-3.5 h-3.5 text-purple-400" />}
-                </button>
-                <div className="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800">
-                  {BLOOD_GROUPS.map((bg) => (
-                    <button
-                      key={bg}
-                      type="button"
-                      onClick={() => {
-                        setSelectedGroup(bg);
-                        setIsGroupDropdownOpen(false);
-                      }}
-                      className={`px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                        selectedGroup === bg
-                          ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30 font-bold'
-                          : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                      }`}
-                    >
-                      <span>{bg}</span>
-                      {selectedGroup === bg && <Check className="w-3.5 h-3.5 text-purple-400" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <CustomDropdown
+            value={selectedGroup}
+            onChange={setSelectedGroup}
+            options={[
+              { value: 'ALL', label: 'All Blood Groups' },
+              ...BLOOD_GROUPS.map((bg) => ({ value: bg, label: bg })),
+            ]}
+            placeholder="All Blood Groups"
+            accentColor="purple"
+            gridCols={2}
+            icon={Droplet}
+            rounded="rounded-md"
+            renderValue={() => (
+              <span className="truncate">
+                {selectedGroup === 'ALL' ? 'All Blood Groups' : `Blood: ${selectedGroup}`}
+              </span>
             )}
-          </div>
+            className="w-full md:w-52"
+          />
 
           {/* Facility Filter Dropdown (When multiple facilities) */}
           {facilities.length > 1 && (
-            <div className="relative w-full md:w-56" ref={facilityDropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsFacilityDropdownOpen(!isFacilityDropdownOpen)}
-                className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                  isFacilityDropdownOpen
-                    ? 'bg-neutral-900 border-purple-500 text-white'
-                    : facilityId !== 'ALL'
-                    ? 'bg-neutral-900 border-purple-500/50 text-purple-300 hover:border-purple-500'
-                    : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Building2
-                    className={`w-4 h-4 ${
-                      facilityId !== 'ALL' ? 'text-purple-400' : 'text-neutral-500'
-                    }`}
-                  />
-                  <span className="truncate">
-                    {facilityId === 'ALL'
-                      ? 'All Facilities'
-                      : facilities.find((f) => f.facilityId === facilityId)?.facilityName || 'Facility'}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                    isFacilityDropdownOpen ? 'rotate-180 text-purple-400' : ''
-                  }`}
-                />
-              </button>
-
-              {isFacilityDropdownOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50 max-h-56 overflow-y-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFacilityId('ALL');
-                      setIsFacilityDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                      facilityId === 'ALL'
-                        ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    <span>All Facilities</span>
-                    {facilityId === 'ALL' && <Check className="w-3.5 h-3.5 text-purple-400" />}
-                  </button>
-                  {facilities.map((f) => (
-                    <button
-                      key={f.inventoryId}
-                      type="button"
-                      onClick={() => {
-                        setFacilityId(f.facilityId);
-                        setIsFacilityDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer truncate ${
-                        facilityId === f.facilityId
-                          ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20 font-bold'
-                          : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                      }`}
-                    >
-                      <span className="truncate">{f.facilityName}</span>
-                      {facilityId === f.facilityId && (
-                        <Check className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-                      )}
-                    </button>
-                  ))}
-                </div>
+            <CustomDropdown
+              value={facilityId}
+              onChange={setFacilityId}
+              options={[
+                { value: 'ALL', label: 'All Facilities' },
+                ...facilities.map((f) => ({ value: f.facilityId, label: f.facilityName })),
+              ]}
+              placeholder="All Facilities"
+              accentColor="purple"
+              icon={Building2}
+              rounded="rounded-md"
+              renderValue={() => (
+                <span className="truncate">
+                  {facilityId === 'ALL'
+                    ? 'All Facilities'
+                    : facilities.find((f) => f.facilityId === facilityId)?.facilityName || 'Facility'}
+                </span>
               )}
-            </div>
+              className="w-full md:w-56"
+            />
           )}
         </div>
 
@@ -1083,21 +983,20 @@ export const InventoryPage = () => {
             <div className="grid grid-cols-2 gap-3 text-xs">
               {facilities.length > 1 && (
                 <div className="col-span-2">
-                  <label className="block text-[11px] font-medium text-neutral-400 mb-1">
-                    Storage Facility <span className="text-purple-400">*</span>
-                  </label>
-                  <select
+                  <CustomDropdown
+                    label="Storage Facility"
                     required
                     value={bagForm.inventory_id}
-                    onChange={(e) => setBagForm((f) => ({ ...f, inventory_id: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-md bg-neutral-900 border border-neutral-800 text-xs text-white focus:outline-none focus:border-purple-500 transition-colors"
-                  >
-                    {facilities.map((f) => (
-                      <option key={f.inventoryId} value={f.inventoryId} className="bg-neutral-900">
-                        {f.facilityName} ({f.used}/{f.capacity} slots filled)
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setBagForm((f) => ({ ...f, inventory_id: val }))}
+                    options={facilities.map((f) => ({
+                      value: f.inventoryId,
+                      label: `${f.facilityName} (${f.used}/${f.capacity} slots filled)`,
+                    }))}
+                    placeholder="Select facility"
+                    accentColor="purple"
+                    icon={Building2}
+                    rounded="rounded-md"
+                  />
                 </div>
               )}
 
@@ -1112,21 +1011,18 @@ export const InventoryPage = () => {
               )}
 
               <div>
-                <label className="block text-[11px] font-medium text-neutral-400 mb-1">
-                  Blood Group <span className="text-purple-400">*</span>
-                </label>
-                <select
+                <CustomDropdown
+                  label="Blood Group"
                   required
                   value={bagForm.bloodgroup}
-                  onChange={(e) => setBagForm((f) => ({ ...f, bloodgroup: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-md bg-neutral-900 border border-neutral-800 text-xs text-white focus:outline-none focus:border-purple-500 font-mono transition-colors"
-                >
-                  {BLOOD_GROUPS.map((bg) => (
-                    <option key={bg} value={bg} className="bg-neutral-900">
-                      {bg}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setBagForm((f) => ({ ...f, bloodgroup: val }))}
+                  options={BLOOD_GROUPS.map((bg) => ({ value: bg, label: bg }))}
+                  placeholder="Select group"
+                  accentColor="purple"
+                  gridCols={4}
+                  icon={Droplet}
+                  rounded="rounded-md"
+                />
               </div>
 
               <div>

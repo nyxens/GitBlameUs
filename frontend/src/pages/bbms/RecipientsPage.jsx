@@ -28,6 +28,7 @@ import {
   User,
   MapPin,
 } from 'lucide-react';
+import { CustomDropdown } from '@ui';
 import {
   getRequisitions,
   acceptRequisition,
@@ -592,141 +593,46 @@ export const RecipientsPage = () => {
           </div>
 
           {/* Blood Type Dropdown */}
-          <div className="relative w-full md:w-56" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                isDropdownOpen
-                  ? 'bg-neutral-900 border-emerald-500 text-white'
-                  : bloodGroupFilter !== 'ALL'
-                  ? 'bg-neutral-900 border-emerald-500/50 text-emerald-300 hover:border-emerald-500'
-                  : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-              }`}
-            >
-              <div className="flex items-center gap-2 truncate">
-                <Droplet
-                  className={`w-4 h-4 ${
-                    bloodGroupFilter !== 'ALL' ? 'text-emerald-400 fill-emerald-400/20' : 'text-neutral-500'
-                  }`}
-                />
-                <span className="truncate">
-                  {bloodGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${bloodGroupFilter}`}
-                </span>
-              </div>
-              <ChevronDown
-                className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                  isDropdownOpen ? 'rotate-180 text-emerald-400' : ''
-                }`}
-              />
-            </button>
-
-            {isDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBloodGroupFilter('ALL');
-                    setIsDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                    bloodGroupFilter === 'ALL'
-                      ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
-                      : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                  }`}
-                >
-                  <span>All Groups</span>
-                  {bloodGroupFilter === 'ALL' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                </button>
-                <div className="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800">
-                  {bloodGroups.map((bg) => (
-                    <button
-                      key={bg}
-                      type="button"
-                      onClick={() => {
-                        setBloodGroupFilter(bg);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`text-left px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                        bloodGroupFilter === bg
-                          ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold'
-                          : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                      }`}
-                    >
-                      <span>{bg}</span>
-                      {bloodGroupFilter === bg && (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <CustomDropdown
+            value={bloodGroupFilter}
+            onChange={setBloodGroupFilter}
+            options={[
+              { value: 'ALL', label: 'All Blood Groups' },
+              ...bloodGroups.map((bg) => ({ value: bg, label: bg })),
+            ]}
+            placeholder="All Blood Groups"
+            accentColor="emerald"
+            gridCols={2}
+            icon={Droplet}
+            rounded="rounded-md"
+            renderValue={() => (
+              <span className="truncate">
+                {bloodGroupFilter === 'ALL' ? 'All Blood Groups' : `Blood: ${bloodGroupFilter}`}
+              </span>
             )}
-          </div>
+            className="w-full md:w-56"
+          />
 
           {/* Facility / Institution Dropdown */}
           {facilities.length > 0 && (
-            <div className="relative w-full md:w-64" ref={facilityDropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsFacilityDropdownOpen(!isFacilityDropdownOpen)}
-                className={`w-full px-3.5 py-2 rounded-md border flex items-center justify-between text-xs font-medium cursor-pointer transition-colors ${
-                  isFacilityDropdownOpen
-                    ? 'bg-neutral-900 border-emerald-500 text-white'
-                    : facilityFilter !== 'ALL'
-                    ? 'bg-neutral-900 border-emerald-500/50 text-emerald-300 hover:border-emerald-500'
-                    : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Building2 className="w-4 h-4 text-neutral-500 shrink-0" />
-                  <span className="truncate">
-                    {facilityFilter === 'ALL' ? 'All Institutions' : facilityFilter}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-neutral-400 transition-transform duration-200 shrink-0 ${
-                    isFacilityDropdownOpen ? 'rotate-180 text-emerald-400' : ''
-                  }`}
-                />
-              </button>
-
-              {isFacilityDropdownOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 bg-neutral-950 border border-neutral-800 rounded-md shadow-xl p-1.5 z-50 max-h-60 overflow-y-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFacilityFilter('ALL');
-                      setIsFacilityDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      facilityFilter === 'ALL'
-                        ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
-                        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                    }`}
-                  >
-                    All Institutions
-                  </button>
-                  {facilities.map((fac) => (
-                    <button
-                      key={fac}
-                      type="button"
-                      onClick={() => {
-                        setFacilityFilter(fac);
-                        setIsFacilityDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-colors truncate cursor-pointer ${
-                        facilityFilter === fac
-                          ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
-                          : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'
-                      }`}
-                    >
-                      {fac}
-                    </button>
-                  ))}
-                </div>
+            <CustomDropdown
+              value={facilityFilter}
+              onChange={setFacilityFilter}
+              options={[
+                { value: 'ALL', label: 'All Institutions' },
+                ...facilities.map((fac) => ({ value: fac, label: fac })),
+              ]}
+              placeholder="All Institutions"
+              accentColor="emerald"
+              icon={Building2}
+              rounded="rounded-md"
+              renderValue={() => (
+                <span className="truncate">
+                  {facilityFilter === 'ALL' ? 'All Institutions' : facilityFilter}
+                </span>
               )}
-            </div>
+              className="w-full md:w-64"
+            />
           )}
         </div>
 
@@ -1237,20 +1143,16 @@ export const RecipientsPage = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-neutral-300 block mb-1">
-                      Blood Group
-                    </label>
-                    <select
+                    <CustomDropdown
+                      label="Blood Group"
                       value={newOrder.bloodGroup}
-                      onChange={(e) => setNewOrder({ ...newOrder, bloodGroup: e.target.value })}
-                      className="w-full p-2.5 bg-neutral-900 border border-neutral-800 rounded-md text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors"
-                    >
-                      {bloodGroups.map((bg) => (
-                        <option key={bg} value={bg}>
-                          {bg}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => setNewOrder({ ...newOrder, bloodGroup: val })}
+                      options={bloodGroups.map((bg) => ({ value: bg, label: bg }))}
+                      accentColor="emerald"
+                      gridCols={4}
+                      icon={Droplet}
+                      rounded="rounded-md"
+                    />
                   </div>
 
                   <div>
