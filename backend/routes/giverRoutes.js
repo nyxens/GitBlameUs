@@ -7,6 +7,7 @@ import {
   fulfillDonationReceipt,
   completeDonation,
   cancelDonationRequest,
+  deleteDonationRequest,
   getRequestDetails,
   getMyRequests,
   getPendingAdminVerifications,
@@ -72,6 +73,12 @@ export function setupGiverRoutes(router) {
   router.put('/giver/request/:id/cancel',
     // authMiddleware,
     cancelDonationRequest
+  );
+
+  // ── Delete a donation request ────────────────────────────────────────────────
+  router.delete('/giver/request/:id',
+    optionalAuthMiddleware,
+    deleteDonationRequest
   );
 
   // ── Queries ──────────────────────────────────────────────────────────────────

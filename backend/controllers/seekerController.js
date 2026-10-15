@@ -222,6 +222,32 @@ export async function cancelSeekerRequest(req, res) {
 }
 
 /**
+ * Delete a seeker request
+ * DELETE /api/v1/seeker/request/:id
+ */
+export async function deleteSeekerRequest(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id || req.user?._id || req.user?.sub || req.body?.u_id || req.query?.u_id;
+
+    const result = await seekerService.deleteSeekerRequest(id, {
+      user_id: userId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Blood request deleted successfully.',
+      data: result,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
  * QUERY: Get single seeker request by ID
  * GET /api/v1/seeker/request/:id
  */
@@ -492,6 +518,7 @@ export class SeekerController {
   static acceptAndScheduleSeekerRequest = acceptAndScheduleSeekerRequest;
   static fulfillSeekerRequest = fulfillSeekerRequest;
   static cancelSeekerRequest = cancelSeekerRequest;
+  static deleteSeekerRequest = deleteSeekerRequest;
   static getRequestDetails = getRequestDetails;
   static getMyRequests = getMyRequests;
   static getActiveRequest = getActiveRequest;

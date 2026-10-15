@@ -17,6 +17,7 @@ import {
   Lock,
   Mail,
 } from 'lucide-react';
+import { UnifiedNotificationBell } from './UnifiedNotificationBell';
 
 export const isStaffOrAdmin = (role) => {
   if (!role) return false;
@@ -100,8 +101,11 @@ export const BBMSHeader = ({ activeSection, onSelectSection, onLogout, user }) =
         })}
       </div>
 
-      {/* Right side: Sign Out Button with Premium Hover Identity Card */}
+      {/* Right side: Unified Notifications & Sign Out Button */}
       <div className="flex items-center gap-3">
+        {/* Unified notification button with only bell icon */}
+        <UnifiedNotificationBell user={user} onSelectSection={onSelectSection} />
+
         <div
           className="relative"
           onMouseEnter={() => setShowUserTooltip(true)}

@@ -163,6 +163,7 @@ export const DonorsPage = () => {
           type: 'success',
           message: `Donation request for ${req.u_id?.name || 'Donor'} accepted. Donor scheduled for intake.`,
         });
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
         await loadData(false);
       } else {
         throw new Error(res?.error || 'Failed to accept request');

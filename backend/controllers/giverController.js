@@ -218,6 +218,32 @@ export async function cancelDonationRequest(req, res) {
 }
 
 /**
+ * Delete a donation request
+ * DELETE /api/v1/giver/request/:id
+ */
+export async function deleteDonationRequest(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id || req.user?._id || req.user?.sub || req.body?.u_id || req.query?.u_id;
+
+    const result = await giverService.deleteDonationRequest(id, {
+      user_id: userId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Donation request deleted successfully.',
+      data: result,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+/**
  * QUERY: Get single donation request by ID
  * GET /api/v1/giver/request/:id
  */
@@ -593,6 +619,7 @@ export class GiverController {
   static fulfillDonationReceipt = fulfillDonationReceipt;
   static completeDonation = completeDonation;
   static cancelDonationRequest = cancelDonationRequest;
+  static deleteDonationRequest = deleteDonationRequest;
   static getRequestDetails = getRequestDetails;
   static getMyRequests = getMyRequests;
   static getPendingAdminVerifications = getPendingAdminVerifications;

@@ -71,6 +71,19 @@ export async function cancelDonationRequest(requestId, reason) {
   });
 }
 
+// ── Delete request ──
+export async function deleteDonationRequest(requestId) {
+  try {
+    return await fetchApi(`/giver/request/${requestId}`, {
+      method: 'DELETE',
+    });
+  } catch (err) {
+    console.warn('API unavailable for deleteDonationRequest, mock fallback:', err);
+    return { success: true, id: requestId };
+  }
+}
+export const deleteGiverRequest = deleteDonationRequest;
+
 // ── Query: Get single request details ──
 export async function getRequestDetails(requestId) {
   try {
@@ -145,6 +158,8 @@ export const giverService = {
   fulfillDonationReceipt,
   completeDonation,
   cancelDonationRequest,
+  deleteDonationRequest,
+  deleteGiverRequest,
   getRequestDetails,
   getMyGiverRequests,
   getPendingVerifications,

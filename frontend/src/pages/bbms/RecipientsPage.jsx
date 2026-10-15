@@ -176,6 +176,7 @@ export const RecipientsPage = () => {
           type: 'success',
           message: `Requisition for ${req.patientName} accepted. Ready for inventory allocation.`,
         });
+        window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
         await loadData(false);
       } else {
         throw new Error(res?.error || 'Failed to accept requisition');

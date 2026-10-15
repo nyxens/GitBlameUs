@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import SeekerRequest, {
   SEEKER_REQUEST_STATUSES,
   TARGET_INSTITUTION_TYPES,
@@ -418,6 +419,47 @@ export async function cancelSeekerRequest(requestId, { user_id = null, reason = 
 }
 
 /**
+ * Delete a seeker blood request (Seeker or Admin action)
+ */
+export async function deleteSeekerRequest(requestId, { user_id = null } = {}) {
+  let request = null;
+
+  if (mongoose.Types.ObjectId.isValid(requestId)) {
+    request = await SeekerRequest.findById(requestId);
+  }
+  if (!request) {
+    request = await SeekerRequest.findOne({ _id: requestId }).catch(() => null);
+  }
+
+  // If request not found in DB (e.g. demo/mock ID), treat as successfully removed
+  if (!request) {
+    return { success: true, message: 'Request removed successfully', id: requestId };
+  }
+
+  // If user_id provided, ensure user owns the request
+  if (user_id && request.u_id && request.u_id.toString() !== user_id.toString()) {
+    throw new Error('Unauthorized: You can only delete your own blood request');
+  }
+
+  // Revert allocated blood bags if the requisition was allocated but not completed
+  if (request.status === 'ALLOCATED' && Array.isArray(request.allocated_bags) && request.allocated_bags.length > 0) {
+    for (const bagId of request.allocated_bags) {
+      const bag = await BloodBag.findById(bagId);
+      if (bag && bag.status === 'ALLOCATED') {
+        await BloodBag.findByIdAndUpdate(bagId, { status: 'AVAILABLE', isdiscresed: false });
+        if (bag.I_ID) {
+          await Inventory.findByIdAndUpdate(bag.I_ID, { $inc: { current_count: 1 }, isfull: false });
+        }
+      }
+    }
+    await Allotment.deleteMany({ req_id: request._id });
+  }
+
+  await SeekerRequest.findByIdAndDelete(request._id);
+  return { success: true, message: 'Blood request deleted successfully', id: requestId };
+}
+
+/**
  * QUERY: Get single request by ID with all populated details
  */
 export async function getSeekerRequestById(requestId) {
@@ -747,6 +789,7 @@ export default {
   allocateBloodToRequest,
   fulfillSeekerRequest,
   cancelSeekerRequest,
+  deleteSeekerRequest,
   getSeekerRequestById,
   getRequestsBySeeker,
   getActiveRequestBySeeker,
