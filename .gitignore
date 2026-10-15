@@ -5,6 +5,8 @@ node_modules/
 .claude/
 .codex/
 .impeccable/
+.gemini/
+.agents/
 
 # Production builds
 dist/
