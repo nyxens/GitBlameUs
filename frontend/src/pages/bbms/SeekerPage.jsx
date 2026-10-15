@@ -398,7 +398,6 @@ export const SeekerPage = ({ user }) => {
   const [institutions, setInstitutions] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [radiusFilter, setRadiusFilter] = useState('');
@@ -502,7 +501,6 @@ export const SeekerPage = ({ user }) => {
       return;
     }
     setError('');
-    setSuccessMsg('');
     let point = coords;
     if (useLocation) {
       try {
@@ -563,9 +561,6 @@ export const SeekerPage = ({ user }) => {
 
       const res = await applySeekerRequest(payload);
       if (res?.success) {
-        setSuccessMsg(
-          `Requisition dispatched to ${confirmTarget.name}! Awaiting medical verification.`
-        );
         setConfirmTarget(null);
 
         // Refresh active request and history
@@ -598,7 +593,6 @@ export const SeekerPage = ({ user }) => {
       const res = await cancelSeekerRequest(requestId, 'Cancelled by seeker.');
       if (res?.success) {
         setActiveRequest(null);
-        setSuccessMsg('Requisition cancelled. You can now submit a new blood request.');
         const userId = user?.id || user?._id || user?.sub;
         const myReqsRes = await getMySeekerRequests(userId);
         if (myReqsRes?.success && myReqsRes.data) setMyRequests(myReqsRes.data);
@@ -626,7 +620,6 @@ export const SeekerPage = ({ user }) => {
         if (activeRequest && (activeRequest._id === requestId || activeRequest.id === requestId)) {
           setActiveRequest(null);
         }
-        setSuccessMsg('Blood request history entry deleted.');
         setConfirmDeleteId(null);
         window.dispatchEvent(new CustomEvent('lifevault:requests-updated'));
       } else {
@@ -678,26 +671,6 @@ export const SeekerPage = ({ user }) => {
           </div>
         </div>
       </div>
-
-      {/* Success Banner */}
-      <AnimatePresence>
-        {successMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-sm flex items-center justify-between gap-3 shadow-lg"
-          >
-            <span>✅ {successMsg}</span>
-            <button
-              onClick={() => setSuccessMsg('')}
-              className="text-emerald-500 hover:text-white cursor-pointer shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Active Request Banner (Matching GiverPage) */}
       <AnimatePresence>
